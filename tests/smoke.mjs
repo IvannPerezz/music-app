@@ -43,13 +43,23 @@ await win.click('#account-btn'); await win.waitForTimeout(400); await shot('05-a
 await win.mouse.click(700, 400); await win.waitForTimeout(200);
 await win.click('#nav-library'); await win.waitForTimeout(900); await shot('06-library');
 await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('07-settings');
+// Custom CSS theme: "+" tile → editor → save; then back to the original BitChord theme.
+await win.click('.theme-add'); await win.waitForTimeout(300);
+await win.fill('.theme-editor textarea', ':root { --bg: #102030; --surface: #18304a; --accent: #3d9bff; --mica-rgb: 20, 40, 70; }');
+await win.fill('.theme-editor input', 'Prueba azul');
+await win.click('.theme-editor [data-a=preview]'); await win.waitForTimeout(400); await shot('08-theme-editor');
+await win.click('.theme-editor [data-a=ok]'); await win.waitForTimeout(400);
+const bgOf = () => win.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+if ((await bgOf()) !== '#102030') errors.push('El tema personalizado no se aplica: ' + await bgOf());
+await win.click('.theme-opt >> nth=0'); await win.waitForTimeout(300);
+if ((await bgOf()) !== '#0d0d0f') errors.push('No se vuelve al tema BitChord: ' + await bgOf());
 // Efecto Mica: section in Personalización, then the queue and player bar with Mica switched off.
 const micaRow = (label) => win.locator('.set-row', { hasText: label }).locator('.switch');
-await win.locator('h3.set-sub', { hasText: 'Efecto Mica' }).scrollIntoViewIfNeeded(); await win.waitForTimeout(400); await shot('08-mica');
+await win.locator('h3.set-sub', { hasText: 'Efecto Mica' }).scrollIntoViewIfNeeded(); await win.waitForTimeout(400); await shot('09-mica');
 await micaRow('Cola (barra lateral derecha)').click(); await micaRow('Controles de reproducción (abajo)').click(); await win.waitForTimeout(300);
 const off = await win.evaluate(() => ['queue', 'player', 'sidebar'].map((k) => document.body.classList.contains('no-mica-' + k)));
 if (off.join() !== 'true,true,false') errors.push('Los interruptores de Mica no se aplican: ' + off.join());
-await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('09-mica-off');
+await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('10-mica-off');
 
 await app.close();
 fs.rmSync(userData, { recursive: true, force: true });

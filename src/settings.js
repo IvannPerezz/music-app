@@ -64,7 +64,8 @@ export const DEFAULTS = {
   // Library
   localFolders: [],
   localWatch: true,
-  theme: 'default',
+  theme: 'default', // 'default' (BitChord) or the id of one of customThemes
+  customThemes: [], // [{ id, name, css }] made in Ajustes > Tema
   npLyricsHidden: false,
   homeHidden: [],
   ambient: true,
@@ -77,6 +78,7 @@ export const DEFAULTS = {
   micaSidebar: true,
   micaQueue: true,
   micaPlayer: true,
+  micaLyrics: true,
   micaTint: 50,
   micaBlur: 50,
   micaSaturation: 190,

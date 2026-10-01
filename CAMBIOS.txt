@@ -15,6 +15,22 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.8
+------------------------------------------------------------
+- Los botones de la vista de portada y letra (el de elegir la letra y el de mostrarla u
+  ocultarla) son ahora de cristal con efecto Mica. Se ajustan con los mismos controles de
+  Ajustes > Personalización > Efecto Mica, y tienen su propio interruptor ("Botones de la
+  letra") por si los prefieres como antes.
+- Temas: se han quitado los temas incluidos (OLED negro, Cherry Red, Purple Haze, Midnight
+  Blue, Forest y Sunset). El tema original de BitChord es ahora el único y el
+  predeterminado. Si usabas otro, BitChord vuelve al original.
+- Temas propios: en Ajustes > Tema, junto a BitChord, hay un recuadro con un "+". Al
+  pulsarlo se abre una ventana para escribir el CSS de tu tema. Parte de una plantilla con
+  todos los colores de la app explicados, y con "Vista previa" ves el resultado antes de
+  guardarlo. Puedes crear varios, y al pasar el ratón por uno tuyo aparecen los botones
+  para editarlo o eliminarlo.
+
+------------------------------------------------------------
 v0.6.7
 ------------------------------------------------------------
 - El fondo animado ahora solo se mueve mientras suena una canción. Al pausar se queda

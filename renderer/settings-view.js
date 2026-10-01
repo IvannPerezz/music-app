@@ -1,7 +1,7 @@
 // Settings page.
-import { bc, $, $$, icon, esc, api, toast, h, state, saveSettings, art, store } from './core.js';
+import { bc, $, $$, icon, esc, api, toast, h, state, saveSettings, art, store, confirmDialog } from './core.js';
 import { eqPanel } from './eq-panel.js';
-import { refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent } from './app.js';
+import { refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent, applyTheme, setThemeCss } from './app.js';
 import { colorPicker } from './color-picker.js';
 
 const QUALITY = [['low', 'Baja (~64 kbps)'], ['normal', 'Normal (~96 kbps)'], ['high', 'Alta (~160 kbps)'], ['max', 'Máxima disponible']];
@@ -298,16 +298,67 @@ function integrations() {
   );
 }
 
-const THEMES = [
-  // id, name, bg, surface, accent
-  ['default', 'BitChord', '#0d0d0f', '#1c1c1e', '#fa2d48'],
-  ['oled', 'OLED negro', '#000000', '#0b0b0c', '#fa2d48'],
-  ['cherry', 'Cherry Red', '#12070a', '#22100f', '#e8264a'],
-  ['purple', 'Purple Haze', '#0e0a16', '#1a1427', '#a970ff'],
-  ['ocean', 'Midnight Blue', '#08101a', '#111c2a', '#3d9bff'],
-  ['forest', 'Forest', '#08120d', '#112119', '#3ccf7a'],
-  ['sunset', 'Sunset', '#140c07', '#24170e', '#ff8a3d'],
-];
+const THEME_TEMPLATE = `/* Cambia los colores que quieras y pulsa «Vista previa» para verlo.
+   Puedes añadir cualquier otra regla CSS debajo. */
+:root {
+  --bg: #0d0d0f;             /* fondo de la app */
+  --surface: #1c1c1e;        /* tarjetas y filas */
+  --surface-2: #2c2c2e;
+  --text: #f2f2f7;           /* texto */
+  --muted: #8e8e93;          /* texto secundario */
+  --accent: #fa2d48;         /* con «Color de acento: El del tema» */
+  --accent-soft: rgba(250, 45, 72, .18);
+  --chrome: rgba(20, 20, 22, .78);
+  --chrome-solid: rgba(18, 18, 20, .97); /* paneles sin efecto Mica */
+  --popup: rgba(40, 40, 44, .97);
+  --mica-rgb: 36, 36, 42;    /* tinte del efecto Mica (R, G, B) */
+}
+`;
+
+/** Colours for a theme's preview tile, read from its CSS (falls back to BitChord's). */
+function themeColors(css = '') {
+  const v = (name, def) => (new RegExp(`--${name}\\s*:\\s*([^;}]+)`).exec(css)?.[1].trim()) || def;
+  return { bg: v('bg', '#0d0d0f'), surf: v('surface', '#1c1c1e'), acc: v('accent', '#fa2d48') };
+}
+
+/** Modal with a CSS editor. Resolves with { name, css } or null if cancelled. */
+function themeEditor(theme) {
+  return new Promise((resolve) => {
+    const m = h(`<div class="modal-back"><div class="modal theme-editor">
+      <h3>${theme ? 'Editar tema' : 'Nuevo tema'}</h3>
+      <p class="muted">Escribe el CSS de tu tema. Lo más fácil es cambiar los colores de la plantilla; para que se use tu <code>--accent</code>, elige «El del tema» en <b>Color de acento</b>.</p>
+      <input class="text" type="text" placeholder="Nombre del tema" spellcheck="false">
+      <textarea class="text" spellcheck="false"></textarea>
+      <div class="te-err"></div>
+      <div class="btn-row"><button class="btn ghost small" data-a="preview">Vista previa</button><button class="btn ghost small" data-a="no">Cancelar</button><button class="btn primary small" data-a="ok">Guardar y usar</button></div>
+    </div></div>`);
+    const name = m.querySelector('input'), code = m.querySelector('textarea'), err = m.querySelector('.te-err');
+    name.value = theme?.name || `Mi tema ${(state.settings.customThemes || []).length + 1}`;
+    code.value = theme?.css ?? THEME_TEMPLATE;
+    const check = () => {
+      // Count braces to catch the most common mistake (an unclosed block) before applying it.
+      const open = (code.value.match(/{/g) || []).length, close = (code.value.match(/}/g) || []).length;
+      err.textContent = open === close ? '' : `Revisa las llaves: hay ${open} «{» y ${close} «}».`;
+      return open === close;
+    };
+    const done = (v) => { m.remove(); document.removeEventListener('keydown', key, true); resolve(v); };
+    const cancel = () => { applyTheme(); done(null); };
+    const key = (e) => { if (e.key === 'Escape') { e.stopPropagation(); cancel(); } };
+    code.addEventListener('keydown', (e) => {
+      e.stopPropagation(); // keep the app's keyboard shortcuts out of the editor
+      if (e.key === 'Tab') { e.preventDefault(); code.setRangeText('  ', code.selectionStart, code.selectionEnd, 'end'); }
+    });
+    name.addEventListener('keydown', (e) => e.stopPropagation());
+    code.addEventListener('input', check);
+    m.querySelector('[data-a=preview]').onclick = () => { if (check()) setThemeCss(code.value); };
+    m.querySelector('[data-a=no]').onclick = cancel;
+    m.querySelector('[data-a=ok]').onclick = () => { if (check()) done({ name: name.value.trim() || 'Mi tema', css: code.value }); };
+    document.addEventListener('keydown', key, true);
+    document.body.append(m);
+    setTimeout(() => code.focus(), 0);
+  });
+}
+
 function themeCard() {
   const mode = state.settings.accentMode || (state.settings.dynamicAccent === false ? 'theme' : 'cover');
   const pickerRow = h(`<div class="cp-row"${mode === 'custom' ? '' : ' hidden'}><div class="set-text"><div class="set-label">Tu color</div><div class="set-desc">Arrastra en el cuadro para elegir saturación y brillo, en la barra de colores para el tono y en la de abajo para la transparencia. También puedes escribir el código (#RRGGBB o #RRGGBBAA).</div></div></div>`);
@@ -320,17 +371,45 @@ function themeCard() {
   const grid = h('<div class="theme-grid"></div>');
   const draw = () => {
     grid.innerHTML = '';
-    for (const [id, name, bg, surf, acc] of THEMES) {
-      const b = h(`<button class="theme-opt${(state.settings.theme || 'default') === id ? ' on' : ''}">
-        <div class="theme-prev" style="background:${bg}"><i></i><i></i><b style="background:${acc}"></b><u style="background:${surf}"></u></div>
-        <span>${esc(name)}</span></button>`);
-      b.onclick = async () => { await saveSettings({ theme: id }); draw(); };
-      grid.append(b);
-    }
+    const custom = state.settings.customThemes || [];
+    const current = custom.some((t) => t.id === state.settings.theme) ? state.settings.theme : 'default';
+    const tile = (id, name, css, editable) => {
+      const c = themeColors(css);
+      const el = h(`<div class="theme-opt${current === id ? ' on' : ''}" role="button" tabindex="0" title="${esc(name)}">
+        <div class="theme-prev" style="background:${esc(c.bg)}"><i></i><i></i><b style="background:${esc(c.acc)}"></b><u style="background:${esc(c.surf)}"></u></div>
+        <span>${esc(name)}</span>
+        ${editable ? `<div class="theme-acts"><button data-a="edit" title="Editar">${icon('edit')}</button><button data-a="del" title="Eliminar">${icon('trash')}</button></div>` : ''}</div>`);
+      el.onclick = async (e) => {
+        const act = e.target.closest('[data-a]')?.dataset.a;
+        if (act === 'edit') {
+          const r = await themeEditor(custom.find((x) => x.id === id));
+          if (r) await saveSettings({ customThemes: custom.map((x) => (x.id === id ? { ...x, ...r } : x)), theme: id });
+        } else if (act === 'del') {
+          if (!(await confirmDialog('Eliminar tema', `¿Eliminar «${name}»? No se puede deshacer.`, { ok: 'Eliminar', danger: true }))) return;
+          await saveSettings({ customThemes: custom.filter((x) => x.id !== id), theme: current === id ? 'default' : current });
+        } else {
+          await saveSettings({ theme: id });
+        }
+        draw();
+      };
+      el.onkeydown = (e) => { if (e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); el.click(); } };
+      grid.append(el);
+    };
+    tile('default', 'BitChord', '', false);
+    custom.forEach((t) => tile(t.id, t.name, t.css, true));
+    const add = h(`<button class="theme-opt theme-add" title="Crear un tema con tu propio CSS"><div class="theme-prev">${icon('add')}</div><span>Crear tema</span></button>`);
+    add.onclick = async () => {
+      const r = await themeEditor(null);
+      if (!r) return;
+      const id = 'c' + Date.now().toString(36);
+      await saveSettings({ customThemes: [...custom, { id, ...r }], theme: id });
+      draw();
+    };
+    grid.append(add);
   };
   draw();
   return card('theme', 'Tema', 'sparkle',
-    h('<div class="set-note">Colores de toda la app. <b>OLED negro</b> usa negro puro (#000) en fondos, barras y menús y apaga el brillo ambiental, así los píxeles de una pantalla OLED quedan apagados.</div>'),
+    h('<div class="set-note"><b>BitChord</b> es el tema original. Con <b>+</b> puedes crear el tuyo escribiendo CSS: parte de una plantilla con los colores de la app y ves los cambios con «Vista previa» antes de guardarlo. Pasa el ratón por un tema tuyo para editarlo o eliminarlo.</div>'),
     grid,
     row('Color de acento', 'El color de botones, interruptores y resaltados.', accentSel),
     pickerRow,
@@ -426,6 +505,7 @@ function sidebarCard() {
     row('Barra lateral izquierda', '', toggle('micaSidebar', () => mica())),
     row('Cola (barra lateral derecha)', '', toggle('micaQueue', () => mica())),
     row('Controles de reproducción (abajo)', '', toggle('micaPlayer', () => mica())),
+    row('Botones de la letra', 'En la vista de portada y letra: el de elegir la letra y el de mostrarla u ocultarla.', toggle('micaLyrics', () => mica())),
     row('Intensidad del tinte', 'Más alto = más color del tema y menos transparencia.', range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
     row('Desenfoque del cristal', 'Cuánto se difumina lo que hay detrás. 0 = cristal transparente.', range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
     row('Saturación', 'Lo vivos que se ven los colores a través del cristal.', range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),

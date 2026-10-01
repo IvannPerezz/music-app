@@ -1103,6 +1103,7 @@ export function applyMica() {
   b.toggle('no-mica-sidebar', st.micaSidebar === false);
   b.toggle('no-mica-queue', st.micaQueue === false);
   b.toggle('no-mica-player', st.micaPlayer === false);
+  b.toggle('no-mica-lyrics', st.micaLyrics === false);
   root.setProperty('--mica-op', String((st.micaTint ?? 50) / 100));
   root.setProperty('--mica-blur', `${st.micaBlur ?? 50}px`);
   root.setProperty('--mica-sat', String((st.micaSaturation ?? 190) / 100));
@@ -1362,10 +1363,16 @@ function setupSidebarMode() {
   applyMica();
 }
 export function applyTheme() {
-  const t = state.settings.theme || 'default';
-  if (t === 'default') delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = t;
+  delete document.documentElement.dataset.theme; // the old built-in themes are gone
+  const t = (state.settings.customThemes || []).find((x) => x.id === state.settings.theme);
+  setThemeCss(t ? t.css : '');
   applyAccent(player.current?.thumb);
+}
+/** The CSS of a custom theme goes in a <style> after styles.css, so its :root rules win. */
+export function setThemeCss(css) {
+  let el = document.getElementById('user-theme');
+  if (!el) { el = document.createElement('style'); el.id = 'user-theme'; document.head.append(el); }
+  el.textContent = css || '';
 }
 function applySidebarMode() {
   const mode = state.settings.sidebarMode || 'fixed';
@@ -1473,7 +1480,7 @@ document.addEventListener('settings', (e) => {
   const k = Object.keys(e.detail);
   if (k.includes('sidebar')) renderSidebar();
   if (k.includes('sidebarMode') || k.includes('sidebarOpen')) applySidebarMode();
-  if (k.includes('theme') || k.includes('dynamicAccent') || k.includes('accentMode') || k.includes('customAccent')) applyTheme();
+  if (k.includes('theme') || k.includes('customThemes') || k.includes('dynamicAccent') || k.includes('accentMode') || k.includes('customAccent')) applyTheme();
   if (k.some((x) => x.startsWith('ambient'))) applyAmbient();
   if (k.some((x) => x.startsWith('mica'))) applyMica();
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
