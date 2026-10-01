@@ -20,7 +20,7 @@ function coverHtml(p, fallback) {
 export function folderCard(f) {
   const c = h(`<div class="card playlist folder-card"><div class="art">${coverHtml(f, 'folder')}<span class="hover-play">${icon('play')}</span></div><div class="t ellipsis">${esc(f.name)}</div><div class="s ellipsis" title="${esc(f.path)}">${f.count} canciones</div></div>`);
   c.onclick = async (e) => {
-    if (e.target.closest('.hover-play')) { const d = await api('localFolderGet', f.id); if (d.tracks.length) player.playList(d.tracks, 0); return; }
+    if (e.target.closest('.hover-play')) { const d = await api('localFolderGet', f.id); if (d.tracks.length) player.playList(d.tracks, 0, { from: { kind: 'Carpeta', name: f.name } }); return; }
     go({ name: 'localfolder', id: f.id });
   };
   return c;
@@ -163,7 +163,7 @@ async function playlistsTab() {
     grid(state.account ? 'Solo en BitChord' : '', lists.map((p) => {
       const c = h(`<div class="card playlist"><div class="art">${coverHtml(p, 'queue')}<span class="hover-play">${icon('play')}</span></div><div class="t ellipsis">${esc(p.name)}</div><div class="s">${p.count} canciones${p.origin === 'spotify' ? ' · de Spotify' : ''}</div></div>`);
       c.onclick = async (e) => {
-        if (e.target.closest('.hover-play')) { const d = await api('playlistGet', p.id); if (d.tracks.length) player.playList(d.tracks, 0); return; }
+        if (e.target.closest('.hover-play')) { const d = await api('playlistGet', p.id); if (d.tracks.length) player.playList(d.tracks, 0, { from: { kind: 'Playlist', name: p.name } }); return; }
         go({ name: 'localplaylist', id: p.id });
       };
       return c;

@@ -45,6 +45,15 @@ const winFs = () => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWind
 let fsx = { ...(await fsState()), window: await winFs() };
 if (!fsx.fs || !fsx.inside || fsx.titlebar !== 'none' || !fsx.window) errors.push('Pantalla completa: ' + JSON.stringify(fsx));
 await shot('02b-fullscreen');
+const from = await win.evaluate(() => document.querySelector('#np-from').innerText.replace(/\s+/g, ' ').trim());
+if (!/desde|radio/i.test(from)) errors.push('Falta «Reproduciendo desde…»: ' + from);
+// The volume bar slides away after a moment and comes back near the left edge.
+const volShown = () => win.evaluate(() => document.body.classList.contains('fs-vol-show'));
+await win.mouse.move(700, 400); await win.waitForTimeout(2600);
+if (await volShown()) errors.push('La barra de volumen no se esconde');
+await shot('02c-fullscreen-vol-hidden');
+await win.mouse.move(40, 430); await win.waitForTimeout(500);
+if (!(await volShown())) errors.push('La barra de volumen no vuelve al acercar el ratón');
 await win.keyboard.press('Escape'); await win.waitForTimeout(1200);
 fsx = { ...(await fsState()), window: await winFs() };
 if (fsx.fs || fsx.inside || fsx.window || !(await win.$('#player .p-center'))) errors.push('Al salir de pantalla completa: ' + JSON.stringify(fsx));

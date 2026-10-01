@@ -948,3 +948,21 @@ body.fs #queue { top: 10px; bottom: 10px; }
 .vslider:hover .fill { background: var(--accent); }
 .vslider .knob { position: absolute; left: 3px; width: 10px; height: 10px; margin-bottom: -5px; border-radius: 50%; background: #fff; opacity: 0; transition: opacity .15s; }
 .vslider:hover .knob, .vslider.dragging .knob { opacity: 1; }
+
+/* Corner buttons of the cover and lyrics view, stacked: lyrics source, hide lyrics, and (full
+   screen) exit. Right-aligned, so the source pill grows to the left when it shows its name. */
+.np-corner { flex-direction: column; align-items: flex-end; gap: 10px; }
+.np-corner .np-lyr-toggle, #lyrics-source { width: auto; min-width: 36px; height: 36px; }
+
+/* Full screen: "Reproduciendo desde…" next to the minimise arrow. */
+#np-from { position: absolute; top: 16px; left: 74px; z-index: 3; display: flex; flex-direction: column; gap: 1px;
+  max-width: min(420px, 40vw); line-height: 1.25; text-shadow: 0 1px 8px rgba(0,0,0,.35); }
+#np-from[hidden] { display: none !important; }
+#np-from small { font-size: 11.5px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: rgba(255,255,255,.72); }
+#np-from b { font-size: 15px; font-weight: 700; color: #fff; }
+
+/* Full screen: the volume bar tucks away to the left and slides back in when the mouse gets
+   near the left edge or the volume changes. */
+body.fs #fs-vol { transform: translate(calc(-100% - 40px), -50%); opacity: 0;
+  transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .3s ease; }
+body.fs.fs-vol-show #fs-vol { transform: translate(0, -50%); opacity: 1; }

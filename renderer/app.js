@@ -173,7 +173,7 @@ export function card(item) {
       if (item.kind === 'artist') return go({ name: 'artist', id: item.id });
       try {
         const d = await api(item.kind === 'album' ? 'album' : 'playlist', item.id);
-        if (d.tracks.length) player.playList(d.tracks, 0);
+        if (d.tracks.length) player.playList(d.tracks, 0, { from: { kind: item.kind === 'album' ? 'Álbum' : 'Playlist', name: item.title } });
       } catch (err) { toast(err.message, true); }
       return;
     }
@@ -583,7 +583,8 @@ export const player = {
 
   get current() { return this.queue[this.index] || null; },
 
-  playList(list, start = 0, { shuffle = false } = {}) {
+  playList(list, start = 0, { shuffle = false, from = playContext() } = {}) {
+    this.from = from;
     let q = list.filter((t) => t && t.kind === 'track');
     let idx = Math.max(0, q.indexOf(list[start]));
     if (shuffle) { q = shuffleArr(q); idx = 0; this.setShuffle(true, false); }
@@ -593,6 +594,7 @@ export const player = {
   },
 
   async playRadio(track) {
+    this.from = { label: 'Radio basada en', name: track.title };
     this.queue = [{ ...track, _k: uid() }];
     this.extendWith = true;
     this.load(0);
@@ -761,7 +763,25 @@ export const player = {
 
 function persistQueue() {
   const start = Math.max(0, player.index - 20);
-  store.set('queue', { queue: player.queue.slice(start, player.index + 200).map(({ _k, ...t }) => t), index: player.index - start });
+  store.set('queue', { queue: player.queue.slice(start, player.index + 200).map(({ _k, ...t }) => t), index: player.index - start, from: player.from || null });
+}
+/** What a queue is being played from, read off the page it was started on ("Playlist" · name). */
+function playContext() {
+  const head = $('#content .detail-head');
+  if (head) return { kind: head.querySelector('.kind')?.textContent.trim() || '', name: head.querySelector('h1')?.textContent.trim() || '' };
+  const r = currentRoute();
+  if (r?.name === 'search') return { kind: 'Búsqueda', name: r.q ? `«${r.q}»` : '' };
+  if (r?.name === 'home') return { kind: '', name: 'Inicio' };
+  const title = $('#content .page-title')?.textContent.trim();
+  return title ? { kind: '', name: title } : null;
+}
+function updateFrom() {
+  const f = player.from, el = $('#np-from');
+  el.hidden = !f?.name;
+  if (!f?.name) return;
+  el.querySelector('small').textContent = f.label || (f.kind ? `Reproduciendo desde ${f.kind.toLowerCase()}` : 'Reproduciendo desde');
+  el.querySelector('b').textContent = f.name;
+  el.title = f.name;
 }
 
 // engine → UI
@@ -946,7 +966,19 @@ function setVolume(v, save = true) {
   $('#mute').classList.remove('on');
   syncFsVolume();
 }
+let fsVolTimer = null;
+/** Full screen: slide the volume bar in, and out again after a moment unless it's in use. */
+function peekFsVolume(ms = 1800) {
+  if (!isFs()) return;
+  document.body.classList.add('fs-vol-show');
+  clearTimeout(fsVolTimer);
+  fsVolTimer = setTimeout(() => {
+    if ($('#fs-vol').matches(':hover') || $('#fs-vol-bar').classList.contains('dragging')) return peekFsVolume(ms);
+    document.body.classList.remove('fs-vol-show');
+  }, ms);
+}
 function syncFsVolume() {
+  peekFsVolume();
   const v = muted ? 0 : store.get('volume', 0.8);
   $('#fs-vol-bar .fill').style.height = v * 100 + '%';
   $('#fs-vol-bar .knob').style.bottom = v * 100 + '%';
@@ -974,6 +1006,7 @@ $('#mute').onclick = () => {
   });
   $('#fs-vol').addEventListener('wheel', (e) => { e.preventDefault(); setVolume(store.get('volume', 0.8) + (e.deltaY < 0 ? 0.05 : -0.05)); });
   $('#fs-mute').onclick = () => $('#mute').click();
+  $('#nowplaying').addEventListener('mousemove', (e) => { if (isFs() && e.clientX < 150) peekFsVolume(); });
 }
 
 // ------------------------------------------------------------------ full-screen mode
@@ -994,11 +1027,13 @@ function applyFullscreen(on) {
   $('#btn-fs').title = on ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa (F11)';
   $('#btn-fs').classList.toggle('on', on);
   if (on && !npOpen()) openNowPlaying();
+  if (on) peekFsVolume(2500); else document.body.classList.remove('fs-vol-show');
 }
 
 // ------------------------------------------------------------------ now playing / theming
 function updateNowPlaying() {
   const t = player.current;
+  updateFrom();
   $('#p-title').textContent = t ? t.title : 'Nada sonando';
   $('#p-artist').innerHTML = t ? (t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ') : 'Busca algo para empezar';
   $('#p-art').src = art(t?.thumb);
@@ -1187,7 +1222,7 @@ function applyLyricsHidden() {
   const off = !!state.settings.npLyricsHidden;
   $('#nowplaying').classList.toggle('no-lyrics', off);
   const b = $('#np-lyrics-toggle');
-  b.innerHTML = icon(off ? 'lyrics' : 'image');
+  b.innerHTML = icon(off ? 'subtitles' : 'subtitlesOff');
   b.title = off ? 'Mostrar la letra' : 'Ocultar la letra (solo portada)';
 }
 function closeNowPlaying() {
@@ -1656,6 +1691,7 @@ async function init() {
   if (state.settings.resumeOnStart !== false && saved?.queue?.length) {
     player.queue = saved.queue.map((t) => ({ ...t, _k: uid() }));
     player.index = Math.min(Math.max(0, saved.index || 0), player.queue.length - 1);
+    player.from = saved.from || null;
     player.extendWith = true;
     updateNowPlaying();
     loadLyrics(player.current);

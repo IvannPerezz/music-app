@@ -15,6 +15,21 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.10
+------------------------------------------------------------
+- Pantalla completa: arriba a la izquierda, junto a la flecha, se ve de dónde sale lo que
+  suena ("Reproduciendo desde playlist" y su nombre, el álbum, el artista, la carpeta, la
+  búsqueda, Inicio... o "Radio basada en" y la canción). Se recuerda al cerrar BitChord.
+- Pantalla completa: la barra de volumen se esconde hacia la izquierda con una animación
+  y vuelve a aparecer al acercar el ratón al borde izquierdo o al cambiar el volumen (con
+  la rueda o con las flechas del teclado).
+- Los botones de la esquina de la vista de portada y letra van ahora apilados, de arriba
+  a abajo: cambiar la fuente de la letra, mostrar u ocultar la letra y, en pantalla
+  completa, salir de pantalla completa.
+- Nuevo icono para el botón de mostrar u ocultar la letra (un recuadro de subtítulos,
+  tachado cuando sirve para ocultarla).
+
+------------------------------------------------------------
 v0.6.9
 ------------------------------------------------------------
 - Modo pantalla completa: nuevo botón abajo a la derecha (o la tecla F11). Abre la vista
