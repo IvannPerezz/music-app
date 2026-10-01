@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.7
+------------------------------------------------------------
+- El fondo animado ahora solo se mueve mientras suena una canción. Al pausar se queda
+  quieto donde estaba y vuelve a moverse al darle a reproducir.
+- Nuevo control de saturación del fondo animado (Ajustes > Personalización > Fondo
+  animado): de 0 % (blanco y negro) a 250 % (colores muy vivos).
+- La vista de portada y letra ("pantalla completa") usa ahora también el fondo animado
+  en lugar del fondo desenfocado fijo, oscurecido para que la letra se siga leyendo bien.
+  Si desactivas el fondo animado, vuelve el fondo fijo de antes.
+
+------------------------------------------------------------
 v0.6.6
 ------------------------------------------------------------
 - Nuevo apartado "Efecto Mica" en Ajustes > Personalización. Puedes activar o quitar el

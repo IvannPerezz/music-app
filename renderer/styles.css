@@ -806,17 +806,27 @@ body.np-open #sb-toggle { display: none !important; }
 #ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity .8s ease; }
 body.ambient-on #ambient { opacity: var(--amb-int); }
 body.ambient-on #bg { display: none; }
-#ambient i {
+.amb-layer i {
   position: absolute; display: block; border-radius: 50%;
   width: calc(52vmax * var(--amb-size) / 100); height: calc(52vmax * var(--amb-size) / 100);
   filter: blur(var(--amb-blur)); will-change: transform;
   transition: background-color 1.6s ease;
   animation: amb-a var(--amb-dur) ease-in-out infinite alternate;
 }
-#ambient i:nth-child(1) { background-color: var(--amb1); left: -12vmax; top: -18vmax; }
-#ambient i:nth-child(2) { background-color: var(--amb2); right: -14vmax; top: 10vh; animation-name: amb-b; animation-duration: calc(var(--amb-dur) * 1.27); }
-#ambient i:nth-child(3) { background-color: var(--amb3); left: 22vw; bottom: -26vmax; animation-name: amb-c; animation-duration: calc(var(--amb-dur) * .83); }
-body.ambient-still #ambient i { animation-play-state: paused; }
+.amb-layer i:nth-child(1) { background-color: var(--amb1); left: -12vmax; top: -18vmax; }
+.amb-layer i:nth-child(2) { background-color: var(--amb2); right: -14vmax; top: 10vh; animation-name: amb-b; animation-duration: calc(var(--amb-dur) * 1.27); }
+.amb-layer i:nth-child(3) { background-color: var(--amb3); left: 22vw; bottom: -26vmax; animation-name: amb-c; animation-duration: calc(var(--amb-dur) * .83); }
+body.ambient-still .amb-layer i, body.ambient-paused .amb-layer i { animation-play-state: paused; }
+.amb-layer { filter: saturate(var(--amb-sat, 1)); }
+
+/* "Pantalla completa" (cover and lyrics view): the same animated background, full strength but
+   darkened like the old static blur so the lyrics stay readable. */
+.np-amb { position: absolute; inset: 0; pointer-events: none; overflow: hidden; display: none;
+  filter: saturate(calc(var(--amb-sat, 1) * 1.4)) brightness(.6); }
+body.ambient-on .np-amb { display: block; }
+body.ambient-on .np-bg { display: none; }
+/* The app's own layer is hidden behind the full-screen view meanwhile: don't animate it twice. */
+body.np-open #ambient i { animation-play-state: paused; }
 @keyframes amb-a { 0% { transform: translate(0, 0) scale(1); } 33% { transform: translate(28vw, 14vh) scale(1.15); } 66% { transform: translate(8vw, 32vh) scale(.9); } 100% { transform: translate(36vw, 4vh) scale(1.08); } }
 @keyframes amb-b { 0% { transform: translate(0, 0) scale(1.05); } 40% { transform: translate(-30vw, 22vh) scale(.88); } 100% { transform: translate(-12vw, -14vh) scale(1.18); } }
 @keyframes amb-c { 0% { transform: translate(0, 0) scale(.95); } 50% { transform: translate(-18vw, -30vh) scale(1.2); } 100% { transform: translate(24vw, -12vh) scale(1); } }
@@ -824,16 +834,16 @@ body.ambient-still #ambient i { animation-play-state: paused; }
 /* Ambient, "cover" style: several copies of the artwork, hugely blurred, slowly turning and
    drifting (like Apple Music's animated backgrounds). */
 :root { --amb-img: none; }
-body.ambient-cover #ambient i {
+body.ambient-cover .amb-layer i {
   background: var(--amb-img) center / cover no-repeat, var(--surface-2);
   width: calc(78vmax * var(--amb-size) / 100); height: calc(78vmax * var(--amb-size) / 100);
   border-radius: 38%;
   transition: background-image 1.4s ease;
   animation-name: ambc-a;
 }
-body.ambient-cover #ambient i:nth-child(1) { left: -22vmax; top: -30vmax; }
-body.ambient-cover #ambient i:nth-child(2) { right: -26vmax; top: 4vh; animation-name: ambc-b; }
-body.ambient-cover #ambient i:nth-child(3) { left: 14vw; bottom: -40vmax; animation-name: ambc-c; }
+body.ambient-cover .amb-layer i:nth-child(1) { left: -22vmax; top: -30vmax; }
+body.ambient-cover .amb-layer i:nth-child(2) { right: -26vmax; top: 4vh; animation-name: ambc-b; }
+body.ambient-cover .amb-layer i:nth-child(3) { left: 14vw; bottom: -40vmax; animation-name: ambc-c; }
 @keyframes ambc-a { 0% { transform: translate(0, 0) rotate(0deg) scale(1); } 50% { transform: translate(18vw, 12vh) rotate(160deg) scale(1.15); } 100% { transform: translate(30vw, -4vh) rotate(320deg) scale(1); } }
 @keyframes ambc-b { 0% { transform: translate(0, 0) rotate(40deg) scale(1.1); } 50% { transform: translate(-22vw, 18vh) rotate(-120deg) scale(.95); } 100% { transform: translate(-8vw, -10vh) rotate(-260deg) scale(1.15); } }
 @keyframes ambc-c { 0% { transform: translate(0, 0) rotate(90deg) scale(1); } 50% { transform: translate(-16vw, -24vh) rotate(250deg) scale(1.2); } 100% { transform: translate(20vw, -10vh) rotate(410deg) scale(1.05); } }

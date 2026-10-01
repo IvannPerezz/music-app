@@ -27,6 +27,13 @@ const shot = (n) => win.screenshot({ path: path.join(shots, `${n}.png`) });
 await shot('01-home');
 await win.click('.row >> nth=0'); await win.waitForTimeout(1200);
 await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('02-now-playing');
+// Animated background: shown in the full-screen view and only moving while a song plays.
+const amb = () => win.evaluate(() => ({ np: getComputedStyle(document.querySelector('.np-amb')).display, paused: document.body.classList.contains('ambient-paused') }));
+let a = await amb();
+if (a.np !== 'block' || a.paused) errors.push('Fondo animado en pantalla completa: ' + JSON.stringify(a));
+await win.click('#play'); await win.waitForTimeout(300);
+a = await amb(); if (!a.paused) errors.push('El fondo animado no se para al pausar');
+await win.click('#play'); await win.waitForTimeout(300);
 await win.click('#np-close'); await win.waitForTimeout(500);
 await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('03-queue');
 await win.click('#btn-queue'); await win.waitForTimeout(400);

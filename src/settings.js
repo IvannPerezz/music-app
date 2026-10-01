@@ -73,6 +73,7 @@ export const DEFAULTS = {
   ambientBlur: 110,
   ambientSpeed: 35,
   ambientSize: 100,
+  ambientSaturation: 100,
   micaSidebar: true,
   micaQueue: true,
   micaPlayer: true,

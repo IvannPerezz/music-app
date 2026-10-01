@@ -872,6 +872,7 @@ function setPlayIcon() {
   b.innerHTML = icon(engine.paused ? 'play' : 'pause');
   b.title = engine.paused ? 'Reproducir' : 'Pausa';
   $('#nowplaying').classList.toggle('paused', !!engine.paused);
+  document.body.classList.toggle('ambient-paused', !!engine.paused);
   if ('mediaSession' in navigator) navigator.mediaSession.playbackState = engine.paused ? 'paused' : 'playing';
 }
 function updateRepeatBtn() {
@@ -1090,6 +1091,7 @@ export function applyAmbient() {
   root.setProperty('--amb-int', String((st.ambientIntensity ?? 45) / 100));
   root.setProperty('--amb-blur', `${st.ambientBlur ?? 110}px`);
   root.setProperty('--amb-size', `${st.ambientSize ?? 100}`);
+  root.setProperty('--amb-sat', String((st.ambientSaturation ?? 100) / 100));
   const speed = st.ambientSpeed ?? 35;
   root.setProperty('--amb-dur', `${speed > 0 ? Math.round(90 - speed * 0.8) : 60}s`);
   document.body.classList.toggle('ambient-still', speed <= 0);

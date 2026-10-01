@@ -8,7 +8,7 @@
 </head>
 <body>
   <div id="bg"></div>
-  <div id="ambient"><i></i><i></i><i></i></div>
+  <div id="ambient" class="amb-layer"><i></i><i></i><i></i></div>
 
   <header id="titlebar">
     <div class="brand"><img src="logo.png" alt="" /><span>BitChord</span></div>
@@ -33,7 +33,7 @@
       <div id="nav-items"></div>
       <div class="sidebar-foot">
         <span>BitChord Desktop</span>
-        <span class="muted">v0.6.6 · port de BitChord</span>
+        <span class="muted">v0.6.7 · port de BitChord</span>
         <button class="text-btn" id="open-log">Ver registro</button>
       </div>
     </nav>
@@ -50,6 +50,7 @@
 
     <section id="nowplaying" hidden>
       <div class="np-bg"></div>
+      <div class="np-amb amb-layer"><i></i><i></i><i></i></div>
       <div class="np-inner">
         <div class="np-left">
           <img id="np-art" alt="" />
