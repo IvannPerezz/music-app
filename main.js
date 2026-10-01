@@ -120,6 +120,12 @@ function createWindow() {
   });
   if (bounds.maximized) win.maximize();
   win.once('ready-to-show', () => { win.show(); updateThumbar(); });
+  // Full-screen mode of the cover and lyrics view (button next to the volume, or F11).
+  // The window buttons (minimise/maximise/close) stay drawn over a full-screen window: squash
+  // the overlay while full screen and bring it back afterwards.
+  const overlay = (on) => { try { win.setTitleBarOverlay({ color: '#00000000', symbolColor: on ? '#f2f2f7' : '#00000000', height: on ? 44 : 0 }); } catch {} };
+  win.on('enter-full-screen', () => { overlay(false); send('fullscreen', true); });
+  win.on('leave-full-screen', () => { overlay(true); send('fullscreen', false); });
   win.webContents.on('before-input-event', (e, input) => {
     const k = input.key.toLowerCase();
     if (input.type === 'keyDown' && ((input.control && input.shift && k === 'i') || k === 'f12')) { win.webContents.toggleDevTools(); e.preventDefault(); }
@@ -134,7 +140,7 @@ function createWindow() {
     return { action: 'deny' };
   });
   const saveBounds = () => {
-    if (win.isMinimized()) return;
+    if (win.isMinimized() || win.isFullScreen()) return;
     settings.set({ windowBounds: { ...(win.isMaximized() ? settings.get('windowBounds') : win.getBounds()), maximized: win.isMaximized() } });
   };
   win.on('close', (e) => {
@@ -348,6 +354,7 @@ app.whenReady().then(async () => {
   handle('lastfm-logout', () => { settings.set({ lastfmSession: '', lastfmUser: '' }); return true; });
   // Misc
   ipcMain.handle('open-log', () => shell.showItemInFolder(logFile));
+  ipcMain.handle('set-fullscreen', (_e, on) => { win?.setFullScreen(!!on); return !!on; });
   ipcMain.handle('open-external', (_e, url) => { if (/^https?:/.test(url)) shell.openExternal(url); });
   ipcMain.on('set-progress', (_e, p) => win?.setProgressBar(p < 0 ? -1 : p, { mode: p < 0 ? 'none' : 'normal' }));
   ipcMain.handle('app-info', () => ({ version: VERSION, electron: process.versions.electron, chrome: process.versions.chrome, userData, platform: process.platform }));

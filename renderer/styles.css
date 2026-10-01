@@ -918,3 +918,33 @@ body.no-mica-lyrics #lyrics-source:hover, body.no-mica-lyrics .np-lyr-toggle:hov
 .theme-editor textarea.text { height: min(52vh, 460px); margin: 0 0 8px; font-size: 12.5px; line-height: 1.5; tab-size: 2; white-space: pre; }
 .theme-editor .text { margin-bottom: 10px; }
 .theme-editor .te-err { min-height: 18px; font-size: 12.5px; color: #ff8a80; margin-bottom: 8px; }
+
+/* ---------------------------------------------------------------- full-screen mode
+   The window goes full screen on the cover and lyrics view: no title bar (search, account,
+   window buttons) and no player bar; its controls move under the artwork (see setFullscreen
+   in app.js) and the volume becomes a vertical bar on the left. */
+.p-sep { width: 1px; height: 22px; margin: 0 4px; background: rgba(255,255,255,.14); flex: none; }
+body:not(.fs) .fs-only { display: none !important; }
+body.fs #titlebar, body.fs #player { display: none; }
+body.fs #layout { height: 100%; }
+body.fs #nowplaying .np-inner { padding-top: 40px; padding-bottom: 40px; }
+body.fs .np-close { top: 14px; }
+body.fs #nowplaying .np-corner { bottom: 22px; }
+body.fs #queue { top: 10px; bottom: 10px; }
+#np-fs-slot:empty { display: none; }
+#np-fs-slot { margin-top: 18px; }
+#np-fs-slot .p-center { width: 100%; gap: 6px; }
+#np-fs-slot .p-controls { width: 100%; justify-content: center; gap: 18px; }
+#np-fs-slot .p-seek { color: rgba(255,255,255,.75); }
+#np-fs-slot .p-seek span { width: 44px; }
+#np-fs-slot #fs-queue.on { color: var(--accent); }
+#fs-vol { position: absolute; left: 30px; top: 50%; transform: translateY(-50%); z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.85); }
+#fs-vol .icon-btn svg { width: 20px; height: 20px; }
+.vslider { position: relative; width: 16px; height: 180px; cursor: pointer; touch-action: none; }
+.vslider::before { content: ""; position: absolute; top: 0; bottom: 0; left: 6px; width: 4px; border-radius: 4px; background: rgba(255,255,255,.18); }
+.vslider .fill { position: absolute; left: 6px; bottom: 0; width: 4px; border-radius: 4px; background: #fff; }
+.vslider:hover .fill { background: var(--accent); }
+.vslider .knob { position: absolute; left: 3px; width: 10px; height: 10px; margin-bottom: -5px; border-radius: 50%; background: #fff; opacity: 0; transition: opacity .15s; }
+.vslider:hover .knob, .vslider.dragging .knob { opacity: 1; }

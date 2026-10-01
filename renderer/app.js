@@ -944,6 +944,14 @@ function setVolume(v, save = true) {
   $('#volume .knob').style.left = v * 100 + '%';
   $('#mute').innerHTML = icon(v === 0 ? 'volumeOff' : 'volume');
   $('#mute').classList.remove('on');
+  syncFsVolume();
+}
+function syncFsVolume() {
+  const v = muted ? 0 : store.get('volume', 0.8);
+  $('#fs-vol-bar .fill').style.height = v * 100 + '%';
+  $('#fs-vol-bar .knob').style.bottom = v * 100 + '%';
+  $('#fs-vol-pct').textContent = Math.round(v * 100) + '%';
+  $('#fs-mute').innerHTML = icon(v === 0 ? 'volumeOff' : 'volume');
 }
 slider($('#volume'), (p) => setVolume(p));
 $('#volume').addEventListener('wheel', (e) => { e.preventDefault(); setVolume(store.get('volume', 0.8) + (e.deltaY < 0 ? 0.05 : -0.05)); });
@@ -952,7 +960,41 @@ $('#mute').onclick = () => {
   engine.setVolume(volumeGain());
   $('#mute').innerHTML = icon(muted ? 'volumeOff' : 'volume');
   $('#mute').classList.toggle('on', muted);
+  syncFsVolume();
 };
+{
+  // Vertical volume bar of the full-screen mode.
+  const bar = $('#fs-vol-bar');
+  const at = (e) => { const r = bar.getBoundingClientRect(); return Math.min(1, Math.max(0, (r.bottom - e.clientY) / r.height)); };
+  bar.addEventListener('pointerdown', (e) => {
+    bar.setPointerCapture(e.pointerId); bar.classList.add('dragging'); setVolume(at(e));
+    const move = (ev) => setVolume(at(ev));
+    const up = () => { bar.classList.remove('dragging'); bar.removeEventListener('pointermove', move); bar.removeEventListener('pointerup', up); };
+    bar.addEventListener('pointermove', move); bar.addEventListener('pointerup', up);
+  });
+  $('#fs-vol').addEventListener('wheel', (e) => { e.preventDefault(); setVolume(store.get('volume', 0.8) + (e.deltaY < 0 ? 0.05 : -0.05)); });
+  $('#fs-mute').onclick = () => $('#mute').click();
+}
+
+// ------------------------------------------------------------------ full-screen mode
+const isFs = () => document.body.classList.contains('fs');
+/** Asks the window to go full screen (or back); the main process answers with 'fullscreen'. */
+function setFullscreen(on) {
+  if (on && !player.current) return toast('No hay nada sonando');
+  if (on) openNowPlaying();
+  bc.setFullscreen(on);
+}
+/** Applies the full-screen layout: the player bar's controls move under the artwork. */
+function applyFullscreen(on) {
+  document.body.classList.toggle('fs', on);
+  const center = $('.p-center');
+  if (on) $('#np-fs-slot').append(center);
+  else $('#player .p-left').after(center);
+  $('#btn-fs').innerHTML = icon(on ? 'fullscreenExit' : 'fullscreen');
+  $('#btn-fs').title = on ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa (F11)';
+  $('#btn-fs').classList.toggle('on', on);
+  if (on && !npOpen()) openNowPlaying();
+}
 
 // ------------------------------------------------------------------ now playing / theming
 function updateNowPlaying() {
@@ -1151,6 +1193,7 @@ function applyLyricsHidden() {
 function closeNowPlaying() {
   const np = $('#nowplaying');
   if (np.hidden || np.classList.contains('closing')) return;
+  if (isFs()) setFullscreen(false);
   $('#btn-lyrics').classList.remove('on');
   $('#nav-nowplaying')?.classList.remove('active');
   // Slide/fade out first; the title bar keeps the artwork tone until the view is gone.
@@ -1418,6 +1461,7 @@ function toggleQueue(force) {
   if (open) { q.classList.remove('closing'); q.hidden = false; }
   else if (!q.hidden) { q.classList.add('closing'); queueCloseTimer = setTimeout(() => { q.hidden = true; q.classList.remove('closing'); }, 220); }
   $('#btn-queue').classList.toggle('on', open);
+  $('#fs-queue').classList.toggle('on', open);
   $('#nav-queue')?.classList.toggle('active', open);
   renderQueue.scrolled = false;
   renderQueue();
@@ -1518,6 +1562,14 @@ function initButtons() {
   $('#btn-more').onclick = (e) => moreMenu(e.currentTarget);
   $('#btn-eq').innerHTML = icon('equalizer');
   $('#btn-eq').onclick = () => toggleEq();
+  $('#btn-fs').innerHTML = icon('fullscreen');
+  $('#btn-fs').onclick = () => setFullscreen(!isFs());
+  $('#np-fs-exit').innerHTML = icon('fullscreenExit');
+  $('#np-fs-exit').onclick = () => setFullscreen(false);
+  $('#fs-queue').innerHTML = icon('queue');
+  $('#fs-queue').onclick = () => toggleQueue();
+  bc.on('fullscreen', applyFullscreen);
+  syncFsVolume();
   $('#sb-toggle').innerHTML = icon('menu');
   $('#sb-toggle').onclick = () => saveSettings({ sidebarOpen: !state.settings.sidebarOpen });
   setupSidebarMode();
@@ -1566,7 +1618,9 @@ function initButtons() {
     else if (e.key === 'ArrowLeft') engine.seek(Math.max(0, engine.currentTime - 5));
     else if (e.key === 'ArrowUp') { e.preventDefault(); setVolume(store.get('volume', 0.8) + 0.05); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); setVolume(store.get('volume', 0.8) - 0.05); }
+    else if (e.key === 'Escape' && isFs()) { closeMenu(); setFullscreen(false); }
     else if (e.key === 'Escape') { closeMenu(); closeNowPlaying(); toggleEq(false); }
+    else if (e.key === 'F11') { e.preventDefault(); setFullscreen(!isFs()); }
     else if (e.key.toLowerCase() === 'e') toggleEq();
     else if (e.key.toLowerCase() === 'l') npOpen() ? closeNowPlaying() : openNowPlaying();
     else if (e.key.toLowerCase() === 'q') toggleQueue();

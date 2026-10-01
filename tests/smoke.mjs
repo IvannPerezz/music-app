@@ -34,6 +34,20 @@ if (a.np !== 'block' || a.paused) errors.push('Fondo animado en pantalla complet
 await win.click('#play'); await win.waitForTimeout(300);
 a = await amb(); if (!a.paused) errors.push('El fondo animado no se para al pausar');
 await win.click('#play'); await win.waitForTimeout(300);
+// Full-screen mode: player controls under the artwork, no title bar or window buttons.
+await win.click('#btn-fs'); await win.waitForTimeout(1200);
+const fsState = () => win.evaluate(() => ({
+  fs: document.body.classList.contains('fs'),
+  inside: !!document.querySelector('#np-fs-slot .p-center'),
+  titlebar: getComputedStyle(document.querySelector('#titlebar')).display,
+}));
+const winFs = () => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isFullScreen());
+let fsx = { ...(await fsState()), window: await winFs() };
+if (!fsx.fs || !fsx.inside || fsx.titlebar !== 'none' || !fsx.window) errors.push('Pantalla completa: ' + JSON.stringify(fsx));
+await shot('02b-fullscreen');
+await win.keyboard.press('Escape'); await win.waitForTimeout(1200);
+fsx = { ...(await fsState()), window: await winFs() };
+if (fsx.fs || fsx.inside || fsx.window || !(await win.$('#player .p-center'))) errors.push('Al salir de pantalla completa: ' + JSON.stringify(fsx));
 await win.click('#np-close'); await win.waitForTimeout(500);
 await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('03-queue');
 await win.click('#btn-queue'); await win.waitForTimeout(400);

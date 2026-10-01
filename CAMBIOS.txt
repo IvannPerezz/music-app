@@ -15,6 +15,22 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.9
+------------------------------------------------------------
+- Modo pantalla completa: nuevo botón abajo a la derecha (o la tecla F11). Abre la vista
+  de portada y letra ocupando toda la pantalla, sin la barra superior (búsqueda, cuenta,
+  ajustes) ni los botones de minimizar y cerrar de Windows.
+  - Los controles de reproducción (aleatorio, anterior, reproducir, siguiente, repetir y
+    cola) y la barra de progreso pasan a estar debajo de la portada, integrados en la
+    pantalla.
+  - El volumen aparece como una barra vertical a la izquierda, con el porcentaje encima y
+    el botón de silenciar debajo. También se cambia con la rueda del ratón.
+  - Se sale con Esc, con F11, con el botón de abajo a la derecha o con la flecha de arriba
+    a la izquierda (que además cierra la vista).
+- Botones de abajo a la derecha reordenados: portada y letra, cola, ecualizador, más
+  opciones y pantalla completa, y separado de ellos, el volumen.
+
+------------------------------------------------------------
 v0.6.8.2
 ------------------------------------------------------------
 - Un poco más de espacio entre las opciones de la barra lateral, para que el resaltado de

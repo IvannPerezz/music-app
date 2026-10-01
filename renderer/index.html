@@ -33,7 +33,7 @@
       <div id="nav-items"></div>
       <div class="sidebar-foot">
         <span>BitChord Desktop</span>
-        <span class="muted">v0.6.8.2 · port de BitChord</span>
+        <span class="muted">v0.6.9 · port de BitChord</span>
         <button class="text-btn" id="open-log">Ver registro</button>
       </div>
     </nav>
@@ -63,6 +63,7 @@
               <button class="icon-btn" id="np-like" title="Favorito"></button>
             </div>
             <div id="np-stats"></div>
+            <div id="np-fs-slot"></div>
           </div>
         </div>
         <div class="np-right">
@@ -73,6 +74,12 @@
       <div class="np-corner">
         <button class="pill" id="lyrics-source"></button>
         <button class="icon-btn np-lyr-toggle" id="np-lyrics-toggle"></button>
+        <button class="icon-btn np-lyr-toggle fs-only" id="np-fs-exit" title="Salir de pantalla completa (Esc)"></button>
+      </div>
+      <div id="fs-vol" class="fs-only">
+        <span id="fs-vol-pct">100%</span>
+        <div class="vslider" id="fs-vol-bar"><div class="fill"></div><div class="knob"></div></div>
+        <button class="icon-btn" id="fs-mute" title="Silenciar (M)"></button>
       </div>
     </section>
   </div>
@@ -93,6 +100,7 @@
         <button class="play-btn" id="play" title="Reproducir"></button>
         <button class="icon-btn" id="next" title="Siguiente"></button>
         <button class="icon-btn" id="repeat" title="Repetir"></button>
+        <button class="icon-btn fs-only" id="fs-queue" title="Cola (Q)"></button>
       </div>
       <div class="p-seek">
         <span id="t-cur">0:00</span>
@@ -101,10 +109,12 @@
       </div>
     </div>
     <div class="p-right">
-      <button class="icon-btn" id="btn-eq" title="Ecualizador (E)"></button>
       <button class="icon-btn" id="btn-lyrics" title="Portada y letra (L)"></button>
       <button class="icon-btn" id="btn-queue" title="Cola (Q)"></button>
+      <button class="icon-btn" id="btn-eq" title="Ecualizador (E)"></button>
       <button class="icon-btn" id="btn-more" title="Temporizador, velocidad…"></button>
+      <button class="icon-btn" id="btn-fs" title="Pantalla completa (F11)"></button>
+      <span class="p-sep"></span>
       <button class="icon-btn" id="mute" title="Silenciar (M)"></button>
       <div class="slider small" id="volume"><div class="fill"></div><div class="knob"></div></div>
     </div>
