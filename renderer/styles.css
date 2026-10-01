@@ -283,7 +283,8 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 #p-art[src=""] { visibility: hidden; }
 .p-meta { min-width: 0; }
 #p-title { font-weight: 650; }
-#p-artist { font-size: 13px; }
+/* Brighter than --muted: on the Mica bar the plain grey got lost. */
+#p-artist { font-size: 13px; color: color-mix(in srgb, var(--text) 72%, transparent); }
 .p-center { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .p-controls { display: flex; align-items: center; gap: 14px; }
 .play-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--text); color: #111; display: grid; place-items: center; transition: transform .1s; }
