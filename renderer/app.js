@@ -901,7 +901,7 @@ function updateRepeatBtn() {
   b.classList.toggle('on', player.repeat !== 'off');
   b.title = { off: 'Repetir: no', all: 'Repetir: todo', one: 'Repetir: una' }[player.repeat];
 }
-function updateMoreBtn() { $('#btn-more').classList.toggle('on', !!player.sleep || engine.speed !== 1); }
+function updateMoreBtn() { for (const b of [$('#btn-more'), $('#fs-more')]) b.classList.toggle('on', !!player.sleep || engine.speed !== 1); }
 
 let lastMediaPos = 0;
 function onTime() {
@@ -1028,6 +1028,7 @@ function applyFullscreen(on) {
   $('#btn-fs').classList.toggle('on', on);
   if (on && !npOpen()) openNowPlaying();
   if (on) peekFsVolume(2500); else document.body.classList.remove('fs-vol-show');
+  toggleEq(false);
 }
 
 // ------------------------------------------------------------------ now playing / theming
@@ -1379,9 +1380,15 @@ function toggleEq(force) {
   }
   pop.hidden = !show;
   $('#btn-eq').classList.toggle('on', show);
+  $('#fs-eq').classList.toggle('on', show);
+  // Full screen has no player bar: open it right above its button under the artwork.
+  if (show && isFs()) {
+    const r = $('#fs-eq').getBoundingClientRect(), w = pop.offsetWidth;
+    Object.assign(pop.style, { left: `${Math.min(innerWidth - w - 16, Math.max(16, r.left + r.width / 2 - w / 2))}px`, right: 'auto', bottom: `${innerHeight - r.top + 10}px` });
+  } else pop.style.left = pop.style.right = pop.style.bottom = '';
 }
 document.addEventListener('mousedown', (e) => {
-  if ($('#eq-pop').hidden || e.target.closest('#eq-pop, #btn-eq')) return;
+  if ($('#eq-pop').hidden || e.target.closest('#eq-pop, #btn-eq, #fs-eq')) return;
   toggleEq(false);
 });
 
@@ -1603,6 +1610,10 @@ function initButtons() {
   $('#np-fs-exit').onclick = () => setFullscreen(false);
   $('#fs-queue').innerHTML = icon('queue');
   $('#fs-queue').onclick = () => toggleQueue();
+  $('#fs-eq').innerHTML = icon('equalizer');
+  $('#fs-eq').onclick = () => toggleEq();
+  $('#fs-more').innerHTML = icon('more');
+  $('#fs-more').onclick = (e) => moreMenu(e.currentTarget);
   bc.on('fullscreen', applyFullscreen);
   syncFsVolume();
   $('#sb-toggle').innerHTML = icon('menu');

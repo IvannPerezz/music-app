@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.11
+------------------------------------------------------------
+- Pantalla completa: debajo de la barra de progreso hay una fila con la cola, el
+  ecualizador y "más opciones" (temporizador, velocidad...), así todo se puede ajustar
+  sin salir de pantalla completa. El ecualizador se abre justo encima de su botón.
+- La letra deja un margen a la derecha para no tocar los botones de la esquina. Se notaba
+  en canciones con líneas alineadas a la derecha (dúos, coros).
+
+------------------------------------------------------------
 v0.6.10
 ------------------------------------------------------------
 - Pantalla completa: arriba a la izquierda, junto a la flecha, se ve de dónde sale lo que

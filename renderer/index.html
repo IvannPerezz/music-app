@@ -33,7 +33,7 @@
       <div id="nav-items"></div>
       <div class="sidebar-foot">
         <span>BitChord Desktop</span>
-        <span class="muted">v0.6.10 · port de BitChord</span>
+        <span class="muted">v0.6.11 · port de BitChord</span>
         <button class="text-btn" id="open-log">Ver registro</button>
       </div>
     </nav>
@@ -64,6 +64,11 @@
             </div>
             <div id="np-stats"></div>
             <div id="np-fs-slot"></div>
+            <div class="fs-tools fs-only">
+              <button class="icon-btn" id="fs-queue" title="Cola (Q)"></button>
+              <button class="icon-btn" id="fs-eq" title="Ecualizador (E)"></button>
+              <button class="icon-btn" id="fs-more" title="Temporizador, velocidad…"></button>
+            </div>
           </div>
         </div>
         <div class="np-right">
@@ -101,7 +106,6 @@
         <button class="play-btn" id="play" title="Reproducir"></button>
         <button class="icon-btn" id="next" title="Siguiente"></button>
         <button class="icon-btn" id="repeat" title="Repetir"></button>
-        <button class="icon-btn fs-only" id="fs-queue" title="Cola (Q)"></button>
       </div>
       <div class="p-seek">
         <span id="t-cur">0:00</span>

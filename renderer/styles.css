@@ -966,3 +966,12 @@ body.fs #queue { top: 10px; bottom: 10px; }
 body.fs #fs-vol { transform: translate(calc(-100% - 40px), -50%); opacity: 0;
   transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .3s ease; }
 body.fs.fs-vol-show #fs-vol { transform: translate(0, -50%); opacity: 1; }
+
+/* Lyrics keep clear of the stacked corner buttons (right-aligned duet lines reached them). */
+#lyrics { padding-right: 56px; }
+
+/* Full screen: queue, equalizer and more options under the progress bar. */
+.fs-tools { display: flex; justify-content: center; gap: 22px; margin-top: 10px; }
+.fs-tools .icon-btn { opacity: .75; }
+.fs-tools .icon-btn:hover, .fs-tools .icon-btn.on { opacity: 1; }
+.fs-tools .icon-btn.on { color: var(--accent); }
