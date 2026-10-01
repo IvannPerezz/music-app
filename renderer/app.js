@@ -1079,7 +1079,9 @@ function openFsPanel(kind, title, body) {
   p.querySelector('h3').textContent = title;
   p.querySelector('.fs-panel-body').replaceChildren(body);
   p.classList.remove('closing');
+  p.dataset.kind = kind;
   p.hidden = false;
+  document.body.style.setProperty('--fs-panel-w', p.offsetWidth + 'px');
   document.body.classList.add('panel-open');
   syncFsPanelButtons();
 }
@@ -1094,7 +1096,9 @@ function closeFsPanel() {
 }
 function syncFsPanelButtons() {
   $('#fs-eq').classList.toggle('on', fsPanelKind === 'eq');
-  $('#lyrics-source').classList.toggle('open', fsPanelKind === 'lyrics-source');
+  // The panel already says which source is in use: keep the pill folded, just highlighted.
+  $('#lyrics-source').classList.remove('open');
+  $('#lyrics-source').classList.toggle('on', fsPanelKind === 'lyrics-source');
 }
 function applyFullscreen(on) {
   document.body.classList.toggle('fs', on);
@@ -1457,7 +1461,7 @@ function toggleEq(force) {
       const body = h('<div></div>');
       const more = h('<button class="text-btn" style="margin:4px 6px 12px">Más en Ajustes</button>');
       more.onclick = () => { closeFsPanel(); setFullscreen(false); go({ name: 'settings', section: 'eq' }); };
-      body.append(eqPanel(), more);
+      body.append(eqPanel({ compact: true }), more);
       openFsPanel('eq', 'Ecualizador', body);
     } else if (fsPanelKind === 'eq') closeFsPanel();
     return;

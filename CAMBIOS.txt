@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.14.1
+------------------------------------------------------------
+- Pantalla completa: los paneles del ecualizador y de la fuente de la letra ya no ocupan
+  todo el alto de la pantalla. Tienen el tamaño de antes (el ecualizador, el de su
+  ventana flotante; la letra, el de su menú) y la columna de botones se aparta justo lo
+  que miden.
+- Pantalla completa: con el panel de la letra abierto, su botón ya no se despliega encima
+  de la letra; solo se marca con el color de acento.
+
+------------------------------------------------------------
 v0.6.14
 ------------------------------------------------------------
 - Pantalla completa: los botones de la letra (cambiar la fuente y mostrar u ocultar)

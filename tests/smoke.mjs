@@ -60,6 +60,13 @@ await win.click('#fs-eq'); await win.waitForTimeout(500);
 let pn = await panel();
 if (!pn.open || pn.title !== 'Ecualizador' || pn.cornerRight > pn.panelLeft) errors.push('Ecualizador en pantalla completa: ' + JSON.stringify(pn));
 await shot('02d-fullscreen-eq');
+// The equalizer and the lyrics source only take the height they need.
+const panelH = () => win.evaluate(() => document.querySelector('#fs-panel').offsetHeight / innerHeight);
+if ((await panelH()) > 0.75) errors.push('El panel del ecualizador ocupa todo el alto');
+await win.click('#lyrics-source'); await win.waitForTimeout(500);
+pn = await panel();
+if (!pn.open || pn.title !== 'Letra' || (await panelH()) > 0.75 || pn.cornerRight > pn.panelLeft) errors.push('Panel de la letra: ' + JSON.stringify(pn));
+await shot('02d1-fullscreen-lyrics-source');
 await win.click('#fs-more'); await win.waitForTimeout(500);
 pn = await panel();
 if (!pn.open || pn.title !== 'Más opciones') errors.push('Más opciones en pantalla completa: ' + JSON.stringify(pn));
