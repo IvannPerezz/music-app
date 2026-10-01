@@ -1,0 +1,27 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+const call = (ch) => (...args) => ipcRenderer.invoke(ch, ...args);
+const channels = [
+  'home', 'search', 'suggestions', 'album', 'playlist', 'artist', 'up-next', 'prefetch', 'refresh-stream', 'stream-info',
+  'lyrics-providers', 'lyrics', 'settings-get', 'settings-set', 'settings-defaults',
+  'account', 'login', 'login-cookie', 'logout', 'library', 'history', 'rate',
+  'downloads', 'download', 'download-cancel', 'download-remove', 'download-show', 'choose-folder',
+  'local-tracks', 'local-rescan', 'webdav-servers', 'webdav-add', 'webdav-test', 'webdav-remove', 'webdav-tracks', 'webdav-rescan', 'playlists-list', 'playlist-get', 'playlist-create', 'playlist-rename', 'playlist-delete', 'playlist-add', 'playlist-remove-at', 'playlist-move', 'playlist-cover-pick', 'playlist-cover-data', 'playlist-cover-remove', 'account-playlists', 'choose-file', 'spotify-parse', 'spotify-match', 'spotify-cancel', 'spotify-create', 'song-search', 'listenbrainz-validate', 'lastfm-begin', 'lastfm-finish', 'lastfm-logout', 'yt-status', 'yt-covers', 'yt-playlist-add', 'yt-playlist-create', 'yt-cover-data', 'yt-cover-remove', 'local-folders', 'local-folder-get', 'local-folder-rename', 'local-folder-cover-data', 'local-folder-cover-remove', 'local-folder-open', 'local-folder-rescan',
+];
+const api = {};
+for (const ch of channels) api[ch.replace(/-(\w)/g, (_, c) => c.toUpperCase())] = call(ch);
+
+contextBridge.exposeInMainWorld('bc', {
+  ...api,
+  proxyPort: () => ipcRenderer.invoke('proxy-port'),
+  openLog: () => ipcRenderer.invoke('open-log'),
+  openExternal: (u) => ipcRenderer.invoke('open-external', u),
+  appInfo: () => ipcRenderer.invoke('app-info'),
+  playerState: (st) => ipcRenderer.send('player-state', st),
+  setProgress: (p) => ipcRenderer.send('set-progress', p),
+  on: (ch, fn) => {
+    if (!['command', 'downloads', 'local-scan', 'import-progress', 'yt-status'].includes(ch)) return;
+    ipcRenderer.on(ch, (_e, data) => fn(data));
+  },
+  platform: process.platform,
+});

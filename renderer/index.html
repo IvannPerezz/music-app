@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https: http://127.0.0.1:*; media-src http://127.0.0.1:* blob:; connect-src http://127.0.0.1:*; worker-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <title>BitChord</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="bg"></div>
+  <div id="ambient"><i></i><i></i><i></i></div>
+
+  <header id="titlebar">
+    <div class="brand"><img src="logo.png" alt="" /><span>BitChord</span></div>
+    <div class="nav-buttons">
+      <button class="icon-btn" id="sb-toggle" title="Mostrar u ocultar la barra lateral" hidden></button>
+      <button class="icon-btn" id="back" title="Atrás"></button>
+      <button class="icon-btn" id="forward" title="Adelante"></button>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon"></span>
+      <input id="search" type="text" placeholder="Buscar canciones, artistas, álbumes…" autocomplete="off" spellcheck="false" />
+      <ul id="suggest" hidden></ul>
+    </div>
+    <div class="titlebar-spacer"></div>
+    <button class="icon-btn account-btn" id="account-btn" title="Cuenta"></button>
+    <button class="icon-btn settings-btn" id="settings-btn" title="Ajustes (Ctrl+,)"></button>
+  </header>
+
+  <div id="layout">
+    <div id="sb-hot"></div>
+    <nav id="sidebar">
+      <div id="nav-items"></div>
+      <div class="sidebar-foot">
+        <span>BitChord Desktop</span>
+        <span class="muted">v0.6.5.1 · port de BitChord</span>
+        <button class="text-btn" id="open-log">Ver registro</button>
+      </div>
+    </nav>
+
+    <main id="content"></main>
+
+    <aside id="queue" hidden>
+      <div class="panel-head">
+        <h3>Cola</h3>
+        <button class="text-btn" id="queue-clear">Limpiar</button>
+      </div>
+      <div id="queue-list"></div>
+    </aside>
+
+    <section id="nowplaying" hidden>
+      <div class="np-bg"></div>
+      <div class="np-inner">
+        <div class="np-left">
+          <img id="np-art" alt="" />
+          <div class="np-meta">
+            <div class="np-title-row">
+              <div style="min-width:0">
+                <div id="np-title" class="ellipsis"></div>
+                <div id="np-artist" class="ellipsis"></div>
+              </div>
+              <button class="icon-btn" id="np-like" title="Favorito"></button>
+            </div>
+            <div id="np-stats"></div>
+          </div>
+        </div>
+        <div class="np-right">
+          <div id="lyrics"></div>
+        </div>
+      </div>
+      <button class="icon-btn np-close" id="np-close" title="Minimizar (Esc)"></button>
+      <div class="np-corner">
+        <button class="pill" id="lyrics-source"></button>
+        <button class="icon-btn np-lyr-toggle" id="np-lyrics-toggle"></button>
+      </div>
+    </section>
+  </div>
+
+  <footer id="player">
+    <div class="p-left">
+      <img id="p-art" alt="" />
+      <div class="p-meta">
+        <div id="p-title" class="ellipsis">Nada sonando</div>
+        <div id="p-artist" class="ellipsis muted">Busca algo para empezar</div>
+      </div>
+      <button class="icon-btn" id="like" title="Favorito (F)"></button>
+    </div>
+    <div class="p-center">
+      <div class="p-controls">
+        <button class="icon-btn" id="shuffle" title="Aleatorio"></button>
+        <button class="icon-btn" id="prev" title="Anterior"></button>
+        <button class="play-btn" id="play" title="Reproducir"></button>
+        <button class="icon-btn" id="next" title="Siguiente"></button>
+        <button class="icon-btn" id="repeat" title="Repetir"></button>
+      </div>
+      <div class="p-seek">
+        <span id="t-cur">0:00</span>
+        <div class="slider" id="seek"><div class="buffered"></div><div class="fill"></div><div class="knob"></div></div>
+        <span id="t-dur">0:00</span>
+      </div>
+    </div>
+    <div class="p-right">
+      <button class="icon-btn" id="btn-eq" title="Ecualizador (E)"></button>
+      <button class="icon-btn" id="btn-lyrics" title="Portada y letra (L)"></button>
+      <button class="icon-btn" id="btn-queue" title="Cola (Q)"></button>
+      <button class="icon-btn" id="btn-more" title="Temporizador, velocidad…"></button>
+      <button class="icon-btn" id="mute" title="Silenciar (M)"></button>
+      <div class="slider small" id="volume"><div class="fill"></div><div class="knob"></div></div>
+    </div>
+    <div id="mix-badge" hidden></div>
+  </footer>
+
+  <div id="eq-pop" hidden></div>
+  <div id="acct-pop" hidden></div>
+  <div id="menu" hidden></div>
+  <div id="toast" hidden></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

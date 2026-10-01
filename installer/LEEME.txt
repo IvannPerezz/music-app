@@ -1,0 +1,38 @@
+BitChord para Windows - version 0.5
+===========================================
+
+INSTALAR
+  1. Descomprime este ZIP (clic derecho > Extraer todo).
+  2. Doble clic en "Instalar BitChord.cmd".
+     - Si Windows muestra "Windows protegio su PC": Mas informacion > Ejecutar de todas formas.
+  3. El instalador descarga el motor de la app (~150 MB, desde GitHub), lo verifica,
+     crea accesos directos en el Escritorio y el menu Inicio, y abre BitChord.
+
+DESINSTALAR
+  Doble clic en "Desinstalar BitChord.cmd".
+
+ATAJOS DE TECLADO
+  Espacio        Reproducir / pausa
+  Ctrl + <- / -> Cancion anterior / siguiente
+  <- / ->        Retroceder / avanzar 5 s
+  Arriba / Abajo Volumen
+  L  Letra y "reproduciendo"    Q  Cola       S  Aleatorio
+  R  Repetir                    M  Silenciar  Ctrl+F  Buscar
+  E  Ecualizador               F  Favorito                   Ctrl+,  Ajustes
+  Las teclas multimedia del teclado y los controles de Windows tambien funcionan.
+
+NOVEDADES 0.3
+  Arreglado el corte de las canciones al minuto, inicio de sesion con Google,
+  nueva tipografia, fuentes JioSaavn y servidores WebDAV (NAS / nube).
+
+NOVEDADES 0.2
+  Ajustes, letras con proveedores seleccionables y sincronia palabra a palabra,
+  descargas con metadatos (Opus/M4A), musica local, crossfade/gapless/Automix,
+  ecualizador, temporizador, velocidad, cuenta de Google, Discord y scrobbling.
+
+SI ALGO FALLA
+  En la barra lateral pulsa "Ver registro": abre la carpeta con bitchord.log.
+  Mandame ese archivo y lo reviso.
+
+Basado en BitChord (https://github.com/kushagrasinghx/BitChord) - licencia GPL-3.0.
+No esta afiliado a YouTube ni a Google.

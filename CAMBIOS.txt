@@ -1,0 +1,351 @@
+BitChord Desktop - Registro de cambios
+=====================================
+
+Port para Windows de BitChord (https://github.com/kushagrasinghx/BitChord, GPL-3.0).
+La versión instalada se ve abajo a la izquierda de la barra lateral ("vX.Y.Z · port de BitChord").
+
+Cómo se actualiza desde la v0.6.0.5: Claude deja la nueva versión en resources\update.bin.
+Al abrir BitChord, la instala al momento (sin reiniciarse) guardándola con un nombre nuevo
+(resources\app-XXXX.asar) y anotándola en resources\current.txt. Nunca hay que sustituir un
+archivo que esté en uso, así que ningún programa puede bloquear la actualización. Si una
+versión nueva no arrancase, BitChord vuelve solo a la versión instalada.
+
+
+Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto número
+(v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
+
+------------------------------------------------------------
+v0.6.5.1
+------------------------------------------------------------
+- Barra de reproducción con efecto Mica: sigue ocupando todo el ancho abajo (sin esquinas
+  redondeadas ni separación), pero ahora es de cristal desenfocado teñido con el tema. El
+  contenido pasa por debajo al hacer scroll, igual que el fondo animado y la vista de
+  portada y letra, y se ve a través de ella desenfocado. En el tema OLED también.
+
+------------------------------------------------------------
+v0.6.5
+------------------------------------------------------------
+- Color de acento personalizado (Ajustes > Tema > Color de acento): ahora se puede elegir
+  entre "Según la portada", "El del tema" o "Personalizado…". Con "Personalizado" aparece
+  un selector de color con cuadro de saturación/brillo, barra de tono, barra de
+  transparencia y campo para escribir el código (#RRGGBB o #RRGGBBAA). El color se aplica
+  en directo mientras lo mueves y se guarda al soltar.
+- El fondo animado sigue usando los colores de la portada aunque elijas otro acento.
+
+------------------------------------------------------------
+v0.6.4.3
+------------------------------------------------------------
+- Ajustes: el título "Ajustes" y la barra de secciones forman ahora una sola cabecera fija
+  que empieza en lo alto de la página, así que ya no queda una línea divisoria entre el
+  fondo y la zona de las secciones. Solo desenfoca lo que pasa por debajo al hacer
+  scroll (sin cambiar los colores) y se difumina por abajo.
+- Barra lateral con efecto Mica: ahora es un panel flotante con esquinas redondeadas y
+  cristal desenfocado, igual que la cola. También en los modos "al pasar el ratón" y
+  "con botón" (se pliega y despliega con animación).
+
+------------------------------------------------------------
+v0.6.4.2
+------------------------------------------------------------
+- Ajustes: quitada la franja negra (tema OLED) / oscura detrás de la barra de secciones.
+  Ahora la barra no tiene color propio: solo desenfoca lo que pasa por debajo al hacer
+  scroll y se difumina por abajo, así que se funde con el fondo animado o con el del tema.
+  Los botones de sección llevan un ligero cristal propio para seguir leyéndose bien.
+- Corregido que el desenfoque de la barra no funcionase: la animación de entrada de cada
+  página se quedaba "activa" y lo anulaba.
+
+------------------------------------------------------------
+v0.6.4.1
+------------------------------------------------------------
+- Fondo animado con la propia portada: nuevo estilo "Portada desenfocada" (ahora el
+  predeterminado) en el que detrás de la app giran y se desplazan despacio varias copias
+  de la portada que está sonando, muy desenfocadas; al cambiar de canción se funden con
+  la nueva. El estilo anterior sigue disponible como "Manchas de color" en Ajustes >
+  Personalización > Fondo animado > Estilo. Intensidad, desenfoque, velocidad y tamaño
+  funcionan con los dos estilos.
+
+------------------------------------------------------------
+v0.6.4
+------------------------------------------------------------
+- Fondo animado: detrás de toda la app se mueven lentamente tres manchas de luz con los
+  dos o tres colores más destacados de la portada que está sonando (si la portada tiene
+  un solo color, se usan tonos vecinos). Al cambiar de canción, los colores se funden
+  con los de la nueva portada.
+- Se regula en Ajustes > Personalización > Fondo animado: activar/desactivar, intensidad
+  del brillo, desenfoque, velocidad de movimiento (0 = quieto) y tamaño de las manchas.
+  Los cambios se ven al momento mientras mueves los controles.
+- Solo se anima la posición de las manchas (el desenfoque se calcula una vez), para que
+  gaste lo mínimo de gráfica.
+
+------------------------------------------------------------
+v0.6.3.3
+------------------------------------------------------------
+- La cola de canciones también tiene efecto Mica: ahora es un panel flotante con esquinas
+  redondeadas que se superpone al contenido (y a la vista de portada y letra), dejando ver
+  lo de detrás desenfocado. Entra y sale deslizándose desde la derecha.
+
+------------------------------------------------------------
+v0.6.3.2
+------------------------------------------------------------
+- Efecto Mica (como en Windows 11) en los menús desplegables: ecualizador, menú de los
+  tres puntos (y el resto de menús ⋮), y menú del perfil. En vez del gris opaco, dejan
+  ver lo que hay detrás muy desenfocado y saturado, con un ligero tinte del tema elegido
+  (en el tema OLED, casi negro).
+
+------------------------------------------------------------
+v0.6.3.1
+------------------------------------------------------------
+- El botón de perfil (arriba a la derecha) ya no abre los Ajustes: despliega un menú
+  propio, con animación, con tu foto, nombre y correo y la opción "Cerrar sesión" (o
+  "Iniciar sesión con Google" si no la tienes iniciada). Se cierra al hacer clic fuera
+  o con Esc.
+
+------------------------------------------------------------
+v0.6.3
+------------------------------------------------------------
+- Personalización de la pantalla principal (Ajustes > Personalización > Pantalla
+  principal): casillas para mostrar u ocultar "Escuchado recientemente", "De tu
+  biblioteca", "Selecciones rápidas", "Versiones y remixes", "Favoritos olvidados",
+  "Canciones en tendencia para ti" y "Nuevos descubrimientos y los favoritos de siempre".
+  Cualquier otro apartado que YouTube Music muestre en tu Inicio aparece también en la
+  lista en cuanto sale.
+- En Inicio, al pasar el ratón por el título de un apartado aparece un botón "Ocultar"
+  para quitarlo al momento (con animación); se recupera desde Ajustes.
+
+------------------------------------------------------------
+v0.6.2
+------------------------------------------------------------
+- Biblioteca > Playlists muestra ahora tus playlists de YouTube Music (las mismas que salen
+  en Inicio, incluidas las importadas de Spotify) junto a "Me gusta". Las playlists que
+  solo existen en BitChord aparecen debajo, en "Solo en BitChord", y después tus carpetas.
+- "Nueva playlist" crea la playlist en tu cuenta de YouTube Music (con la sesión iniciada).
+- "Añadir a una playlist…" (menú ⋮ de cualquier canción) lista tus playlists de YouTube
+  Music y añade la canción directamente en tu cuenta.
+- Portada personalizada para las playlists de YouTube Music: haz clic en la portada dentro
+  de la playlist (o arrastra una imagen encima). Se guarda solo en BitChord, porque YouTube
+  no permite a otras apps cambiar la portada; se ve en Inicio, en la Biblioteca y dentro
+  de la playlist.
+
+------------------------------------------------------------
+v0.6.1
+------------------------------------------------------------
+- Arreglo de la reproducción de YouTube. Desde agosto de 2026 YouTube corta los audios
+  que pide el cliente Android VR (el que más usaba BitChord) pasado ~1 MB (~76 s) si no
+  llevan un token de verificación, y con tu sesión iniciada los tokens se generaban
+  ligados a la identidad equivocada. Cambios:
+  - Primero se piden los audios como Android e iOS con un parámetro especial ("2AMB") que
+    YouTube sigue sirviendo completos sin token.
+  - Con la sesión de Google iniciada, los tokens de verificación se ligan a tu cuenta
+    (Data Sync ID) en vez de al identificador de visitante.
+  - La comprobación previa de cada audio mira más adelante en el archivo (~2 min), para
+    descartar a tiempo los que YouTube vaya a cortar.
+- No tenía nada que ver con la importación de Spotify: las playlists importadas solo
+  guardan qué canciones son; coincidió en el tiempo con el cambio de YouTube.
+
+------------------------------------------------------------
+v0.6.0.9
+------------------------------------------------------------
+- Arreglo de reproducción con la sesión de Google iniciada: los clientes móviles que usa
+  BitChord para sacar el audio (Android, Android VR, iOS) no aceptan las cookies de la
+  sesión web y YouTube los rechazaba (error 400), lo que hacía parecer que YouTube estaba
+  limitando la conexión aunque la web oficial funcionase. Ahora esos clientes piden el
+  audio con una sesión anónima aparte; tu cuenta se sigue usando para todo lo demás
+  (biblioteca, "Me gusta", recomendaciones...).
+- Si aun así todo falla con la sesión iniciada, BitChord prueba una segunda vez con una
+  sesión anónima nueva antes de rendirse.
+- El registro apunta qué método ha conseguido el audio de cada canción (para diagnosticar).
+
+------------------------------------------------------------
+v0.6.0.8
+------------------------------------------------------------
+- El aviso de YouTube ahora tiene animación: aparece deslizándose desde arriba con un
+  fundido, y al cerrarlo con la X se encoge y sale volando hacia la esquina superior
+  derecha, donde queda la pastilla con la cuenta atrás. Al volver a abrirlo desde la
+  pastilla, vuelve a entrar con la misma animación.
+
+------------------------------------------------------------
+v0.6.0.7
+------------------------------------------------------------
+- Vista de portada y letra: al pausar, la portada se hunde un poco hacia dentro (se hace
+  más pequeña y su sombra se suaviza); al darle a reproducir vuelve a su tamaño normal con
+  un pequeño rebote.
+
+------------------------------------------------------------
+v0.6.0.6
+------------------------------------------------------------
+- Vista de portada y letra: nuevo botón abajo a la derecha (junto al de la fuente de la
+  letra) para ocultar la letra y dejar solo la portada. Al ocultarla, la portada se
+  desplaza con una animación al centro de la pantalla y se hace algo más grande; al
+  volver a mostrarla, regresa con una animación a su sitio a la izquierda. BitChord
+  recuerda tu elección.
+
+------------------------------------------------------------
+v0.6.0.5
+------------------------------------------------------------
+- Nuevo sistema de actualización. El anterior tenía que sustituir resources\app.asar, y
+  ese archivo se quedaba bloqueado si otro programa lo había abierto (la app de Claude,
+  al mirar la carpeta). La v0.6.0.4 no se pudo instalar por eso (quedó como
+  app.asar.fallida, que se puede borrar). Ahora cada versión se guarda con su propio
+  nombre y no hay que sustituir nada.
+- Incluye todo lo de la v0.6.0.3 y la v0.6.0.4.
+
+------------------------------------------------------------
+v0.6.0.4
+------------------------------------------------------------
+- Incluye por fin todo lo de la v0.6.0.3: el envío de esa versión llegó con el archivo de
+  la anterior (fallo al copiarla a la carpeta), por eso seguías viendo la v0.6.0.2.
+  Ahora cada versión se envía con un nombre distinto y se comprueba su tamaño en tu PC.
+- Aviso de YouTube cuando falla la reproducción: si YouTube rechaza el audio de varias
+  canciones seguidas (aunque el resto de la app cargue), aparece el aviso "YouTube está
+  rechazando la reproducción desde tu conexión" con cuenta atrás, y BitChord deja de
+  pedir audio durante ese tiempo. Puedes seguir navegando. Antes ese caso no se detectaba
+  y no salía ningún aviso.
+
+------------------------------------------------------------
+v0.6.0.3
+------------------------------------------------------------
+- El botón para elegir la fuente de la letra pasa a la esquina inferior derecha de la
+  vista de portada y letra (el menú de fuentes se abre hacia arriba).
+- Animaciones:
+  - Abrir la vista de portada y letra: sube y aparece con un fundido. Al cerrarla (flecha,
+    Esc o el botón del reproductor) baja y se desvanece, en vez de desaparecer de golpe.
+  - Barra lateral (modo con botón): se pliega y se despliega deslizándose, y el logo de la
+    barra superior se recoloca suavemente.
+  - Panel de la cola: se abre y se cierra deslizándose desde la derecha.
+  - Cambiar de página: el contenido nuevo entra con un fundido suave.
+  - Menús, ventana del ecualizador y aviso de YouTube minimizado: aparecen con un pequeño
+    efecto de escala.
+  - Si Windows tiene activado "reducir animaciones", BitChord las desactiva.
+
+------------------------------------------------------------
+v0.6.0.2
+------------------------------------------------------------
+- Tema OLED: en la vista de portada y letra el fondo desenfocado ya no se oscurece más que
+  en el resto de temas, así que la barra de búsqueda (y toda esa vista) se ve igual con
+  cualquier tema. Comprobado que barra de búsqueda y fondo tienen exactamente el mismo
+  estilo en BitChord, OLED y Purple Haze.
+
+------------------------------------------------------------
+v0.6.0.1
+------------------------------------------------------------
+- En la vista de portada y letra ("pantalla completa"), la barra de búsqueda vuelve a ser
+  de cristal translúcido y desenfocado, igual con cualquier tema (antes en el tema OLED
+  salía negra). Al salir de esa vista sigue el estilo y el acento del tema.
+- Corregido que el icono de la lupa desapareciera en esa vista.
+
+------------------------------------------------------------
+v0.6.0
+------------------------------------------------------------
+- Actualizaciones automáticas en el sitio: BitChord aplica él solo las versiones nuevas
+  que Claude deja en la carpeta de instalación al abrirse.
+- Ajustes se abre desde un botón arriba a la derecha, junto a tu foto de perfil (ya no
+  está en la barra lateral).
+- "Cuenta de Google" es ahora el primer apartado de Ajustes.
+- La barra de secciones de Ajustes ya no se limita al ancho de los ajustes: ocupa más
+  ancho de la pantalla para que se vean todas las secciones a la vez (y se desplaza de
+  lado solo si la ventana es estrecha).
+- Incluye el arreglo de la v0.5.9 (que no llegó a instalarse):
+- Corregido: BitChord no volvía a abrirse después de cerrarlo. Al cerrar la ventana, un
+  proceso de BitChord seguía vivo en segundo plano (por una ventana auxiliar oculta) y
+  bloqueaba las nuevas aperturas. Ahora al cerrar la ventana la app se cierra del todo, y
+  si alguna vez queda un proceso así, abrir BitChord vuelve a mostrar la ventana.
+
+------------------------------------------------------------
+v0.5.8
+------------------------------------------------------------
+- Nuevo apartado "Tema" en Ajustes con 7 temas: BitChord (el de siempre), OLED negro,
+  Cherry Red, Purple Haze, Midnight Blue, Forest y Sunset, con miniatura de cada uno.
+- OLED negro: negro puro (#000) en fondo, barra lateral, reproductor, menús, ajustes y
+  barra de secciones; sin brillo ambiental. La vista de portada y letra se oscurece más.
+- Opción "Color de acento según la portada" (activada por defecto). Desactivada, se usa
+  siempre el acento del tema.
+- Barra de secciones de Ajustes: todas en una sola fila horizontal (se desplaza de lado
+  con la rueda si no caben), sobre una franja translúcida y desenfocada que se funde con
+  el fondo. Se resalta la sección que estás leyendo.
+
+------------------------------------------------------------
+v0.5.7
+------------------------------------------------------------
+- El botón para mostrar/ocultar la barra lateral ya no aparece en la vista de portada y
+  letra; vuelve al cerrarla.
+- Nuevo icono para abrir la vista de portada y letra (portada + líneas de texto), del
+  mismo tamaño que el resto de iconos del reproductor.
+
+------------------------------------------------------------
+v0.5.6
+------------------------------------------------------------
+- El aviso de "YouTube está limitando las peticiones" tiene una X. Al cerrarlo se queda
+  como una pastilla con cuenta atrás arriba a la derecha (junto al perfil); pulsándola se
+  vuelve a ver el aviso completo.
+- Iconos distintos para la letra y para abrir la vista de portada y letra.
+- El botón de fuente de la letra muestra solo el icono; el nombre de la fuente aparece
+  con un fundido al pasar el ratón y al pulsar se abre el menú de fuentes.
+
+------------------------------------------------------------
+v0.5.5
+------------------------------------------------------------
+- Con la vista de portada y letra abierta, la parte superior de la ventana toma el mismo
+  fondo desenfocado de la portada. Al cerrarla vuelve a su aspecto normal.
+
+------------------------------------------------------------
+v0.5.4
+------------------------------------------------------------
+- Corregido el reborde blanco en la primera letra de las palabras de la letra que aún no
+  se han cantado (letra sincronizada palabra a palabra).
+
+------------------------------------------------------------
+v0.5.3
+------------------------------------------------------------
+- Cada carpeta de "Música local" funciona como una playlist independiente: aparece en
+  Biblioteca > En este equipo (sección "Carpetas") y en Biblioteca > Playlists.
+- Portada personalizada para cada carpeta (clic en la portada o arrastrar una imagen).
+- Renombrar la carpeta dentro de BitChord (no cambia nada en el disco), abrirla en el
+  Explorador y volver a escanearla.
+- Actualización automática (Ajustes > Música local): al añadir, quitar o cambiar
+  canciones, la playlist se actualiza sola a los pocos segundos. Al abrir BitChord también
+  detecta lo que cambió mientras estaba cerrado. En carpetas de red usa "Volver a escanear".
+
+------------------------------------------------------------
+v0.5.2
+------------------------------------------------------------
+- Protección ante el límite de peticiones de YouTube: si YouTube bloquea temporalmente la
+  conexión, BitChord deja de pedirle nada durante 2 a 60 minutos y muestra un aviso con
+  cuenta atrás.
+- Si fallan 3 canciones seguidas (o YouTube está limitando), la reproducción se pausa en
+  vez de saltar de canción en canción.
+- Una canción que no se pudo reproducir no se vuelve a pedir durante 10 minutos y no se
+  precarga una canción que ya falló.
+- Importación de Spotify más lenta y segura; si no se puede crear una playlist en tu
+  cuenta de YouTube Music, se guarda en BitChord para no perder las coincidencias.
+
+------------------------------------------------------------
+v0.5.1
+------------------------------------------------------------
+- Portadas personalizadas para las playlists de BitChord.
+
+------------------------------------------------------------
+Versiones anteriores (de la primera versión a la 0.5.0)
+------------------------------------------------------------
+(Estas versiones no se numeraron una a una en este registro; van en orden.)
+- Versión básica: inicio, búsqueda, álbumes, artistas, playlists, cola y reproductor con
+  YouTube Music.
+- Todas las funciones de la app móvil: ajustes, fuentes de letra seleccionables y
+  ordenables, calidad de streaming y de descarga, descargas con metadatos y carátula,
+  fundido, gapless, Automix (mezcla tipo DJ), ecualizador, velocidad, saltar silencios,
+  temporizador de apagado, inicio de sesión con Google, Discord, scrobbling
+  (ListenBrainz / Last.fm), música local, historial y favoritos.
+- Corregido que las canciones se pararan al llegar al minuto de reproducción.
+- Corregido el inicio de sesión con Google ("navegador no seguro").
+- Tipografía de toda la app parecida a la de la app móvil (Inter).
+- Otras fuentes de música: JioSaavn, servidores WebDAV y carpetas de red (SMB).
+- Corregido el error "must provide your own JavaScript evaluator" que impedía reproducir.
+- Barra lateral personalizable: mostrar/ocultar y reordenar sus elementos y anclar
+  pestañas de la Biblioteca. Ajustes centrados.
+- Botón de ecualizador en el reproductor con ventana superpuesta (sincronizada con el
+  ecualizador de Ajustes); quitado del menú de tres puntos.
+- Modos de la barra lateral: fija, al pasar el ratón por el borde izquierdo o con botón.
+- Información técnica de las canciones de "En este equipo" (formato, bitrate, frecuencia
+  de muestreo, bits, canales, tamaño, año, género...), activable en Ajustes.
+- Flecha hacia abajo arriba a la izquierda para cerrar la vista de portada y letra.
+- Playlists propias de BitChord e importación de playlists de Spotify (.zip de "Datos de
+  la cuenta"), eligiendo para cada una si se crea en tu cuenta de YouTube Music o solo en
+  BitChord; "Canciones que te gustan" como playlist aparte ("Me gusta de Spotify").
