@@ -17,9 +17,10 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 ------------------------------------------------------------
 v0.6.15.2
 ------------------------------------------------------------
-- El saludo de Inicio ("Buenos días", "Buenas tardes", "Buenas noches") lleva ahora tu
-  nombre, sacado de tu cuenta de Google: "Buenas tardes, Iván". Ya estaba previsto, pero
-  Inicio se mostraba antes de que llegaran los datos de la cuenta y el nombre no salía.
+- El saludo de Inicio ("Buenos días", "Buenas tardes", "Buenas noches") lleva ahora el
+  nombre de tu cuenta de Google, el mismo que sale en el menú de la cuenta: "Buenas
+  tardes, IvanDxd". Ya estaba previsto, pero Inicio se mostraba antes de que llegaran los
+  datos de la cuenta y el nombre no salía.
 
 ------------------------------------------------------------
 v0.6.15.1

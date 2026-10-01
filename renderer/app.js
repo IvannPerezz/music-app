@@ -246,6 +246,8 @@ const views = {
       root.append(h(`<div class="empty small">${icon('cloudOff')}<div class="muted">Sin conexión con YouTube Music: ${esc(e.message)}</div></div>`));
     }
     sections.forEach((s) => add(s, section(s)));
+    // The account may have arrived while Home was loading (before it was on the page).
+    root.querySelector('#home-greet').textContent = greeting();
     return root;
   },
 
@@ -1839,12 +1841,12 @@ function initButtons() {
   document.addEventListener('mouseup', (e) => { if (e.button === 3) back(); if (e.button === 4) forward(); });
 }
 
-/** "Buenas tardes, Iván": the first name of the Google account, once it's known. */
+/** "Buenas tardes, IvanDxd": the Google account's name (as in the account menu), once known. */
 function greeting() {
   const hour = new Date().getHours();
   const hello = hour < 6 ? 'Buenas noches' : hour < 13 ? 'Buenos días' : hour < 21 ? 'Buenas tardes' : 'Buenas noches';
-  const first = (state.account?.name || '').trim().split(/\s+/)[0];
-  return first ? `${hello}, ${first}` : hello;
+  const name = (state.account?.name || '').trim();
+  return name ? `${hello}, ${name}` : hello;
 }
 export async function refreshAccount() {
   try { state.account = await api('account'); } catch { state.account = null; }
