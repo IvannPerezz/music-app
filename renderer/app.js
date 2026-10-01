@@ -560,7 +560,7 @@ export async function toggleLike(t) {
 function updateLikeButtons() {
   const t = player.current;
   const on = t && likes.has(t.id);
-  for (const b of [$('#like'), $('#np-like')]) { b.innerHTML = icon(on ? 'heartFill' : 'heart'); b.classList.toggle('on', !!on); }
+  for (const b of [$('#like'), $('#np-like'), $('#fs-like')]) { b.innerHTML = icon(on ? 'heartFill' : 'heart'); b.classList.toggle('on', !!on); }
 }
 
 // ------------------------------------------------------------------ player
@@ -1020,9 +1020,10 @@ function setFullscreen(on) {
 /** Applies the full-screen layout: the player bar's controls move under the artwork. */
 const FS_BUTTONS = [
   // key, label, icon, group
-  ['queue', 'Cola', 'queue', 'side'], ['eq', 'Ecualizador', 'equalizer', 'side'], ['more', 'Más opciones (temporizador, velocidad…)', 'more', 'side'],
+  ['queue', 'Cola', 'queue', 'side'], ['eq', 'Ecualizador', 'equalizer', 'side'],
   ['lyricsSource', 'Cambiar la fuente de la letra', 'lyrics', 'side'], ['lyricsToggle', 'Mostrar u ocultar la letra', 'subtitlesOff', 'side'],
-  ['shuffle', 'Aleatorio', 'shuffle', 'play'], ['repeat', 'Repetir', 'repeat', 'play'],
+  ['like', 'Favorito', 'heart', 'play'], ['shuffle', 'Aleatorio', 'shuffle', 'play'], ['repeat', 'Repetir', 'repeat', 'play'],
+  ['more', 'Más opciones (temporizador, velocidad…)', 'more', 'play'],
 ];
 function applyFsButtons() {
   const on = state.settings.fsButtons || {};
@@ -1065,6 +1066,7 @@ function applyFullscreen(on) {
 function updateNowPlaying() {
   const t = player.current;
   updateFrom();
+  $('#np-album').textContent = t ? [t.album?.name, t.year].filter(Boolean).join(' • ') : '';
   $('#p-title').textContent = t ? t.title : 'Nada sonando';
   $('#p-artist').innerHTML = t ? (t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ') : 'Busca algo para empezar';
   $('#p-art').src = art(t?.thumb);
@@ -1531,7 +1533,7 @@ function toggleQueue(force) {
   const open = force != null ? !!force : !isOpen;
   clearTimeout(queueCloseTimer);
   if (open) { q.classList.remove('closing'); q.hidden = false; }
-  else if (!q.hidden) { q.classList.add('closing'); queueCloseTimer = setTimeout(() => { q.hidden = true; q.classList.remove('closing'); }, 220); }
+  else if (!q.hidden) { q.classList.add('closing'); queueCloseTimer = setTimeout(() => { q.hidden = true; q.classList.remove('closing'); }, 300); }
   $('#btn-queue').classList.toggle('on', open);
   $('#fs-queue').classList.toggle('on', open);
   document.body.classList.toggle('queue-open', open);
@@ -1656,6 +1658,7 @@ function initButtons() {
   setupSidebarMode();
   $('#like').onclick = () => player.current && toggleLike(player.current);
   $('#np-like').onclick = () => player.current && toggleLike(player.current);
+  $('#fs-like').onclick = () => player.current && toggleLike(player.current);
   $('#lyrics-source').onclick = (e) => lyricsSourceMenu(e.currentTarget);
   $('#np-lyrics-toggle').onclick = async () => { await saveSettings({ npLyricsHidden: !state.settings.npLyricsHidden }); applyLyricsHidden(); };
   $('#open-log').onclick = () => bc.openLog();

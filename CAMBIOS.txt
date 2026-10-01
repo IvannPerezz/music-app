@@ -15,6 +15,21 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.13
+------------------------------------------------------------
+- Pantalla completa: nuevo diseño del bloque de la canción. Título grande y centrado,
+  artistas y, debajo, el álbum (y el año si se conoce). La fila de controles queda así:
+  favorito y aleatorio a la izquierda; anterior, reproducir/pausa y siguiente en el
+  centro; repetir y "más opciones" (los tres puntos) a la derecha. Debajo, la barra de
+  progreso. Aleatorio y repetir se marcan con un recuadro del color de acento cuando
+  están activos.
+- El botón de los tres puntos sale de la columna de la derecha y pasa a esa fila. En el
+  panel de ajustes de pantalla completa (el engranaje), "Favorito" y "Más opciones" están
+  ahora en el grupo de controles de reproducción.
+- La cola entra deslizándose desde el borde derecho de la ventana y sale igual, al mismo
+  ritmo que la columna de botones que se aparta con ella.
+
+------------------------------------------------------------
 v0.6.12
 ------------------------------------------------------------
 - Pantalla completa: los botones de cola, ecualizador y más opciones pasan a la columna de

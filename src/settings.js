@@ -80,7 +80,7 @@ export const DEFAULTS = {
   micaPlayer: true,
   micaLyrics: true,
   // Buttons shown in full-screen mode (Ajustes de pantalla completa, the gear in that mode).
-  fsButtons: { queue: true, eq: true, more: true, lyricsSource: true, lyricsToggle: true, shuffle: true, repeat: true },
+  fsButtons: { queue: true, eq: true, more: true, lyricsSource: true, lyricsToggle: true, like: true, shuffle: true, repeat: true },
   micaTint: 50,
   micaBlur: 50,
   micaSaturation: 190,

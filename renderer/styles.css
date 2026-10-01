@@ -757,9 +757,10 @@ body.np-open #sb-toggle { display: none !important; }
   animation: queue-slide-in .3s cubic-bezier(.2,.8,.2,1);
 }
 #queue > * { min-width: 0; }
-#queue.closing { animation: queue-slide-out .22s cubic-bezier(.4,0,1,1) forwards; }
-@keyframes queue-slide-in { from { opacity: 0; transform: translateX(24px) scale(.98); } }
-@keyframes queue-slide-out { to { opacity: 0; transform: translateX(24px) scale(.98); } }
+#queue.closing { animation: queue-slide-out .3s cubic-bezier(.5,0,.75,0) forwards; }
+/* The queue slides in from (and back out past) the right edge of the window. */
+@keyframes queue-slide-in { from { transform: translateX(calc(100% + 24px)); } }
+@keyframes queue-slide-out { to { transform: translateX(calc(100% + 24px)); } }
 #queue-list .row:hover { background: rgba(255,255,255,.08); }
 
 /* ---------------------------------------------------------------- animated ambient background
@@ -998,3 +999,24 @@ body.fs.fs-hide-shuffle #shuffle, body.fs.fs-hide-repeat #repeat { display: none
 .fs-set .fs-opt > svg { width: 20px; height: 20px; opacity: .85; flex: none; }
 .fs-set .fs-opt .fs-lbl { flex: 1; font-weight: 550; }
 .fs-set .btn-row { margin-top: 16px; }
+
+/* Full screen, player block (like the reference): big centred title, artists, album · year;
+   then heart + shuffle | previous, play, next | repeat + more, and the progress bar. */
+body.fs #np-like, body.fs #np-stats { display: none; }
+body.fs .np-title-row { display: block; }
+body.fs #np-title { font-size: 30px; font-weight: 800; letter-spacing: -.4px; }
+body.fs #np-artist { font-size: 18px; color: rgba(255,255,255,.82); margin-top: 4px; }
+body.fs #np-album { font-size: 16px; color: rgba(255,255,255,.6); margin-top: 2px; }
+#np-album:empty { display: none; }
+#np-fs-slot .p-controls { display: grid; gap: 6px; align-items: center; justify-items: center;
+  grid-template-columns: 36px 36px minmax(8px, 1fr) 36px 44px 36px minmax(8px, 1fr) 36px 36px; }
+#np-fs-slot #fs-like { grid-column: 1; } #np-fs-slot #shuffle { grid-column: 2; }
+#np-fs-slot #prev { grid-column: 4; } #np-fs-slot #play { grid-column: 5; } #np-fs-slot #next { grid-column: 6; }
+#np-fs-slot #repeat { grid-column: 8; } #np-fs-slot #fs-more { grid-column: 9; }
+#np-fs-slot .play-btn { background: none; color: #fff; width: 44px; height: 44px; }
+#np-fs-slot .play-btn svg { width: 34px; height: 34px; }
+#np-fs-slot #prev svg, #np-fs-slot #next svg { width: 26px; height: 26px; }
+#np-fs-slot #shuffle.on, #np-fs-slot #repeat.on { background: var(--accent); color: #fff; border-radius: 8px; position: relative; }
+#np-fs-slot #shuffle.on::after, #np-fs-slot #repeat.on::after { content: ""; position: absolute; bottom: 3px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #fff; }
+#fs-like.on { color: var(--accent); }
+body.fs.fs-hide-like #fs-like { display: none; }
