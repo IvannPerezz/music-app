@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.14.2
+------------------------------------------------------------
+- Pantalla completa: los tres puntos ("más opciones") vuelven a abrir su menú flotante
+  junto al botón, en vez de un panel a la derecha.
+- Pantalla completa: los paneles del ecualizador y de la fuente de la letra salen abajo, a
+  la altura de la columna de botones, en lugar de arriba del todo.
+- Arreglado: con un menú abierto en pantalla completa, Esc salía de pantalla completa. Ahora
+  primero cierra el menú.
+
+------------------------------------------------------------
 v0.6.14.1
 ------------------------------------------------------------
 - Pantalla completa: los paneles del ecualizador y de la fuente de la letra ya no ocupan

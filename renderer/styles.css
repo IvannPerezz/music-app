@@ -1053,7 +1053,8 @@ body.fs.fs-hide-like #fs-like { display: none; }
 .fs-panel-body .eq-pre .range-val { flex: none; }
 /* The equalizer and the lyrics source only take the height they need, at the size the
    equalizer pop-up and the lyrics menu had (the button column moves by their width). */
-#fs-panel[data-kind="eq"], #fs-panel[data-kind="lyrics-source"] { bottom: auto; max-height: calc(100% - 20px); }
+/* ...and sit at the bottom, next to the button column, instead of up at the top. */
+#fs-panel[data-kind="eq"], #fs-panel[data-kind="lyrics-source"] { top: auto; bottom: 10px; max-height: calc(100% - 20px); }
 #fs-panel[data-kind="eq"] { width: min(560px, calc(100vw - 120px)); }
 #fs-panel[data-kind="lyrics-source"] { width: 320px; }
 #fs-panel[data-kind="eq"] .fs-panel-body { padding: 0 18px 12px; }

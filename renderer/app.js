@@ -460,7 +460,7 @@ function fillMenu(m, items, pick) {
   });
 }
 // Menus of the full-screen buttons open in the side panel instead (title by button).
-const FS_MENUS = { 'lyrics-source': 'Letra', 'fs-more': 'Más opciones' };
+const FS_MENUS = { 'lyrics-source': 'Letra' };
 let fsMenuPicking = false;
 export function openMenu(items, anchor) {
   if (isFs() && anchor instanceof Element && FS_MENUS[anchor.id]) {
@@ -1764,6 +1764,7 @@ function initButtons() {
     else if (e.key === 'ArrowLeft') engine.seek(Math.max(0, engine.currentTime - 5));
     else if (e.key === 'ArrowUp') { e.preventDefault(); setVolume(store.get('volume', 0.8) + 0.05); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); setVolume(store.get('volume', 0.8) - 0.05); }
+    else if (e.key === 'Escape' && !$('#menu').hidden) closeMenu(); // an open menu goes first
     else if (e.key === 'Escape' && isFs() && fsPanelKind) closeFsPanel();
     else if (e.key === 'Escape' && isFs()) { closeMenu(); setFullscreen(false); }
     else if (e.key === 'Escape') { closeMenu(); closeNowPlaying(); toggleEq(false); }
