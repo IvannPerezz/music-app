@@ -890,19 +890,19 @@ body.no-mica-sidebar #sidebar, body.no-mica-queue #queue, body.no-mica-player #p
 
 /* Lyrics buttons in the full-screen view (source pill and show/hide): small Mica pills that
    follow the sliders of Ajustes > Personalización > Efecto Mica. */
-#lyrics-source, .np-lyr-toggle {
+#lyrics-source, .np-lyr-toggle, .np-close {
   background: linear-gradient(140deg, rgba(255,255,255,.1), rgba(255,255,255,.02)), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.12);
   box-shadow: 0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
 }
-#lyrics-source:hover, .np-lyr-toggle:hover, #lyrics-source.open {
+#lyrics-source:hover, .np-lyr-toggle:hover, #lyrics-source.open, .np-close:hover {
   background: linear-gradient(140deg, rgba(255,255,255,.17), rgba(255,255,255,.05)), var(--mica-tint);
 }
-body.no-mica-lyrics #lyrics-source, body.no-mica-lyrics .np-lyr-toggle {
+body.no-mica-lyrics #lyrics-source, body.no-mica-lyrics .np-lyr-toggle, body.no-mica-lyrics .np-close {
   background: rgba(0,0,0,.28); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-color: transparent; box-shadow: none;
 }
-body.no-mica-lyrics #lyrics-source:hover, body.no-mica-lyrics .np-lyr-toggle:hover { background: rgba(0,0,0,.45); }
+body.no-mica-lyrics #lyrics-source:hover, body.no-mica-lyrics .np-lyr-toggle:hover, body.no-mica-lyrics .np-close:hover { background: rgba(0,0,0,.45); }
 
 /* Theme picker: the original BitChord theme, your own CSS themes and the "+" tile. */
 .theme-opt { position: relative; cursor: pointer; }
@@ -1066,3 +1066,18 @@ body.fs.fs-hide-like #fs-like { display: none; }
 .fs-menu hr { border: 0; height: 1px; background: rgba(255,255,255,.08); margin: 6px 6px; }
 .fs-menu .menu-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); padding: 10px 10px 4px; }
 #lyrics-source.on { color: var(--accent); }
+
+/* Full screen: favourite, shuffle and repeat, when switched on, sit on a small Mica disc with
+   the icon in the accent colour (the "Botones de pantalla completa" Mica switch covers them;
+   without Mica they go back to the solid accent square). */
+#np-fs-slot #fs-like.on, #np-fs-slot #shuffle.on, #np-fs-slot #repeat.on {
+  color: var(--accent); border-radius: 50%; position: relative;
+  background: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.03)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,.22);
+}
+#np-fs-slot #shuffle.on::after, #np-fs-slot #repeat.on::after { background: var(--accent); }
+body.no-mica-lyrics #np-fs-slot #shuffle.on, body.no-mica-lyrics #np-fs-slot #repeat.on {
+  background: var(--accent); color: #fff; border-radius: 8px; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.no-mica-lyrics #np-fs-slot #shuffle.on::after, body.no-mica-lyrics #np-fs-slot #repeat.on::after { background: #fff; }
+body.no-mica-lyrics #np-fs-slot #fs-like.on { background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }

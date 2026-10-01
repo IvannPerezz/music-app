@@ -15,6 +15,19 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.14.3
+------------------------------------------------------------
+- La flecha de minimizar (arriba a la izquierda de la vista de portada y letra) es ahora
+  de cristal con efecto Mica, como los botones de la derecha.
+- Pantalla completa: favorito, aleatorio y repetir, cuando están activados, se marcan
+  con un círculo de cristal Mica y el icono en el color de acento (aleatorio y repetir
+  mantienen el puntito debajo).
+- En Ajustes > Personalización > Efecto Mica, el interruptor "Botones de la letra" se
+  llama ahora "Botones de pantalla completa" y afecta a todos estos botones: la flecha
+  de minimizar, la columna de la derecha y favorito, aleatorio y repetir. Si lo
+  desactivas, vuelven a su aspecto anterior.
+
+------------------------------------------------------------
 v0.6.14.2
 ------------------------------------------------------------
 - Pantalla completa: los tres puntos ("más opciones") vuelven a abrir su menú flotante

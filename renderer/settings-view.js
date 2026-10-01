@@ -505,7 +505,7 @@ function sidebarCard() {
     row('Barra lateral izquierda', '', toggle('micaSidebar', () => mica())),
     row('Cola (barra lateral derecha)', '', toggle('micaQueue', () => mica())),
     row('Controles de reproducción (abajo)', '', toggle('micaPlayer', () => mica())),
-    row('Botones de la letra', 'En la vista de portada y letra: el de elegir la letra y el de mostrarla u ocultarla.', toggle('micaLyrics', () => mica())),
+    row('Botones de pantalla completa', 'En la vista de portada y letra y en pantalla completa: la flecha de minimizar, la columna de botones de la derecha (letra, cola, ecualizador, ajustes, salir) y favorito, aleatorio y repetir cuando están activados.', toggle('micaLyrics', () => mica())),
     row('Intensidad del tinte', 'Más alto = más color del tema y menos transparencia.', range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
     row('Desenfoque del cristal', 'Cuánto se difumina lo que hay detrás. 0 = cristal transparente.', range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
     row('Saturación', 'Lo vivos que se ven los colores a través del cristal.', range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),

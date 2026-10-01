@@ -52,6 +52,14 @@ const volShown = () => win.evaluate(() => document.body.classList.contains('fs-v
 await win.mouse.move(700, 400); await win.waitForTimeout(3200);
 if (await volShown()) errors.push('La barra de volumen no se esconde');
 await shot('02c-fullscreen-vol-hidden');
+// Favourite, shuffle and repeat switched on: Mica disc; the minimise arrow has Mica too.
+for (const id of ['#fs-like', '#shuffle', '#repeat']) await win.click(id);
+await win.waitForTimeout(300);
+const micaOn = await win.evaluate(() => ['#fs-like', '#shuffle', '#repeat', '#np-close'].map((q) => getComputedStyle(document.querySelector(q)).backdropFilter !== 'none'));
+if (micaOn.includes(false)) errors.push('Falta el efecto Mica en favorito/aleatorio/repetir/minimizar: ' + micaOn.join());
+await shot('02c2-fullscreen-active');
+await win.click('#fs-like'); await win.click('#shuffle'); await win.click('#repeat'); await win.click('#repeat');
+await win.waitForTimeout(200);
 await win.mouse.move(40, 430); await win.waitForTimeout(500);
 if (!(await volShown())) errors.push('La barra de volumen no vuelve al acercar el ratón');
 // Menus open as a side panel from the right (like the queue) and the button column moves too.
