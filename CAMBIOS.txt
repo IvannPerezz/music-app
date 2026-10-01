@@ -15,6 +15,22 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.12
+------------------------------------------------------------
+- Pantalla completa: los botones de cola, ecualizador y más opciones pasan a la columna de
+  la derecha, encima de los de la letra. El ecualizador se abre a la izquierda de su
+  botón.
+- Pantalla completa: nuevo botón con forma de engranaje en esa columna. Abre en el centro
+  de la pantalla, con el fondo difuminado, un panel para elegir qué botones se ven: los
+  de la columna de la derecha (cola, ecualizador, más opciones, fuente de la letra y
+  mostrar u ocultar la letra) y, en los controles de reproducción, aleatorio y repetir.
+  Se guarda para la próxima vez.
+- Pantalla completa: el título, los artistas y los datos de la canción van centrados
+  debajo de la portada.
+- Pantalla completa: al abrir la cola, la columna de botones de la derecha se desplaza
+  junto con el panel en lugar de quedarse tapada debajo.
+
+------------------------------------------------------------
 v0.6.11
 ------------------------------------------------------------
 - Pantalla completa: debajo de la barra de progreso hay una fila con la cola, el

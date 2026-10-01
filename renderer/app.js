@@ -1018,6 +1018,36 @@ function setFullscreen(on) {
   bc.setFullscreen(on);
 }
 /** Applies the full-screen layout: the player bar's controls move under the artwork. */
+const FS_BUTTONS = [
+  // key, label, icon, group
+  ['queue', 'Cola', 'queue', 'side'], ['eq', 'Ecualizador', 'equalizer', 'side'], ['more', 'Más opciones (temporizador, velocidad…)', 'more', 'side'],
+  ['lyricsSource', 'Cambiar la fuente de la letra', 'lyrics', 'side'], ['lyricsToggle', 'Mostrar u ocultar la letra', 'subtitlesOff', 'side'],
+  ['shuffle', 'Aleatorio', 'shuffle', 'play'], ['repeat', 'Repetir', 'repeat', 'play'],
+];
+function applyFsButtons() {
+  const on = state.settings.fsButtons || {};
+  for (const [k] of FS_BUTTONS) document.body.classList.toggle(`fs-hide-${k}`, on[k] === false);
+}
+/** Settings of the full-screen mode: which buttons it shows. Opens in the middle, over a blur. */
+function fsSettings() {
+  const m = h(`<div class="modal-back fs-set-back"><div class="modal fs-set">
+    <h3>Pantalla completa</h3><p class="muted">Elige qué botones se ven en este modo. Los cambios se aplican al momento.</p>
+    <h4>Columna de la derecha</h4><div data-g="side"></div>
+    <h4>Controles de reproducción</h4><div data-g="play"></div>
+    <div class="btn-row"><button class="btn primary small" data-a="ok">Listo</button></div>
+  </div></div>`);
+  for (const [k, label, ic, g] of FS_BUTTONS) {
+    const row = h(`<label class="fs-opt">${icon(ic)}<span class="fs-lbl">${esc(label)}</span><span class="switch" style="flex:none"><input type="checkbox"${(state.settings.fsButtons || {})[k] !== false ? ' checked' : ''}><span></span></span></label>`);
+    row.querySelector('input').onchange = (e) => saveSettings({ fsButtons: { ...(state.settings.fsButtons || {}), [k]: e.target.checked } });
+    m.querySelector(`[data-g=${g}]`).append(row);
+  }
+  const close = () => { m.remove(); document.removeEventListener('keydown', key, true); };
+  const key = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  m.querySelector('[data-a=ok]').onclick = close;
+  m.addEventListener('mousedown', (e) => { if (e.target === m) close(); });
+  document.addEventListener('keydown', key, true);
+  document.body.append(m);
+}
 function applyFullscreen(on) {
   document.body.classList.toggle('fs', on);
   const center = $('.p-center');
@@ -1383,8 +1413,8 @@ function toggleEq(force) {
   $('#fs-eq').classList.toggle('on', show);
   // Full screen has no player bar: open it right above its button under the artwork.
   if (show && isFs()) {
-    const r = $('#fs-eq').getBoundingClientRect(), w = pop.offsetWidth;
-    Object.assign(pop.style, { left: `${Math.min(innerWidth - w - 16, Math.max(16, r.left + r.width / 2 - w / 2))}px`, right: 'auto', bottom: `${innerHeight - r.top + 10}px` });
+    const r = $('#fs-eq').getBoundingClientRect();
+    Object.assign(pop.style, { left: 'auto', right: `${innerWidth - r.left + 12}px`, bottom: `${Math.max(16, innerHeight - r.bottom)}px` });
   } else pop.style.left = pop.style.right = pop.style.bottom = '';
 }
 document.addEventListener('mousedown', (e) => {
@@ -1504,6 +1534,7 @@ function toggleQueue(force) {
   else if (!q.hidden) { q.classList.add('closing'); queueCloseTimer = setTimeout(() => { q.hidden = true; q.classList.remove('closing'); }, 220); }
   $('#btn-queue').classList.toggle('on', open);
   $('#fs-queue').classList.toggle('on', open);
+  document.body.classList.toggle('queue-open', open);
   $('#nav-queue')?.classList.toggle('active', open);
   renderQueue.scrolled = false;
   renderQueue();
@@ -1569,6 +1600,7 @@ document.addEventListener('settings', (e) => {
   if (k.includes('theme') || k.includes('customThemes') || k.includes('dynamicAccent') || k.includes('accentMode') || k.includes('customAccent')) applyTheme();
   if (k.some((x) => x.startsWith('ambient'))) applyAmbient();
   if (k.some((x) => x.startsWith('mica'))) applyMica();
+  if (k.includes('fsButtons')) applyFsButtons();
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
   if (k.some((x) => ['crossfade', 'gapless', 'automix', 'automixBars', 'skipSilence', 'normalize', 'speed', 'eqEnabled', 'eqBands', 'preamp'].includes(x))) applyAudioSettings();
   if (k.some((x) => x.startsWith('lyrics')) && player.current) {
@@ -1614,6 +1646,9 @@ function initButtons() {
   $('#fs-eq').onclick = () => toggleEq();
   $('#fs-more').innerHTML = icon('more');
   $('#fs-more').onclick = (e) => moreMenu(e.currentTarget);
+  $('#fs-settings').innerHTML = icon('settings');
+  $('#fs-settings').onclick = () => fsSettings();
+  applyFsButtons();
   bc.on('fullscreen', applyFullscreen);
   syncFsVolume();
   $('#sb-toggle').innerHTML = icon('menu');

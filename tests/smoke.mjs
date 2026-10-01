@@ -54,12 +54,27 @@ if (await volShown()) errors.push('La barra de volumen no se esconde');
 await shot('02c-fullscreen-vol-hidden');
 await win.mouse.move(40, 430); await win.waitForTimeout(500);
 if (!(await volShown())) errors.push('La barra de volumen no vuelve al acercar el ratón');
-// Equalizer from the tools row under the artwork, opened above its button.
+// Equalizer from the right-hand column, opened to the left of its button.
 await win.click('#fs-eq'); await win.waitForTimeout(400);
-const eq = await win.evaluate(() => { const p = document.querySelector('#eq-pop'), b = document.querySelector('#fs-eq').getBoundingClientRect(); return { open: !p.hidden, above: p.getBoundingClientRect().bottom <= b.top }; });
-if (!eq.open || !eq.above) errors.push('Ecualizador en pantalla completa: ' + JSON.stringify(eq));
+const eq = await win.evaluate(() => { const p = document.querySelector('#eq-pop'), b = document.querySelector('#fs-eq').getBoundingClientRect(); return { open: !p.hidden, left: p.getBoundingClientRect().right <= b.left }; });
+if (!eq.open || !eq.left) errors.push('Ecualizador en pantalla completa: ' + JSON.stringify(eq));
 await shot('02d-fullscreen-eq');
 await win.click('#fs-eq'); await win.waitForTimeout(300);
+// The right-hand column moves left with the queue panel instead of staying under it.
+const cornerRight = () => win.evaluate(() => Math.round(document.querySelector('.np-corner').getBoundingClientRect().right));
+const r0 = await cornerRight();
+await win.click('#fs-queue'); await win.waitForTimeout(600);
+const r1 = await cornerRight(), qLeft = await win.evaluate(() => document.querySelector('#queue').getBoundingClientRect().left);
+if (!(r1 < r0 && r1 <= qLeft)) errors.push(`Los botones no se apartan de la cola: ${r0} → ${r1}, cola en ${qLeft}`);
+await shot('02e-fullscreen-queue');
+await win.click('#fs-queue'); await win.waitForTimeout(400);
+// Full-screen settings: switching off "Aleatorio" hides it under the artwork.
+await win.click('#fs-settings'); await win.waitForTimeout(400); await shot('02f-fullscreen-settings');
+await win.locator('.fs-opt', { hasText: 'Aleatorio' }).click(); await win.waitForTimeout(300);
+if (await win.isVisible('#shuffle')) errors.push('Ocultar «Aleatorio» en pantalla completa no funciona');
+await win.locator('.fs-opt', { hasText: 'Aleatorio' }).click(); await win.waitForTimeout(300);
+await win.click('.fs-set [data-a=ok]'); await win.waitForTimeout(300);
+if (!(await win.isVisible('#shuffle'))) errors.push('«Aleatorio» no vuelve a aparecer');
 await win.keyboard.press('Escape'); await win.waitForTimeout(1200);
 fsx = { ...(await fsState()), window: await winFs() };
 if (fsx.fs || fsx.inside || fsx.window || !(await win.$('#player .p-center'))) errors.push('Al salir de pantalla completa: ' + JSON.stringify(fsx));
