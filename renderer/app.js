@@ -450,16 +450,34 @@ export async function downloadTracks(tracks) {
 }
 
 // ------------------------------------------------------------------ menus
-export function openMenu(items, anchor) {
-  const m = $('#menu');
-  m.innerHTML = '';
+function fillMenu(m, items, pick) {
   items.forEach((it) => {
     if (!it) return m.append(document.createElement('hr'));
     if (it.header) return m.append(h(`<div class="menu-head">${esc(it.header)}</div>`));
     const b = h(`<button${it.checked ? ' class="checked"' : ''}>${icon(it.icon || (it.checked ? 'check' : ''))}<span class="ellipsis">${esc(it.label)}</span>${it.hint ? `<span class="hint">${esc(it.hint)}</span>` : ''}</button>`);
-    b.onclick = () => { closeMenu(); it.action(); };
+    b.onclick = () => pick(it);
     m.append(b);
   });
+}
+// Menus of the full-screen buttons open in the side panel instead (title by button).
+const FS_MENUS = { 'lyrics-source': 'Letra', 'fs-more': 'Más opciones' };
+let fsMenuPicking = false;
+export function openMenu(items, anchor) {
+  if (isFs() && anchor instanceof Element && FS_MENUS[anchor.id]) {
+    if (fsPanelKind === anchor.id && !fsMenuPicking) return closeFsPanel(); // second click closes it
+    const list = h('<div class="fs-menu"></div>');
+    fillMenu(list, items, (it) => {
+      // An item may open another menu in the panel (a submenu): only close if it didn't.
+      const gen = fsPanelGen;
+      fsMenuPicking = true;
+      try { it.action(); } finally { fsMenuPicking = false; }
+      if (gen === fsPanelGen) closeFsPanel();
+    });
+    return openFsPanel(anchor.id, FS_MENUS[anchor.id], list);
+  }
+  const m = $('#menu');
+  m.innerHTML = '';
+  fillMenu(m, items, (it) => { closeMenu(); it.action(); });
   m.hidden = false;
   let x, y;
   if (anchor instanceof Element) {
@@ -1042,12 +1060,41 @@ function fsSettings() {
     row.querySelector('input').onchange = (e) => saveSettings({ fsButtons: { ...(state.settings.fsButtons || {}), [k]: e.target.checked } });
     m.querySelector(`[data-g=${g}]`).append(row);
   }
-  const close = () => { m.remove(); document.removeEventListener('keydown', key, true); };
+  const close = () => { m.remove(); document.body.classList.remove('fs-set-open'); document.removeEventListener('keydown', key, true); };
   const key = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
   m.querySelector('[data-a=ok]').onclick = close;
+  document.body.classList.add('fs-set-open');
   m.addEventListener('mousedown', (e) => { if (e.target === m) close(); });
   document.addEventListener('keydown', key, true);
   document.body.append(m);
+}
+let fsPanelKind = null, fsPanelGen = 0, fsPanelTimer = null;
+/** Full screen: side panel (same place and animation as the queue) with a menu or the EQ. */
+function openFsPanel(kind, title, body) {
+  const p = $('#fs-panel');
+  if (!$('#queue').hidden) toggleQueue(false);
+  clearTimeout(fsPanelTimer);
+  fsPanelGen++;
+  fsPanelKind = kind;
+  p.querySelector('h3').textContent = title;
+  p.querySelector('.fs-panel-body').replaceChildren(body);
+  p.classList.remove('closing');
+  p.hidden = false;
+  document.body.classList.add('panel-open');
+  syncFsPanelButtons();
+}
+function closeFsPanel() {
+  const p = $('#fs-panel');
+  if (p.hidden || p.classList.contains('closing')) return;
+  fsPanelKind = null;
+  document.body.classList.remove('panel-open');
+  syncFsPanelButtons();
+  p.classList.add('closing');
+  fsPanelTimer = setTimeout(() => { p.hidden = true; p.classList.remove('closing'); }, 300);
+}
+function syncFsPanelButtons() {
+  $('#fs-eq').classList.toggle('on', fsPanelKind === 'eq');
+  $('#lyrics-source').classList.toggle('open', fsPanelKind === 'lyrics-source');
 }
 function applyFullscreen(on) {
   document.body.classList.toggle('fs', on);
@@ -1059,7 +1106,8 @@ function applyFullscreen(on) {
   $('#btn-fs').classList.toggle('on', on);
   if (on && !npOpen()) openNowPlaying();
   if (on) peekFsVolume(2500); else document.body.classList.remove('fs-vol-show');
-  toggleEq(false);
+  closeFsPanel();
+  if (!on) toggleEq(false);
 }
 
 // ------------------------------------------------------------------ now playing / theming
@@ -1403,6 +1451,17 @@ function moreMenu(anchor) {
 
 // ------------------------------------------------------------------ equalizer pop-over
 function toggleEq(force) {
+  if (isFs() || fsPanelKind === 'eq') {
+    const show = force != null ? force : fsPanelKind !== 'eq';
+    if (show) {
+      const body = h('<div></div>');
+      const more = h('<button class="text-btn" style="margin:4px 6px 12px">Más en Ajustes</button>');
+      more.onclick = () => { closeFsPanel(); setFullscreen(false); go({ name: 'settings', section: 'eq' }); };
+      body.append(eqPanel(), more);
+      openFsPanel('eq', 'Ecualizador', body);
+    } else if (fsPanelKind === 'eq') closeFsPanel();
+    return;
+  }
   const pop = $('#eq-pop');
   const show = force != null ? force : pop.hidden;
   if (show && !pop.firstChild) {
@@ -1413,11 +1472,6 @@ function toggleEq(force) {
   pop.hidden = !show;
   $('#btn-eq').classList.toggle('on', show);
   $('#fs-eq').classList.toggle('on', show);
-  // Full screen has no player bar: open it right above its button under the artwork.
-  if (show && isFs()) {
-    const r = $('#fs-eq').getBoundingClientRect();
-    Object.assign(pop.style, { left: 'auto', right: `${innerWidth - r.left + 12}px`, bottom: `${Math.max(16, innerHeight - r.bottom)}px` });
-  } else pop.style.left = pop.style.right = pop.style.bottom = '';
 }
 document.addEventListener('mousedown', (e) => {
   if ($('#eq-pop').hidden || e.target.closest('#eq-pop, #btn-eq, #fs-eq')) return;
@@ -1534,7 +1588,7 @@ function toggleQueue(force) {
   const isOpen = !q.hidden && !q.classList.contains('closing');
   const open = force != null ? !!force : !isOpen;
   clearTimeout(queueCloseTimer);
-  if (open) { q.classList.remove('closing'); q.hidden = false; }
+  if (open) { closeFsPanel(); q.classList.remove('closing'); q.hidden = false; }
   else if (!q.hidden) { q.classList.add('closing'); queueCloseTimer = setTimeout(() => { q.hidden = true; q.classList.remove('closing'); }, 300); }
   $('#btn-queue').classList.toggle('on', open);
   $('#fs-queue').classList.toggle('on', open);
@@ -1652,6 +1706,8 @@ function initButtons() {
   $('#fs-more').onclick = (e) => moreMenu(e.currentTarget);
   $('#fs-settings').innerHTML = icon('settings');
   $('#fs-settings').onclick = () => fsSettings();
+  $('#fs-panel-close').innerHTML = icon('close');
+  $('#fs-panel-close').onclick = () => closeFsPanel();
   applyFsButtons();
   bc.on('fullscreen', applyFullscreen);
   syncFsVolume();
@@ -1704,6 +1760,7 @@ function initButtons() {
     else if (e.key === 'ArrowLeft') engine.seek(Math.max(0, engine.currentTime - 5));
     else if (e.key === 'ArrowUp') { e.preventDefault(); setVolume(store.get('volume', 0.8) + 0.05); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); setVolume(store.get('volume', 0.8) - 0.05); }
+    else if (e.key === 'Escape' && isFs() && fsPanelKind) closeFsPanel();
     else if (e.key === 'Escape' && isFs()) { closeMenu(); setFullscreen(false); }
     else if (e.key === 'Escape') { closeMenu(); closeNowPlaying(); toggleEq(false); }
     else if (e.key === 'F11') { e.preventDefault(); setFullscreen(!isFs()); }

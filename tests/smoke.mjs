@@ -54,12 +54,19 @@ if (await volShown()) errors.push('La barra de volumen no se esconde');
 await shot('02c-fullscreen-vol-hidden');
 await win.mouse.move(40, 430); await win.waitForTimeout(500);
 if (!(await volShown())) errors.push('La barra de volumen no vuelve al acercar el ratón');
-// Equalizer from the right-hand column, opened to the left of its button.
-await win.click('#fs-eq'); await win.waitForTimeout(400);
-const eq = await win.evaluate(() => { const p = document.querySelector('#eq-pop'), b = document.querySelector('#fs-eq').getBoundingClientRect(); return { open: !p.hidden, left: p.getBoundingClientRect().right <= b.left }; });
-if (!eq.open || !eq.left) errors.push('Ecualizador en pantalla completa: ' + JSON.stringify(eq));
+// Menus open as a side panel from the right (like the queue) and the button column moves too.
+const panel = () => win.evaluate(() => { const p = document.querySelector('#fs-panel'), c = document.querySelector('.np-corner').getBoundingClientRect(); return { open: !p.hidden && !p.classList.contains('closing'), title: p.querySelector('h3').textContent, cornerRight: Math.round(c.right), panelLeft: Math.round(p.getBoundingClientRect().left), fs: document.body.classList.contains('fs') }; });
+await win.click('#fs-eq'); await win.waitForTimeout(500);
+let pn = await panel();
+if (!pn.open || pn.title !== 'Ecualizador' || pn.cornerRight > pn.panelLeft) errors.push('Ecualizador en pantalla completa: ' + JSON.stringify(pn));
 await shot('02d-fullscreen-eq');
-await win.click('#fs-eq'); await win.waitForTimeout(300);
+await win.click('#fs-more'); await win.waitForTimeout(500);
+pn = await panel();
+if (!pn.open || pn.title !== 'Más opciones') errors.push('Más opciones en pantalla completa: ' + JSON.stringify(pn));
+await shot('02d2-fullscreen-more');
+await win.keyboard.press('Escape'); await win.waitForTimeout(450);
+pn = await panel();
+if (pn.open || !pn.fs) errors.push('Esc debería cerrar el panel sin salir de pantalla completa: ' + JSON.stringify(pn));
 // The right-hand column moves left with the queue panel instead of staying under it.
 const cornerRight = () => win.evaluate(() => Math.round(document.querySelector('.np-corner').getBoundingClientRect().right));
 const r0 = await cornerRight();

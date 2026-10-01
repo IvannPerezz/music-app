@@ -977,7 +977,7 @@ body.fs.fs-vol-show #fs-vol { transform: translate(0, -50%); opacity: 1; }
 @media (max-width: 1100px) { :root { --queue-w: 300px; } }
 /* Same timing as the queue: eases out while it slides in, eases in while it slides out. */
 .np-corner { transition: right .3s cubic-bezier(.5,0,.75,0); }
-body.fs.queue-open #nowplaying .np-corner { right: calc(var(--queue-w) + 36px); transition: right .3s cubic-bezier(.2,.8,.2,1); }
+body.fs.queue-open #nowplaying .np-corner, body.fs.panel-open #nowplaying .np-corner { right: calc(var(--queue-w) + 36px); transition: right .3s cubic-bezier(.2,.8,.2,1); }
 .np-lyr-toggle.on { color: var(--accent); opacity: 1; }
 
 /* Full screen: title, artists and stats centred under the artwork (the heart stays on the right). */
@@ -992,8 +992,19 @@ body.fs.fs-hide-lyricsSource #lyrics-source, body.fs.fs-hide-lyricsToggle #np-ly
 body.fs.fs-hide-shuffle #shuffle, body.fs.fs-hide-repeat #repeat { display: none; }
 
 /* Full-screen settings: a panel in the middle, over a blurred view. */
-.modal-back.fs-set-back { background: rgba(0,0,0,.3); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
-.modal.fs-set { width: min(480px, calc(100vw - 32px)); background: color-mix(in srgb, var(--surface) 88%, transparent); }
+/* The view behind is blurred with a filter, not with a backdrop-filter on the dark layer: that
+   layer would become the panel's backdrop root and the panel's own Mica would see nothing. */
+.modal-back.fs-set-back { background: rgba(0,0,0,.22); }
+/* Blur what's inside the view, not the view itself: blurring it would fade its edges and let
+   the page underneath show through. */
+body.fs-set-open #nowplaying > *, body.fs-set-open #queue, body.fs-set-open #fs-panel { filter: blur(12px); }
+/* Keep the backgrounds' own filters (darkening, saturation) and only add the blur. */
+body.fs-set-open #nowplaying > .np-amb { filter: saturate(calc(var(--amb-sat, 1) * 1.4)) brightness(.6) blur(12px); }
+body.fs-set-open #nowplaying > .np-bg { filter: blur(80px) saturate(1.6) brightness(.55); }
+.modal.fs-set { width: min(480px, calc(100vw - 32px));
+  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); }
 .fs-set h4 { margin: 14px 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
 .fs-set .fs-opt { display: flex; align-items: center; gap: 12px; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.06); }
 .fs-set .fs-opt:last-of-type { border-bottom: 0; }
@@ -1021,3 +1032,36 @@ body.fs #np-album { font-size: 16px; color: rgba(255,255,255,.6); margin-top: 2p
 #np-fs-slot #shuffle.on::after, #np-fs-slot #repeat.on::after { content: ""; position: absolute; bottom: 3px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #fff; }
 #fs-like.on { color: var(--accent); }
 body.fs.fs-hide-like #fs-like { display: none; }
+
+/* Full screen: menus (equalizer, lyrics source, more options) open as a side panel that slides
+   in from the right like the queue, and the button column moves with it. */
+#fs-panel {
+  position: absolute; top: 10px; right: 10px; bottom: 10px; z-index: 6; width: var(--queue-w);
+  display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
+  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.11);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  animation: queue-slide-in .3s cubic-bezier(.2,.8,.2,1);
+}
+#fs-panel[hidden] { display: none; }
+#fs-panel.closing { animation: queue-slide-out .3s cubic-bezier(.5,0,.75,0) forwards; pointer-events: none; }
+#fs-panel .panel-head .icon-btn svg { width: 20px; height: 20px; }
+.fs-panel-body { flex: 1; overflow-y: auto; padding: 0 10px 16px; }
+.fs-panel-body .eq-panel { padding: 4px 6px; }
+/* Narrow panel: the ten bands share the width, the preset list fills its row. */
+.fs-panel-body .eq-panel .eq-top { flex-wrap: wrap; gap: 10px; }
+.fs-panel-body .eq-panel .select { min-width: 0; flex: 1; }
+.fs-panel-body .eq { gap: 0; padding-left: 0; padding-right: 0; }
+.fs-panel-body .eq-band { min-width: 0; }
+.fs-panel-body .eq-pre input { min-width: 0; }
+.fs-panel-body .eq-pre .range-val { flex: none; }
+.fs-panel-body .eq-band input { width: 22px; height: 220px; }
+.fs-panel-body .eq-f, .fs-panel-body .eq-db { font-size: 10.5px; }
+.fs-menu button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 8px; text-align: left; font-size: 14px; }
+.fs-menu button svg { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.fs-menu button:hover { background: rgba(255,255,255,.1); }
+.fs-menu button .hint { margin-left: auto; font-size: 11px; color: var(--muted); padding-left: 12px; white-space: nowrap; }
+.fs-menu button.checked, .fs-menu button.checked svg { color: var(--accent); }
+.fs-menu hr { border: 0; height: 1px; background: rgba(255,255,255,.08); margin: 6px 6px; }
+.fs-menu .menu-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); padding: 10px 10px 4px; }

@@ -33,7 +33,7 @@
       <div id="nav-items"></div>
       <div class="sidebar-foot">
         <span>BitChord Desktop</span>
-        <span class="muted">v0.6.13.1 · port de BitChord</span>
+        <span class="muted">v0.6.14 · port de BitChord</span>
         <button class="text-btn" id="open-log">Ver registro</button>
       </div>
     </nav>
@@ -46,6 +46,11 @@
         <button class="text-btn" id="queue-clear">Limpiar</button>
       </div>
       <div id="queue-list"></div>
+    </aside>
+
+    <aside id="fs-panel" hidden>
+      <div class="panel-head"><h3></h3><button class="icon-btn" id="fs-panel-close" title="Cerrar (Esc)"></button></div>
+      <div class="fs-panel-body"></div>
     </aside>
 
     <section id="nowplaying" hidden>
@@ -74,10 +79,10 @@
       <button class="icon-btn np-close" id="np-close" title="Minimizar (Esc)"></button>
       <div id="np-from" class="fs-only" hidden><small></small><b class="ellipsis"></b></div>
       <div class="np-corner">
-        <button class="icon-btn np-lyr-toggle fs-only" id="fs-queue" title="Cola (Q)"></button>
-        <button class="icon-btn np-lyr-toggle fs-only" id="fs-eq" title="Ecualizador (E)"></button>
         <button class="pill" id="lyrics-source"></button>
         <button class="icon-btn np-lyr-toggle" id="np-lyrics-toggle"></button>
+        <button class="icon-btn np-lyr-toggle fs-only" id="fs-queue" title="Cola (Q)"></button>
+        <button class="icon-btn np-lyr-toggle fs-only" id="fs-eq" title="Ecualizador (E)"></button>
         <button class="icon-btn np-lyr-toggle fs-only" id="fs-settings" title="Botones de pantalla completa"></button>
         <button class="icon-btn np-lyr-toggle fs-only" id="np-fs-exit" title="Salir de pantalla completa (Esc)"></button>
       </div>

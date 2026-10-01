@@ -15,6 +15,21 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.14
+------------------------------------------------------------
+- Pantalla completa: los botones de la letra (cambiar la fuente y mostrar u ocultar)
+  pasan a lo alto de la columna de la derecha. Debajo quedan la cola, el ecualizador,
+  los ajustes y salir.
+- Pantalla completa: el ecualizador, la fuente de la letra y "más opciones" se abren ahora
+  como un panel lateral, igual que la cola: entra deslizándose por la derecha y la
+  columna de botones se aparta con él. Solo hay un panel abierto a la vez (al abrir uno
+  se cierra el otro). Se cierra con la X, con Esc (sin salir de pantalla completa) o
+  volviendo a pulsar su botón.
+- Pantalla completa: el panel de ajustes (el engranaje) sigue apareciendo en el centro,
+  pero ahora es de cristal con efecto Mica como el resto de la app, y lo de detrás queda
+  difuminado.
+
+------------------------------------------------------------
 v0.6.13.1
 ------------------------------------------------------------
 - Arreglado: al abrir la cola, a veces se quedaba a media pantalla un rato y luego
