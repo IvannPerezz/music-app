@@ -81,8 +81,8 @@ if (bottoms.panel < bottoms.h - 30) errors.push('El panel de la letra no está a
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);
 await win.click('#fs-more'); await win.waitForTimeout(500);
 // "Más opciones" is the usual pop-up menu next to its button, not a side panel.
-const moreState = await win.evaluate(() => ({ menu: !document.querySelector('#menu').hidden, panel: !document.querySelector('#fs-panel').hidden && !document.querySelector('#fs-panel').classList.contains('closing') }));
-if (!moreState.menu || moreState.panel) errors.push('Más opciones en pantalla completa: ' + JSON.stringify(moreState));
+const moreState = await win.evaluate(() => ({ right: document.querySelector('#menu').getBoundingClientRect().left >= document.querySelector('#fs-more').getBoundingClientRect().left - 1, menu: !document.querySelector('#menu').hidden, panel: !document.querySelector('#fs-panel').hidden && !document.querySelector('#fs-panel').classList.contains('closing') }));
+if (!moreState.menu || moreState.panel || !moreState.right) errors.push('Más opciones en pantalla completa: ' + JSON.stringify(moreState));
 await shot('02d2-fullscreen-more');
 await win.keyboard.press('Escape'); await win.waitForTimeout(200);
 if (!(await win.evaluate(() => document.body.classList.contains('fs')))) errors.push('Esc con el menú abierto sale de pantalla completa');
@@ -117,9 +117,17 @@ try { await win.waitForFunction(() => document.body.dataset.vis === 'ready', nul
 catch { errors.push('El visualizador no arranca'); }
 await win.waitForTimeout(1500); await shot('02g-visualizer');
 await win.click('#np-vis-presets'); await win.waitForTimeout(500);
-const vis = await win.evaluate(() => ({ title: document.querySelector('#fs-panel h3').textContent, presets: document.querySelectorAll('.vis-list button').length, checked: document.querySelectorAll('.vis-list button.checked').length }));
+const vis = await win.evaluate(() => ({ title: document.querySelector('#fs-panel h3').textContent, presets: document.querySelectorAll('.vis-item').length, checked: document.querySelectorAll('.vis-item.checked').length }));
 if (vis.title !== 'Visualizador' || vis.presets < 200 || vis.checked !== 1) errors.push('Panel del visualizador: ' + JSON.stringify(vis));
-await win.click('.vis-list button >> nth=3'); await win.waitForTimeout(1500); await shot('02h-visualizer-presets');
+await win.click('.vis-pick >> nth=3'); await win.waitForTimeout(1500);
+// Favourites: star two presets, then the "Favoritos" tab lists just those.
+for (const n of [3, 5]) { await win.hover(`.vis-item >> nth=${n}`); await win.click(`.vis-item >> nth=${n} >> .vis-fav`); await win.waitForTimeout(150); }
+await shot('02h-visualizer-presets');
+await win.click('.vis-tabs [data-t=fav]'); await win.waitForTimeout(300);
+const favCount = await win.evaluate(() => document.querySelectorAll('.vis-item').length);
+if (favCount !== 2) errors.push('La pestaña de favoritos del visualizador muestra ' + favCount + ' presets en vez de 2');
+await shot('02i-visualizer-favorites');
+await win.click('.vis-tabs [data-t=all]'); await win.waitForTimeout(200);
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);
 await win.click('#np-vis-toggle'); await win.waitForTimeout(300);
 if (await win.$('#np-vis')) errors.push('El visualizador no se quita al apagarlo');

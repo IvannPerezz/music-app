@@ -85,11 +85,22 @@ export function unmountVisualizer() {
   notify();
 }
 
+/** Presets the random pick and the automatic changes choose from: the favourites when the
+ *  "Favoritos" tab is on (and there are any), otherwise all of them. */
+export function favorites() {
+  const fav = new Set(state.settings.visFavorites || []);
+  return names.filter((n) => fav.has(n));
+}
+function pool() {
+  const fav = state.settings.visUseFavs ? favorites() : [];
+  return fav.length ? fav : names;
+}
 function randomName() {
-  if (!names.length) return '';
-  if (names.length === 1) return names[0];
+  const list = pool();
+  if (!list.length) return '';
+  if (list.length === 1) return list[0];
   let n;
-  do n = names[Math.floor(Math.random() * names.length)]; while (n === current);
+  do n = list[Math.floor(Math.random() * list.length)]; while (n === current);
   return n;
 }
 
@@ -111,6 +122,11 @@ export function visOnTrackChange() {
   if (frame && names.length && (state.settings.visAuto || 'song') === 'song') randomPreset();
 }
 /** Picked by hand in the presets panel: remembered for when changes are off. */
+export function toggleFavorite(name) {
+  const fav = new Set(state.settings.visFavorites || []);
+  if (fav.has(name)) fav.delete(name); else fav.add(name);
+  return saveSettings({ visFavorites: [...fav] }).then(notify);
+}
 export function pickPreset(name) {
   setPreset(name);
   saveSettings({ visPreset: name }).catch(() => {});

@@ -5,7 +5,7 @@ import { parseResult } from './lyrics-parse.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
-import { mountVisualizer, unmountVisualizer, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange } from './visualizer.js';
+import { mountVisualizer, unmountVisualizer, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange, favorites, toggleFavorite } from './visualizer.js';
 import { importView } from './import-view.js';
 
 // ------------------------------------------------------------------ router
@@ -483,7 +483,8 @@ export function openMenu(items, anchor) {
   let x, y;
   if (anchor instanceof Element) {
     const r = anchor.getBoundingClientRect();
-    x = r.right - m.offsetWidth; y = r.bottom + 4;
+    // Right-aligned to the button, or opening to its right if the button asks (data-menu=right).
+    x = anchor.dataset.menu === 'right' ? r.left : r.right - m.offsetWidth; y = r.bottom + 4;
     if (y + m.offsetHeight > innerHeight - 8) y = r.top - m.offsetHeight - 4;
   } else ({ x, y } = anchor);
   x = Math.max(8, Math.min(x, innerWidth - m.offsetWidth - 8));
@@ -1116,23 +1117,46 @@ function toggleVisPanel() {
         <option value="60">Cada minuto</option><option value="off">Siempre el mismo</option>
       </select>
     </div>
+    <div class="vis-tabs"><button data-t="all">Todos</button><button data-t="fav">Favoritos</button></div>
     <input class="text" type="search" placeholder="Buscar preset…" spellcheck="false">
-    <div class="fs-menu vis-list"></div>
+    <div class="vis-list"></div>
   </div>`);
   const list = root.querySelector('.vis-list'), search = root.querySelector('input'), auto = root.querySelector('select');
   auto.value = String(state.settings.visAuto || 'song');
   auto.onchange = () => saveSettings({ visAuto: auto.value });
   root.querySelector('[data-a=rand]').onclick = () => randomPreset();
   search.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
+  // Tabs: all the presets, or only the starred ones (then "Al azar" and the automatic changes
+  // also pick among the favourites).
+  const tabs = root.querySelector('.vis-tabs');
+  tabs.onclick = (e) => { const t = e.target.closest('[data-t]'); if (t) saveSettings({ visUseFavs: t.dataset.t === 'fav' }).then(draw); };
+  list.onclick = (e) => {
+    const row = e.target.closest('.vis-item');
+    if (!row) return;
+    if (e.target.closest('.vis-fav')) toggleFavorite(row.dataset.name);
+    else pickPreset(row.dataset.name);
+  };
   const draw = () => {
     if (!root.isConnected && list.childElementCount) return off();
+    const favOnly = !!state.settings.visUseFavs;
+    const favs = new Set(favorites());
+    tabs.querySelector('[data-t=all]').classList.toggle('on', !favOnly);
+    tabs.querySelector('[data-t=fav]').classList.toggle('on', favOnly);
+    tabs.querySelector('[data-t=fav]').textContent = favs.size ? `Favoritos · ${favs.size}` : 'Favoritos';
     const q = search.value.trim().toLowerCase();
-    const names = presetNames().filter((n) => !q || n.toLowerCase().includes(q));
+    const names = presetNames().filter((n) => (!favOnly || favs.has(n)) && (!q || n.toLowerCase().includes(q)));
     list.replaceChildren();
     if (!presetNames().length) return list.append(h('<div class="vis-empty">Cargando los presets…</div>'));
+    if (favOnly && !favs.size) return list.append(h(`<div class="vis-empty">Aún no tienes favoritos. Márcalos con la estrella ${icon('star')} en «Todos».</div>`));
     if (!names.length) return list.append(h('<div class="vis-empty">Ningún preset coincide.</div>'));
     const cur = currentPreset();
-    fillMenu(list, names.map((n) => ({ label: n, checked: n === cur, action: () => pickPreset(n) })), (it) => it.action());
+    for (const n of names) {
+      const fav = favs.has(n);
+      list.append(h(`<div class="vis-item${n === cur ? ' checked' : ''}" data-name="${esc(n)}">
+        <button class="vis-pick">${icon(n === cur ? 'check' : '')}<span class="ellipsis">${esc(n)}</span></button>
+        <button class="vis-fav${fav ? ' on' : ''}" title="${fav ? 'Quitar de favoritos' : 'Añadir a favoritos'}">${icon(fav ? 'starFill' : 'star')}</button>
+      </div>`));
+    }
     // First time: bring the current preset into view (scrolling the list only, never the window).
     const c = list.querySelector('.checked');
     if (c && !draw.done) { draw.done = true; list.scrollTop = c.offsetTop - list.offsetTop - (list.clientHeight - c.offsetHeight) / 2; }

@@ -83,6 +83,8 @@ export const DEFAULTS = {
   visualizer: false,
   visPreset: '',
   visAuto: 'song', // 'song' | seconds ('30', '60') | 'off'
+  visFavorites: [], // preset names marked with the star
+  visUseFavs: false, // "Favoritos" tab: random and automatic changes only among the favourites
   // Buttons shown in full-screen mode (Ajustes de pantalla completa, the gear in that mode).
   fsButtons: { queue: true, eq: true, more: true, lyricsSource: true, lyricsToggle: true, like: true, shuffle: true, repeat: true, vis: true },
   micaTint: 50,

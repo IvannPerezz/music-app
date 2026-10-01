@@ -15,6 +15,19 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.16
+------------------------------------------------------------
+- Visualizador: presets favoritos. Al pasar el ratón por un preset aparece una estrella
+  para marcarlo; los marcados la llevan siempre, en amarillo. Arriba de la lista hay dos
+  pestañas, "Todos" y "Favoritos" (con cuántos tienes). Con "Favoritos" elegida, la lista
+  muestra solo los tuyos y tanto "Al azar" como el cambio automático (con cada canción,
+  cada 30 segundos...) eligen solo entre ellos. Se guardan para la próxima vez.
+- La barra de desplazamiento de la lista de presets (y de los paneles y menús de pantalla
+  completa) es ahora fina y discreta, sin flechas, y se ilumina al pasar el ratón.
+- Pantalla completa: el menú de los tres puntos se abre hacia la derecha del botón en vez
+  de hacia la izquierda, así ya no tapa la portada.
+
+------------------------------------------------------------
 v0.6.15.2
 ------------------------------------------------------------
 - El saludo de Inicio ("Buenos días", "Buenas tardes", "Buenas noches") lleva ahora el

@@ -1111,3 +1111,27 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 .vis-panel .vis-list { flex: 1; min-height: 0; overflow-y: auto; }
 .vis-panel .vis-list button span.ellipsis { min-width: 0; }
 .vis-panel .vis-empty { padding: 20px 10px; color: var(--muted); font-size: 13px; }
+
+/* Visualizer presets: tabs (all / favourites), rows with a star, and a slim scrollbar. */
+.vis-tabs { display: flex; gap: 4px; padding: 3px; margin: 0 4px; border-radius: 10px; background: rgba(255,255,255,.06); }
+.vis-tabs button { flex: 1; padding: 6px 8px; border-radius: 8px; font-size: 13px; font-weight: 600; color: color-mix(in srgb, var(--text) 70%, transparent); transition: background .15s, color .15s; }
+.vis-tabs button:hover { color: var(--text); }
+.vis-tabs button.on { background: rgba(255,255,255,.14); color: var(--text); }
+.vis-item { display: flex; align-items: center; border-radius: 8px; }
+.vis-item:hover { background: rgba(255,255,255,.08); }
+.vis-item .vis-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 9px 4px 9px 10px; text-align: left; font-size: 14px; }
+.vis-item .vis-pick svg { width: 18px; height: 18px; flex: none; }
+.vis-item.checked .vis-pick { color: var(--accent); }
+.vis-item .vis-fav { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); opacity: 0; transition: opacity .15s, color .15s; }
+.vis-item .vis-fav svg { width: 18px; height: 18px; }
+.vis-item:hover .vis-fav, .vis-item .vis-fav.on { opacity: 1; }
+.vis-item .vis-fav:hover { color: var(--text); }
+.vis-item .vis-fav.on { color: #ffc940; }
+.vis-empty svg { width: 15px; height: 15px; vertical-align: -2px; }
+.vis-list, .fs-panel-body, #menu { scrollbar-gutter: stable; }
+.vis-list::-webkit-scrollbar, .fs-panel-body::-webkit-scrollbar, #menu::-webkit-scrollbar { width: 10px; }
+.vis-list::-webkit-scrollbar-button, .fs-panel-body::-webkit-scrollbar-button, #menu::-webkit-scrollbar-button { display: none; }
+.vis-list::-webkit-scrollbar-track, .fs-panel-body::-webkit-scrollbar-track, #menu::-webkit-scrollbar-track { background: transparent; }
+.vis-list::-webkit-scrollbar-thumb, .fs-panel-body::-webkit-scrollbar-thumb, #menu::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.16); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+.vis-list::-webkit-scrollbar-thumb:hover, .fs-panel-body::-webkit-scrollbar-thumb:hover, #menu::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,.3); }
