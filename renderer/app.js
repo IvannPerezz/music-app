@@ -1117,7 +1117,7 @@ function toggleVisPanel() {
         <option value="60">Cada minuto</option><option value="off">Siempre el mismo</option>
       </select>
     </div>
-    <div class="vis-tabs"><button data-t="all">Todos</button><button data-t="fav">Favoritos</button></div>
+    <div class="vis-tabs"><span class="vis-tab-pill"></span><button data-t="all">Todos</button><button data-t="fav">Favoritos</button></div>
     <input class="text" type="search" placeholder="Buscar preset…" spellcheck="false">
     <div class="vis-list"></div>
   </div>`);
@@ -1129,7 +1129,19 @@ function toggleVisPanel() {
   // Tabs: all the presets, or only the starred ones (then "Al azar" and the automatic changes
   // also pick among the favourites).
   const tabs = root.querySelector('.vis-tabs');
-  tabs.onclick = (e) => { const t = e.target.closest('[data-t]'); if (t) saveSettings({ visUseFavs: t.dataset.t === 'fav' }).then(draw); };
+  tabs.onclick = (e) => {
+    const t = e.target.closest('[data-t]');
+    const fav = t?.dataset.t === 'fav';
+    if (!t || fav === !!state.settings.visUseFavs) return;
+    // The pill slides at once; the list slides in from the side of the tab that was picked.
+    tabs.classList.toggle('fav', fav);
+    saveSettings({ visUseFavs: fav }).then(() => {
+      draw();
+      list.classList.remove('slide-l', 'slide-r');
+      void list.offsetWidth; // restart the animation
+      list.classList.add(fav ? 'slide-l' : 'slide-r');
+    });
+  };
   list.onclick = (e) => {
     const row = e.target.closest('.vis-item');
     if (!row) return;
@@ -1140,6 +1152,7 @@ function toggleVisPanel() {
     if (!root.isConnected && list.childElementCount) return off();
     const favOnly = !!state.settings.visUseFavs;
     const favs = new Set(favorites());
+    tabs.classList.toggle('fav', favOnly);
     tabs.querySelector('[data-t=all]').classList.toggle('on', !favOnly);
     tabs.querySelector('[data-t=fav]').classList.toggle('on', favOnly);
     tabs.querySelector('[data-t=fav]').textContent = favs.size ? `Favoritos · ${favs.size}` : 'Favoritos';
@@ -1147,7 +1160,7 @@ function toggleVisPanel() {
     const names = presetNames().filter((n) => (!favOnly || favs.has(n)) && (!q || n.toLowerCase().includes(q)));
     list.replaceChildren();
     if (!presetNames().length) return list.append(h('<div class="vis-empty">Cargando los presets…</div>'));
-    if (favOnly && !favs.size) return list.append(h(`<div class="vis-empty">Aún no tienes favoritos. Márcalos con la estrella ${icon('star')} en «Todos».</div>`));
+    if (favOnly && !favs.size) return list.append(h('<div class="vis-empty">Aún no tienes favoritos</div>'));
     if (!names.length) return list.append(h('<div class="vis-empty">Ningún preset coincide.</div>'));
     const cur = currentPreset();
     for (const n of names) {

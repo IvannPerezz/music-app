@@ -1113,10 +1113,20 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 .vis-panel .vis-empty { padding: 20px 10px; color: var(--muted); font-size: 13px; }
 
 /* Visualizer presets: tabs (all / favourites), rows with a star, and a slim scrollbar. */
-.vis-tabs { display: flex; gap: 4px; padding: 3px; margin: 0 4px; border-radius: 10px; background: rgba(255,255,255,.06); }
+.vis-tabs { position: relative; display: flex; gap: 4px; padding: 3px; margin: 0 4px; border-radius: 10px; background: rgba(255,255,255,.06); }
+/* Sliding highlight behind the selected tab. */
+.vis-tab-pill { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 5px); border-radius: 8px; background: rgba(255,255,255,.14);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.vis-tabs.fav .vis-tab-pill { transform: translateX(calc(100% + 4px)); }
+.vis-tabs button { position: relative; }
 .vis-tabs button { flex: 1; padding: 6px 8px; border-radius: 8px; font-size: 13px; font-weight: 600; color: color-mix(in srgb, var(--text) 70%, transparent); transition: background .15s, color .15s; }
 .vis-tabs button:hover { color: var(--text); }
-.vis-tabs button.on { background: rgba(255,255,255,.14); color: var(--text); }
+.vis-tabs button.on { color: var(--text); }
+/* Switching tabs: the list slides in from the side of the chosen tab. */
+.vis-list.slide-l { animation: vis-slide-l .3s cubic-bezier(.2,.8,.2,1); }
+.vis-list.slide-r { animation: vis-slide-r .3s cubic-bezier(.2,.8,.2,1); }
+@keyframes vis-slide-l { from { transform: translateX(40px); opacity: 0; } }
+@keyframes vis-slide-r { from { transform: translateX(-40px); opacity: 0; } }
 .vis-item { display: flex; align-items: center; border-radius: 8px; }
 .vis-item:hover { background: rgba(255,255,255,.08); }
 .vis-item .vis-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 9px 4px 9px 10px; text-align: left; font-size: 14px; }

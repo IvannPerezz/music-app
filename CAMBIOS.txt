@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.16.1
+------------------------------------------------------------
+- Visualizador: al cambiar entre "Todos" y "Favoritos", el resaltado de la pestaña se
+  desliza hasta la elegida y la lista entra deslizándose desde ese lado.
+- Si aún no has marcado ningún preset, la pestaña "Favoritos" dice solo "Aún no tienes
+  favoritos".
+
+------------------------------------------------------------
 v0.6.16
 ------------------------------------------------------------
 - Visualizador: presets favoritos. Al pasar el ratón por un preset aparece una estrella
