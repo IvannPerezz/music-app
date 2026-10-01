@@ -124,6 +124,8 @@ svg { width: 20px; height: 20px; fill: currentColor; display: block; }
 .nav-item:hover { background: rgba(255,255,255,.05); color: var(--text); }
 .nav-item.active { background: rgba(255,255,255,.08); color: var(--text); }
 .nav-item.active .ico { color: var(--accent); }
+/* A little air between items so the active and hovered highlights don't touch. */
+#nav-items { display: flex; flex-direction: column; gap: 4px; }
 .nav-sep { height: 1px; background: rgba(255,255,255,.06); margin: 8px 12px; }
 .sidebar-foot { margin-top: auto; padding: 12px; font-size: 12px; display: flex; flex-direction: column; }
 

@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.8.2
+------------------------------------------------------------
+- Un poco más de espacio entre las opciones de la barra lateral, para que el resaltado de
+  la seleccionada no se junte con el de la que tiene el ratón encima.
+
+------------------------------------------------------------
 v0.6.8.1
 ------------------------------------------------------------
 - Los iconos y textos de la barra lateral (Buscar, Inicio, Biblioteca...) y la lupa y el
