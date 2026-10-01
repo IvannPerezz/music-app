@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.6
+------------------------------------------------------------
+- Nuevo apartado "Efecto Mica" en Ajustes > Personalización. Puedes activar o quitar el
+  cristal desenfocado por separado en la barra lateral izquierda, en la cola (barra
+  lateral derecha) y en los controles de reproducción de abajo. Si lo quitas, ese panel
+  pasa a usar el color sólido del tema.
+- Tres controles para ajustar el efecto, que se ven al momento mientras los mueves:
+  intensidad del tinte (más color del tema o más transparencia), desenfoque y saturación.
+  Se aplican a todos los paneles y menús con Mica.
+
+------------------------------------------------------------
 v0.6.5.1
 ------------------------------------------------------------
 - Barra de reproducción con efecto Mica: sigue ocupando todo el ancho abajo (sin esquinas

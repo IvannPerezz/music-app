@@ -1094,6 +1094,17 @@ export function applyAmbient() {
   root.setProperty('--amb-dur', `${speed > 0 ? Math.round(90 - speed * 0.8) : 60}s`);
   document.body.classList.toggle('ambient-still', speed <= 0);
 }
+export function applyMica() {
+  const st = state.settings;
+  const root = document.documentElement.style;
+  const b = document.body.classList;
+  b.toggle('no-mica-sidebar', st.micaSidebar === false);
+  b.toggle('no-mica-queue', st.micaQueue === false);
+  b.toggle('no-mica-player', st.micaPlayer === false);
+  root.setProperty('--mica-op', String((st.micaTint ?? 50) / 100));
+  root.setProperty('--mica-blur', `${st.micaBlur ?? 50}px`);
+  root.setProperty('--mica-sat', String((st.micaSaturation ?? 190) / 100));
+}
 function rgbToHsl(r, g, b) {
   r /= 255; g /= 255; b /= 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -1346,6 +1357,7 @@ function setupSidebarMode() {
   applySidebarMode();
   applyTheme();
   applyAmbient();
+  applyMica();
 }
 export function applyTheme() {
   const t = state.settings.theme || 'default';
@@ -1461,6 +1473,7 @@ document.addEventListener('settings', (e) => {
   if (k.includes('sidebarMode') || k.includes('sidebarOpen')) applySidebarMode();
   if (k.includes('theme') || k.includes('dynamicAccent') || k.includes('accentMode') || k.includes('customAccent')) applyTheme();
   if (k.some((x) => x.startsWith('ambient'))) applyAmbient();
+  if (k.some((x) => x.startsWith('mica'))) applyMica();
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
   if (k.some((x) => ['crossfade', 'gapless', 'automix', 'automixBars', 'skipSilence', 'normalize', 'speed', 'eqEnabled', 'eqBands', 'preamp'].includes(x))) applyAudioSettings();
   if (k.some((x) => x.startsWith('lyrics')) && player.current) {

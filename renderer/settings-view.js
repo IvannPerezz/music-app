@@ -410,6 +410,7 @@ function sidebarCard() {
   }
   const live = (key, fn) => (v) => { state.settings = { ...state.settings, [key]: v }; fn(); };
   const amb = () => import('./app.js').then((m) => m.applyAmbient());
+  const mica = () => import('./app.js').then((m) => m.applyMica());
   return card('sidebar', 'Personalización', 'tune',
     h('<h3 class="set-sub">Fondo animado</h3>'),
     h('<div class="set-note">Detrás de toda la app se mueve lentamente la portada que está sonando, muy desenfocada (o, si lo prefieres, manchas con sus colores más destacados). Los cambios se ven al momento mientras mueves los controles.</div>'),
@@ -419,6 +420,14 @@ function sidebarCard() {
     row('Desenfoque', 'Más alto = colores más suaves y difuminados.', range('ambientBlur', 20, 220, 5, (v) => `${v} px`, live('ambientBlur', amb))),
     row('Velocidad de movimiento', '0 lo deja quieto.', range('ambientSpeed', 0, 100, 1, (v) => (v ? `${v} %` : 'Quieto'), live('ambientSpeed', amb))),
     row('Tamaño', 'De la portada o de las manchas de color.', range('ambientSize', 50, 160, 5, (v) => `${v} %`, live('ambientSize', amb))),
+    h('<h3 class="set-sub">Efecto Mica</h3>'),
+    h('<div class="set-note">Cristal desenfocado y teñido con el tema, como en Windows 11: lo que pasa por detrás (el fondo animado, la música al hacer scroll) se ve a través. Actívalo o desactívalo en cada panel; si lo quitas, el panel usa el color sólido del tema. La intensidad, el desenfoque y la saturación se aplican a todos los paneles y menús con Mica.</div>'),
+    row('Barra lateral izquierda', '', toggle('micaSidebar', () => mica())),
+    row('Cola (barra lateral derecha)', '', toggle('micaQueue', () => mica())),
+    row('Controles de reproducción (abajo)', '', toggle('micaPlayer', () => mica())),
+    row('Intensidad del tinte', 'Más alto = más color del tema y menos transparencia.', range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
+    row('Desenfoque del cristal', 'Cuánto se difumina lo que hay detrás. 0 = cristal transparente.', range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
+    row('Saturación', 'Lo vivos que se ven los colores a través del cristal.', range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
     h('<h3 class="set-sub">Pantalla principal</h3>'),
     h('<div class="set-note">Marca los apartados que quieres ver en Inicio. También puedes ocultar uno directamente desde Inicio con el botón «Ocultar» que aparece al pasar el ratón por su título. Si YouTube Music añade apartados nuevos, aparecerán aquí en cuanto salgan en tu Inicio.</div>'),
     homeGrid,

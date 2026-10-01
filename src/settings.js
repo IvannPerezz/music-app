@@ -73,6 +73,12 @@ export const DEFAULTS = {
   ambientBlur: 110,
   ambientSpeed: 35,
   ambientSize: 100,
+  micaSidebar: true,
+  micaQueue: true,
+  micaPlayer: true,
+  micaTint: 50,
+  micaBlur: 50,
+  micaSaturation: 190,
   dynamicAccent: true,
   accentMode: null, // 'cover' | 'theme' | 'custom' (null = from dynamicAccent)
   customAccent: '#fa2d48',

@@ -763,17 +763,19 @@ body.np-open #sb-toggle { display: none !important; }
 /* ---------------------------------------------------------------- Mica pop-ups
    Windows 11 "Mica"-style material for the drop-down menus: what's behind shows through,
    heavily blurred and saturated, under a thin tint of the theme and a faint sheen. */
-:root { --mica-tint: rgba(36, 36, 42, .5); }
-:root[data-theme="oled"] { --mica-tint: rgba(8, 8, 10, .6); }
-:root[data-theme="cherry"] { --mica-tint: rgba(48, 18, 22, .5); }
-:root[data-theme="purple"] { --mica-tint: rgba(34, 24, 54, .5); }
-:root[data-theme="ocean"] { --mica-tint: rgba(18, 30, 48, .5); }
-:root[data-theme="forest"] { --mica-tint: rgba(16, 36, 26, .5); }
-:root[data-theme="sunset"] { --mica-tint: rgba(48, 30, 16, .5); }
+:root { --mica-rgb: 36, 36, 42; --mica-op: .5; --mica-op-extra: 0; --mica-blur: 50px; --mica-sat: 1.9;
+  --mica-tint: rgba(var(--mica-rgb), min(1, calc(var(--mica-op) + var(--mica-op-extra))));
+  --mica-filter: blur(var(--mica-blur)) saturate(var(--mica-sat)) brightness(.92); }
+:root[data-theme="oled"] { --mica-rgb: 8, 8, 10; --mica-op-extra: .1; }
+:root[data-theme="cherry"] { --mica-rgb: 48, 18, 22; }
+:root[data-theme="purple"] { --mica-rgb: 34, 24, 54; }
+:root[data-theme="ocean"] { --mica-rgb: 18, 30, 48; }
+:root[data-theme="forest"] { --mica-rgb: 16, 36, 26; }
+:root[data-theme="sunset"] { --mica-rgb: 48, 30, 16; }
 #menu, #eq-pop, #acct-pop {
   background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
-  -webkit-backdrop-filter: blur(50px) saturate(1.9) brightness(.92);
-  backdrop-filter: blur(50px) saturate(1.9) brightness(.92);
+  -webkit-backdrop-filter: var(--mica-filter);
+  backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.11);
   box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
 }
@@ -785,8 +787,8 @@ body.np-open #sb-toggle { display: none !important; }
   position: absolute; top: 8px; right: 10px; bottom: 10px; z-index: 6; width: 340px;
   border-radius: 16px; border-left: 1px solid rgba(255,255,255,.11);
   background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
-  -webkit-backdrop-filter: blur(50px) saturate(1.9) brightness(.92);
-  backdrop-filter: blur(50px) saturate(1.9) brightness(.92);
+  -webkit-backdrop-filter: var(--mica-filter);
+  backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.11);
   box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
   animation: queue-slide-in .3s cubic-bezier(.2,.8,.2,1);
@@ -849,8 +851,8 @@ body.ambient-cover #ambient i:nth-child(3) { left: 14vw; bottom: -40vmax; animat
 #sidebar {
   margin: 8px 0 10px 10px; border-radius: 16px;
   background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
-  -webkit-backdrop-filter: blur(50px) saturate(1.9) brightness(.92);
-  backdrop-filter: blur(50px) saturate(1.9) brightness(.92);
+  -webkit-backdrop-filter: var(--mica-filter);
+  backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.11);
   box-shadow: 0 18px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
   transition: width .3s cubic-bezier(.2,.8,.2,1), padding .3s cubic-bezier(.2,.8,.2,1), margin .3s cubic-bezier(.2,.8,.2,1), opacity .22s ease, border-width .3s;
@@ -894,8 +896,8 @@ body.sb-hover.sb-show #sidebar { transform: none; }
 #player {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
   background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.015)), var(--mica-tint);
-  -webkit-backdrop-filter: blur(50px) saturate(1.9) brightness(.92);
-  backdrop-filter: blur(50px) saturate(1.9) brightness(.92);
+  -webkit-backdrop-filter: var(--mica-filter);
+  backdrop-filter: var(--mica-filter);
   border-top: 1px solid rgba(255,255,255,.11);
   box-shadow: 0 -12px 40px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
 }
@@ -906,3 +908,8 @@ body.sb-hover #sidebar { margin-bottom: calc(var(--player) + 10px); }
 body.np-open #nowplaying { bottom: 0; }
 #nowplaying .np-inner { padding-bottom: calc(32px + var(--player)); }
 #nowplaying .np-corner { bottom: calc(22px + var(--player)); }
+
+/* Mica switched off per panel (Ajustes > Personalización > Efecto Mica): solid theme colour. */
+body.no-mica-sidebar #sidebar, body.no-mica-queue #queue, body.no-mica-player #player {
+  background: var(--chrome-solid); -webkit-backdrop-filter: none; backdrop-filter: none;
+}
