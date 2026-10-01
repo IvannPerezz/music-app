@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.15.2
+------------------------------------------------------------
+- El saludo de Inicio ("Buenos días", "Buenas tardes", "Buenas noches") lleva ahora tu
+  nombre, sacado de tu cuenta de Google: "Buenas tardes, Iván". Ya estaba previsto, pero
+  Inicio se mostraba antes de que llegaran los datos de la cuenta y el nombre no salía.
+
+------------------------------------------------------------
 v0.6.15.1
 ------------------------------------------------------------
 - En la barra de reproducción de abajo, los artistas de la canción se ven más claros. Antes

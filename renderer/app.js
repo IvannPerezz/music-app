@@ -236,9 +236,7 @@ const views = {
       root.append(el);
     };
     const root = h('<div></div>');
-    const hour = new Date().getHours();
-    const first = state.account?.name ? ', ' + esc(state.account.name.split(' ')[0]) : '';
-    root.append(h(`<h1 class="page-title">${hour < 6 ? 'Buenas noches' : hour < 13 ? 'Buenos días' : hour < 21 ? 'Buenas tardes' : 'Buenas noches'}${first}</h1>`));
+    root.append(h(`<h1 class="page-title" id="home-greet">${esc(greeting())}</h1>`));
     const recent = history.all().slice(0, 8);
     if (recent.length) { const sec = { title: 'Escuchado recientemente', layout: 'list', items: recent }; add(sec, section(sec)); }
     let sections = [];
@@ -1841,6 +1839,13 @@ function initButtons() {
   document.addEventListener('mouseup', (e) => { if (e.button === 3) back(); if (e.button === 4) forward(); });
 }
 
+/** "Buenas tardes, Iván": the first name of the Google account, once it's known. */
+function greeting() {
+  const hour = new Date().getHours();
+  const hello = hour < 6 ? 'Buenas noches' : hour < 13 ? 'Buenos días' : hour < 21 ? 'Buenas tardes' : 'Buenas noches';
+  const first = (state.account?.name || '').trim().split(/\s+/)[0];
+  return first ? `${hello}, ${first}` : hello;
+}
 export async function refreshAccount() {
   try { state.account = await api('account'); } catch { state.account = null; }
   const b = $('#account-btn');
@@ -1848,6 +1853,9 @@ export async function refreshAccount() {
   b.innerHTML = a?.photo ? `<img src="${esc(a.photo)}" alt="">` : icon('account');
   b.title = a ? `${a.name || 'Cuenta de Google'}${a.handle ? ' · ' + a.handle : ''}` : 'Iniciar sesión con Google';
   b.classList.toggle('signed', !!a);
+  // Home is usually drawn before the account arrives: complete the greeting in place.
+  const g = $('#home-greet');
+  if (g) g.textContent = greeting();
 }
 
 async function init() {

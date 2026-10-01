@@ -25,6 +25,7 @@ await win.waitForTimeout(1500);
 const shot = (n) => win.screenshot({ path: path.join(shots, `${n}.png`) });
 
 await shot('01-home');
+if (!/, Prueba$/.test(await win.textContent('#home-greet'))) errors.push('El saludo no lleva el nombre de la cuenta: ' + await win.textContent('#home-greet'));
 await win.click('.row >> nth=0'); await win.waitForTimeout(1200);
 await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('02-now-playing');
 // Animated background: shown in the full-screen view and only moving while a song plays.
