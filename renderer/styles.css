@@ -74,7 +74,7 @@ svg { width: 20px; height: 20px; fill: currentColor; display: block; }
 .brand img { width: 22px; height: 22px; border-radius: 6px; }
 .nav-buttons { display: flex; gap: 4px; -webkit-app-region: no-drag; }
 .search-wrap { position: relative; flex: 0 1 460px; -webkit-app-region: no-drag; }
-.search-icon { z-index: 1; position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.search-icon { z-index: 1; position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: color-mix(in srgb, var(--text) 78%, transparent); }
 .search-icon svg { width: 18px; height: 18px; }
 #search {
   width: 100%; height: 32px; border-radius: 8px;
@@ -84,6 +84,7 @@ svg { width: 20px; height: 20px; fill: currentColor; display: block; }
   transition: background .15s, border-color .15s;
 }
 #search:focus { background: rgba(255,255,255,.1); border-color: var(--accent); }
+#search::placeholder { color: color-mix(in srgb, var(--text) 66%, transparent); }
 #suggest {
   position: absolute; top: 38px; left: 0; right: 0; margin: 0; padding: 6px; list-style: none;
   background: rgba(36,36,40,.96); backdrop-filter: blur(20px); border-radius: 10px;
@@ -118,7 +119,7 @@ svg { width: 20px; height: 20px; fill: currentColor; display: block; }
 #sidebar > * { min-width: calc(var(--sidebar) - 20px); }
 .nav-item {
   display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 12px;
-  border-radius: 8px; color: var(--muted); font-weight: 550; text-align: left;
+  border-radius: 8px; color: color-mix(in srgb, var(--text) 84%, transparent); font-weight: 550; text-align: left;
 }
 .nav-item:hover { background: rgba(255,255,255,.05); color: var(--text); }
 .nav-item.active { background: rgba(255,255,255,.08); color: var(--text); }
@@ -625,7 +626,7 @@ body.np-open #bg { opacity: 0; }
 /* Search box over the now-playing artwork: neutral frosted glass whatever the theme. */
 :root body.np-open #search { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); backdrop-filter: blur(18px) saturate(1.5); }
 :root body.np-open #search:focus { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.35); }
-:root body.np-open #search::placeholder { color: rgba(255,255,255,.6); }
+:root body.np-open #search::placeholder { color: rgba(255,255,255,.72); }
 
 /* Lyrics source: just the icon; the provider name fades in on hover. */
 #lyrics-source { gap: 0; padding: 8px; transition: background .2s, padding .25s ease; }
