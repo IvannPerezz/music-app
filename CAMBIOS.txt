@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.13.1
+------------------------------------------------------------
+- Arreglado: al abrir la cola, a veces se quedaba a media pantalla un rato y luego
+  saltaba al borde derecho. Al centrar la canción que suena, se desplazaba toda la
+  ventana hacia un lado mientras la cola aún estaba entrando.
+- Arreglado: al cerrar la cola en pantalla completa, los botones de la derecha llegaban
+  a la esquina antes de que la cola terminara de salir. Ahora se mueven a la par: los dos
+  arrancan despacio y aceleran al cerrar, y frenan juntos al abrir.
+
+------------------------------------------------------------
 v0.6.13
 ------------------------------------------------------------
 - Pantalla completa: nuevo diseño del bloque de la canción. Título grande y centrado,

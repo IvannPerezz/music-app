@@ -63,8 +63,14 @@ await win.click('#fs-eq'); await win.waitForTimeout(300);
 // The right-hand column moves left with the queue panel instead of staying under it.
 const cornerRight = () => win.evaluate(() => Math.round(document.querySelector('.np-corner').getBoundingClientRect().right));
 const r0 = await cornerRight();
-await win.click('#fs-queue'); await win.waitForTimeout(600);
+await win.click('#fs-queue'); await win.waitForTimeout(50);
+// Opening the queue must not scroll the window sideways (it did while the panel slid in).
+const sideways = await win.evaluate(() => ['#layout', '#nowplaying', 'body', 'html'].map((q) => document.querySelector(q).scrollLeft).filter(Boolean));
+if (sideways.length) errors.push('Al abrir la cola se desplaza la ventana: ' + sideways.join(', '));
+await win.waitForTimeout(550);
 const r1 = await cornerRight(), qLeft = await win.evaluate(() => document.querySelector('#queue').getBoundingClientRect().left);
+const qPos = await win.evaluate(() => ({ right: Math.round(document.querySelector('#queue').getBoundingClientRect().right), w: innerWidth, scrolled: ['#layout', '#nowplaying', 'body', 'html'].some((q) => document.querySelector(q).scrollLeft) }));
+if (qPos.scrolled || qPos.right < qPos.w - 20) errors.push('La cola no queda pegada a la derecha: ' + JSON.stringify(qPos));
 if (!(r1 < r0 && r1 <= qLeft)) errors.push(`Los botones no se apartan de la cola: ${r0} → ${r1}, cola en ${qLeft}`);
 await shot('02e-fullscreen-queue');
 await win.click('#fs-queue'); await win.waitForTimeout(400);

@@ -1524,7 +1524,9 @@ function renderQueue() {
     box.append(row);
   });
   const cur = box.querySelector('.row.playing');
-  if (cur && !renderQueue.scrolled) { cur.scrollIntoView({ block: 'center' }); renderQueue.scrolled = true; }
+  // Centre the current song by scrolling the list only: scrollIntoView would also scroll the
+  // window sideways while the panel is still sliding in from off-screen.
+  if (cur && !renderQueue.scrolled) { box.scrollTop = cur.offsetTop - box.offsetTop - (box.clientHeight - cur.offsetHeight) / 2; renderQueue.scrolled = true; }
 }
 let queueCloseTimer = null;
 function toggleQueue(force) {

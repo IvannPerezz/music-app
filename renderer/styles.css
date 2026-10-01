@@ -975,8 +975,9 @@ body.fs.fs-vol-show #fs-vol { transform: translate(0, -50%); opacity: 1; }
    settings, exit) moves left together with the queue panel when it opens. */
 :root { --queue-w: 340px; }
 @media (max-width: 1100px) { :root { --queue-w: 300px; } }
-.np-corner { transition: right .3s cubic-bezier(.2,.8,.2,1); }
-body.fs.queue-open #nowplaying .np-corner { right: calc(var(--queue-w) + 36px); }
+/* Same timing as the queue: eases out while it slides in, eases in while it slides out. */
+.np-corner { transition: right .3s cubic-bezier(.5,0,.75,0); }
+body.fs.queue-open #nowplaying .np-corner { right: calc(var(--queue-w) + 36px); transition: right .3s cubic-bezier(.2,.8,.2,1); }
 .np-lyr-toggle.on { color: var(--accent); opacity: 1; }
 
 /* Full screen: title, artists and stats centred under the artwork (the heart stays on the right). */
