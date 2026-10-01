@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https: http://127.0.0.1:*; media-src http://127.0.0.1:* blob:; connect-src http://127.0.0.1:*; worker-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https: http://127.0.0.1:*; media-src http://127.0.0.1:* blob:; connect-src http://127.0.0.1:*; frame-src http://127.0.0.1:*; worker-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
   <title>BitChord</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -33,7 +33,7 @@
       <div id="nav-items"></div>
       <div class="sidebar-foot">
         <span>BitChord Desktop</span>
-        <span class="muted">v0.6.14.3 · port de BitChord</span>
+        <span class="muted">v0.6.15 · port de BitChord</span>
         <button class="text-btn" id="open-log">Ver registro</button>
       </div>
     </nav>
@@ -81,6 +81,8 @@
       <div class="np-corner">
         <button class="pill" id="lyrics-source"></button>
         <button class="icon-btn np-lyr-toggle" id="np-lyrics-toggle"></button>
+        <button class="icon-btn np-lyr-toggle" id="np-vis-toggle" title="Visualizador (V)"></button>
+        <button class="icon-btn np-lyr-toggle" id="np-vis-presets" title="Presets del visualizador"></button>
         <button class="icon-btn np-lyr-toggle fs-only" id="fs-queue" title="Cola (Q)"></button>
         <button class="icon-btn np-lyr-toggle fs-only" id="fs-eq" title="Ecualizador (E)"></button>
         <button class="icon-btn np-lyr-toggle fs-only" id="fs-settings" title="Botones de pantalla completa"></button>

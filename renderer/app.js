@@ -5,6 +5,7 @@ import { parseResult } from './lyrics-parse.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
+import { mountVisualizer, unmountVisualizer, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange } from './visualizer.js';
 import { importView } from './import-view.js';
 
 // ------------------------------------------------------------------ router
@@ -1040,6 +1041,7 @@ const FS_BUTTONS = [
   // key, label, icon, group
   ['queue', 'Cola', 'queue', 'side'], ['eq', 'Ecualizador', 'equalizer', 'side'],
   ['lyricsSource', 'Cambiar la fuente de la letra', 'lyrics', 'side'], ['lyricsToggle', 'Mostrar u ocultar la letra', 'subtitlesOff', 'side'],
+  ['vis', 'Visualizador y sus presets', 'visualizer', 'side'],
   ['like', 'Favorito', 'heart', 'play'], ['shuffle', 'Aleatorio', 'shuffle', 'play'], ['repeat', 'Repetir', 'repeat', 'play'],
   ['more', 'Más opciones (temporizador, velocidad…)', 'more', 'play'],
 ];
@@ -1094,7 +1096,54 @@ function closeFsPanel() {
   p.classList.add('closing');
   fsPanelTimer = setTimeout(() => { p.hidden = true; p.classList.remove('closing'); }, 300);
 }
+// ------------------------------------------------------------------ visualizer
+function applyVis() {
+  const on = !!state.settings.visualizer;
+  document.body.classList.toggle('vis-on', on);
+  $('#np-vis-toggle').classList.toggle('on', on);
+  $('#np-vis-toggle').title = on ? 'Volver a portada y letra (V)' : 'Visualizador (V)';
+  if (on && npOpen()) mountVisualizer($('#nowplaying'), engine);
+  if (!on) { unmountVisualizer(); if (fsPanelKind === 'vis') closeFsPanel(); }
+}
+/** Presets panel: another one at random, when to change on its own, search and the list. */
+function toggleVisPanel() {
+  if (fsPanelKind === 'vis') return closeFsPanel();
+  const root = h(`<div class="vis-panel">
+    <div class="vis-row">
+      <button class="btn ghost small" data-a="rand" title="Otro preset al azar">${icon('shuffle')}Al azar</button>
+      <select class="select" data-a="auto" title="Cuándo cambia de preset solo">
+        <option value="song">Con cada canción</option><option value="30">Cada 30 segundos</option>
+        <option value="60">Cada minuto</option><option value="off">Siempre el mismo</option>
+      </select>
+    </div>
+    <input class="text" type="search" placeholder="Buscar preset…" spellcheck="false">
+    <div class="fs-menu vis-list"></div>
+  </div>`);
+  const list = root.querySelector('.vis-list'), search = root.querySelector('input'), auto = root.querySelector('select');
+  auto.value = String(state.settings.visAuto || 'song');
+  auto.onchange = () => saveSettings({ visAuto: auto.value });
+  root.querySelector('[data-a=rand]').onclick = () => randomPreset();
+  search.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
+  const draw = () => {
+    if (!root.isConnected && list.childElementCount) return off();
+    const q = search.value.trim().toLowerCase();
+    const names = presetNames().filter((n) => !q || n.toLowerCase().includes(q));
+    list.replaceChildren();
+    if (!presetNames().length) return list.append(h('<div class="vis-empty">Cargando los presets…</div>'));
+    if (!names.length) return list.append(h('<div class="vis-empty">Ningún preset coincide.</div>'));
+    const cur = currentPreset();
+    fillMenu(list, names.map((n) => ({ label: n, checked: n === cur, action: () => pickPreset(n) })), (it) => it.action());
+    // First time: bring the current preset into view (scrolling the list only, never the window).
+    const c = list.querySelector('.checked');
+    if (c && !draw.done) { draw.done = true; list.scrollTop = c.offsetTop - list.offsetTop - (list.clientHeight - c.offsetHeight) / 2; }
+  };
+  const off = onVisChange(draw);
+  search.addEventListener('input', draw);
+  openFsPanel('vis', 'Visualizador', root);
+  draw();
+}
 function syncFsPanelButtons() {
+  $('#np-vis-presets').classList.toggle('on', fsPanelKind === 'vis');
   $('#fs-eq').classList.toggle('on', fsPanelKind === 'eq');
   // The panel already says which source is in use: keep the pill folded, just highlighted.
   $('#lyrics-source').classList.remove('open');
@@ -1115,9 +1164,11 @@ function applyFullscreen(on) {
 }
 
 // ------------------------------------------------------------------ now playing / theming
+let visTrackKey = null;
 function updateNowPlaying() {
   const t = player.current;
   updateFrom();
+  if (t?._k !== visTrackKey) { visTrackKey = t?._k; visOnTrackChange(); }
   $('#np-album').textContent = t ? [t.album?.name, t.year].filter(Boolean).join(' • ') : '';
   $('#p-title').textContent = t ? t.title : 'Nada sonando';
   $('#p-artist').innerHTML = t ? (t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ') : 'Busca algo para empezar';
@@ -1302,6 +1353,7 @@ function openNowPlaying() {
   applyLyricsHidden();
   renderLyrics();
   updateStats();
+  if (state.settings.visualizer) mountVisualizer($('#nowplaying'), engine);
 }
 function applyLyricsHidden() {
   const off = !!state.settings.npLyricsHidden;
@@ -1318,7 +1370,8 @@ function closeNowPlaying() {
   $('#nav-nowplaying')?.classList.remove('active');
   // Slide/fade out first; the title bar keeps the artwork tone until the view is gone.
   np.classList.add('closing');
-  npCloseTimer = setTimeout(() => { np.hidden = true; np.classList.remove('closing'); document.body.classList.remove('np-open'); }, 230);
+  npCloseTimer = setTimeout(() => { np.hidden = true; np.classList.remove('closing'); document.body.classList.remove('np-open'); unmountVisualizer(); }, 230);
+  if (fsPanelKind === 'vis') closeFsPanel();
 }
 const npOpen = () => !$('#nowplaying').hidden && !$('#nowplaying').classList.contains('closing');
 
@@ -1663,6 +1716,8 @@ document.addEventListener('settings', (e) => {
   if (k.some((x) => x.startsWith('ambient'))) applyAmbient();
   if (k.some((x) => x.startsWith('mica'))) applyMica();
   if (k.includes('fsButtons')) applyFsButtons();
+  if (k.includes('visualizer')) applyVis();
+  if (k.includes('visAuto')) scheduleAuto();
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
   if (k.some((x) => ['crossfade', 'gapless', 'automix', 'automixBars', 'skipSilence', 'normalize', 'speed', 'eqEnabled', 'eqBands', 'preamp'].includes(x))) applyAudioSettings();
   if (k.some((x) => x.startsWith('lyrics')) && player.current) {
@@ -1711,6 +1766,11 @@ function initButtons() {
   $('#fs-settings').innerHTML = icon('settings');
   $('#fs-settings').onclick = () => fsSettings();
   $('#fs-panel-close').innerHTML = icon('close');
+  $('#np-vis-toggle').innerHTML = icon('visualizer');
+  $('#np-vis-toggle').onclick = () => saveSettings({ visualizer: !state.settings.visualizer });
+  $('#np-vis-presets').innerHTML = icon('tune');
+  $('#np-vis-presets').onclick = () => toggleVisPanel();
+  applyVis();
   $('#fs-panel-close').onclick = () => closeFsPanel();
   applyFsButtons();
   bc.on('fullscreen', applyFullscreen);
@@ -1772,6 +1832,7 @@ function initButtons() {
     else if (e.key.toLowerCase() === 'e') toggleEq();
     else if (e.key.toLowerCase() === 'l') npOpen() ? closeNowPlaying() : openNowPlaying();
     else if (e.key.toLowerCase() === 'q') toggleQueue();
+    else if (e.key.toLowerCase() === 'v' && npOpen()) saveSettings({ visualizer: !state.settings.visualizer });
     else if (e.key.toLowerCase() === 's') player.setShuffle(!player.shuffle);
     else if (e.key.toLowerCase() === 'r') player.cycleRepeat();
     else if (e.key.toLowerCase() === 'm') $('#mute').click();

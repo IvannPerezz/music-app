@@ -15,6 +15,20 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.15
+------------------------------------------------------------
+- Nuevo visualizador al estilo de Winamp (MilkDrop). En la vista de portada y letra y en
+  pantalla completa hay un botón nuevo en la columna de la derecha (o la tecla V): la
+  música se convierte en animaciones que reaccionan al ritmo y ocupan toda la pantalla.
+  El título y, en pantalla completa, los controles quedan abajo, encima de la animación.
+  Se vuelve a la portada y la letra con el mismo botón.
+- Trae 246 presets (los efectos de MilkDrop). Con el visualizador encendido aparece otro
+  botón que abre un panel para elegirlos: buscador, uno al azar y cuándo cambia solo (con
+  cada canción, cada 30 segundos, cada minuto o siempre el mismo).
+- Solo funciona mientras se ve: al cerrar la vista o apagarlo deja de usar la tarjeta
+  gráfica. También se puede ocultar su botón desde los ajustes de pantalla completa.
+
+------------------------------------------------------------
 v0.6.14.3
 ------------------------------------------------------------
 - La flecha de minimizar (arriba a la izquierda de la vista de portada y letra) es ahora

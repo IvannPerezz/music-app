@@ -1,5 +1,6 @@
 // Offline fixtures used only when BITCHORD_MOCK=1 (UI development without network).
 import http from 'node:http';
+import { serveVisualizer } from './vis-files.js';
 
 const palette = [['#ff5f6d', '#ffc371'], ['#2193b0', '#6dd5ed'], ['#8e2de2', '#4a00e0'], ['#11998e', '#38ef7d'], ['#fc4a1a', '#f7b733'], ['#ee0979', '#ff6a00'], ['#3a1c71', '#d76d77'], ['#1f4037', '#99f2c8']];
 const art = (i) => {
@@ -83,6 +84,7 @@ function beatTrack(seconds, bpm, seed) {
 const cache = new Map();
 export function startProxy() {
   const server = http.createServer(async (req, res) => {
+    if (serveVisualizer(req.url.split('?')[0], res)) return;
     if (req.url.startsWith('/plcover/')) {
       const { coverPath } = await import('./playlists.js');
       const fs = await import('node:fs');

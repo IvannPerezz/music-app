@@ -85,6 +85,7 @@ export class Engine extends EventTarget {
     this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 2048;
     let node = this.input.connect(this.preampNode);
     for (const b of this.eq) node = node.connect(b);
+    this.tap = node; // after the equalizer, before the volume: what the visualizer listens to
     node.connect(this.volumeNode).connect(this.limiter).connect(this.analyser).connect(ctx.destination);
 
     this.decks = [new Deck(this, 'A'), new Deck(this, 'B')];

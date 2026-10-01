@@ -110,6 +110,18 @@ if (await win.isVisible('#shuffle')) errors.push('Ocultar «Aleatorio» en panta
 await win.locator('.fs-opt', { hasText: 'Aleatorio' }).click(); await win.waitForTimeout(300);
 await win.click('.fs-set [data-a=ok]'); await win.waitForTimeout(300);
 if (!(await win.isVisible('#shuffle'))) errors.push('«Aleatorio» no vuelve a aparecer');
+// MilkDrop visualizer: sandboxed iframe that reports its presets, a presets panel, and off again.
+await win.click('#np-vis-toggle');
+try { await win.waitForFunction(() => document.body.dataset.vis === 'ready', null, { timeout: 8000 }); }
+catch { errors.push('El visualizador no arranca'); }
+await win.waitForTimeout(1500); await shot('02g-visualizer');
+await win.click('#np-vis-presets'); await win.waitForTimeout(500);
+const vis = await win.evaluate(() => ({ title: document.querySelector('#fs-panel h3').textContent, presets: document.querySelectorAll('.vis-list button').length, checked: document.querySelectorAll('.vis-list button.checked').length }));
+if (vis.title !== 'Visualizador' || vis.presets < 200 || vis.checked !== 1) errors.push('Panel del visualizador: ' + JSON.stringify(vis));
+await win.click('.vis-list button >> nth=3'); await win.waitForTimeout(1500); await shot('02h-visualizer-presets');
+await win.click('#fs-panel-close'); await win.waitForTimeout(400);
+await win.click('#np-vis-toggle'); await win.waitForTimeout(300);
+if (await win.$('#np-vis')) errors.push('El visualizador no se quita al apagarlo');
 await win.keyboard.press('Escape'); await win.waitForTimeout(1200);
 fsx = { ...(await fsState()), window: await winFs() };
 if (fsx.fs || fsx.inside || fsx.window || !(await win.$('#player .p-center'))) errors.push('Al salir de pantalla completa: ' + JSON.stringify(fsx));
