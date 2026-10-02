@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.23.1
+------------------------------------------------------------
+- Arreglado: al abrir BitChord, las playlists desplegadas de la barra lateral salían como
+  "Aún no tienes playlists" hasta cerrar y abrir la flecha. Ahora se rellenan solas en
+  cuanto se conecta tu cuenta.
+
+------------------------------------------------------------
 v0.6.23
 ------------------------------------------------------------
 - Biblioteca > Playlists: puedes ordenar tus playlists arrastrándolas con el ratón a otro

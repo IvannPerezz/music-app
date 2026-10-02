@@ -2148,7 +2148,10 @@ export async function refreshAccount() {
   b.innerHTML = a?.photo ? `<img src="${esc(a.photo)}" alt="">` : icon('account');
   b.title = a ? `${a.name || tr('Cuenta de Google')}${a.handle ? ' · ' + a.handle : ''}` : tr('Iniciar sesión con Google');
   b.classList.toggle('signed', !!a);
-  // Home is usually drawn before the account arrives: complete the greeting in place.
+  // Home and the sidebar are drawn before the account arrives: complete the greeting and the
+  // sidebar playlists (they came out empty, without the account's ones) in place.
+  const fold = $('#nav-items .sb-pl-inner');
+  if (fold) fillPlaylistsFold(fold);
   const g = $('#home-greet');
   if (g) g.textContent = greeting();
 }
