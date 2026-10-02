@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.30.5
+------------------------------------------------------------
+- Arreglado: la animación de la portada (la de la baraja de cartas) se descolocaba al
+  pasar de una canción con letra a otra sin letra, porque la portada se movía y crecía a
+  la vez. Ahora la carta sigue a la portada mientras cambia de sitio y de tamaño.
+
+------------------------------------------------------------
 v0.6.30.4
 ------------------------------------------------------------
 - Vista de portada y letra: si la canción no tiene letra en ningún proveedor, la letra se

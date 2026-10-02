@@ -1600,6 +1600,14 @@ function slideArt(img, src, dir = 1) {
       { filter: 'brightness(1)', transform: `${base}translateX(${dir * -6}%) rotate(${dir * -2}deg)`, offset: .45 },
       { filter: 'brightness(.6)', transform: `${base}scale(.95)`, offset: 1 },
     ], { duration: D, easing: 'ease-in-out' });
+    // The cover can move or resize meanwhile (e.g. the lyrics hide for a song without them and
+    // the cover grows and re-centres): keep the card glued to it every frame.
+    const follow = () => {
+      if (!next.isConnected) return;
+      Object.assign(next.style, { left: img.offsetLeft + 'px', top: img.offsetTop + 'px', width: img.offsetWidth + 'px', height: img.offsetHeight + 'px' });
+      requestAnimationFrame(follow);
+    };
+    requestAnimationFrame(follow);
     a.onfinish = () => { img.src = src; img.style.position = img.style.zIndex = ''; requestAnimationFrame(() => next.remove()); };
   };
   if (next.complete) go(); else { next.onload = go; next.onerror = () => { img.src = src; next.remove(); }; }
