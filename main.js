@@ -108,7 +108,8 @@ function createWindow() {
     title: 'BitChord',
     icon: path.join(__dirname, 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     titleBarStyle: 'hidden',
-    titleBarOverlay: { color: '#00000000', symbolColor: '#f2f2f7', height: 44 },
+    // Native buttons only with 'windows' window buttons (the macOS-style ones are drawn by the app).
+    titleBarOverlay: settings.get('windowButtons') === 'windows' ? { color: '#00000000', symbolColor: '#f2f2f7', height: 44 } : { color: '#00000000', symbolColor: '#00000000', height: 1 },
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -124,7 +125,12 @@ function createWindow() {
   // Full-screen mode of the cover and lyrics view (button next to the volume, or F11).
   // The window buttons (minimise/maximise/close) stay drawn over a full-screen window: squash
   // the overlay while full screen and bring it back afterwards.
-  const overlay = (on) => { try { win.setTitleBarOverlay({ color: '#00000000', symbolColor: on ? '#f2f2f7' : '#00000000', height: on ? 44 : 0 }); } catch {} };
+  // Native Windows buttons only in 'windows' mode and out of full screen; with macOS-style buttons
+  // the app draws its own (renderer) and the overlay is squashed out of the way.
+  const overlay = (on) => { on = on && settings.get('windowButtons') === 'windows'; try { win.setTitleBarOverlay({ color: '#00000000', symbolColor: on ? '#f2f2f7' : '#00000000', height: on ? 44 : 1 }); } catch {} };
+  win.applyWindowButtons = () => overlay(!win.isFullScreen());
+  win.on('maximize', () => send('maximized', true));
+  win.on('unmaximize', () => send('maximized', false));
   win.on('enter-full-screen', () => { overlay(false); send('fullscreen', true); });
   win.on('leave-full-screen', () => { overlay(true); send('fullscreen', false); });
   win.webContents.on('before-input-event', (e, input) => {
@@ -220,6 +226,7 @@ app.whenReady().then(async () => {
     if ('language' in patch || 'region' in patch) applyYtConfig();
     if ('uiLanguage' in patch) { tray?.refresh?.(); updateThumbar(); }
     if ('closeToTray' in patch && patch.closeToTray) createTray();
+    if ('windowButtons' in patch) win?.applyWindowButtons?.();
     if ('localFolders' in patch && JSON.stringify(before.localFolders) !== JSON.stringify(patch.localFolders)) { local.pruneFolderMeta(patch.localFolders || []); rescanLocal(); }
     if ('localFolders' in patch || 'localWatch' in patch) applyLocalWatch();
     return next;
@@ -357,6 +364,13 @@ app.whenReady().then(async () => {
   // Misc
   ipcMain.handle('open-log', () => shell.showItemInFolder(logFile));
   ipcMain.handle('set-fullscreen', (_e, on) => { win?.setFullScreen(!!on); return !!on; });
+  // macOS-style window buttons (close goes through the normal close, so "close to tray" still works).
+  ipcMain.handle('window-control', (_e, what) => {
+    if (!win) return;
+    if (what === 'close') win.close();
+    else if (what === 'minimize') win.minimize();
+    else if (what === 'maximize') win.isMaximized() ? win.unmaximize() : win.maximize();
+  });
   ipcMain.handle('open-external', (_e, url) => { if (/^https?:/.test(url)) shell.openExternal(url); });
   ipcMain.on('set-progress', (_e, p) => win?.setProgressBar(p < 0 ? -1 : p, { mode: p < 0 ? 'none' : 'normal' }));
   ipcMain.handle('app-info', () => ({ version: VERSION, electron: process.versions.electron, chrome: process.versions.chrome, userData, platform: process.platform }));

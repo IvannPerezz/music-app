@@ -1655,6 +1655,13 @@ function setupSidebarMode() {
   applyTheme();
   applyAmbient();
   applyMica();
+  applyWindowButtons();
+}
+/** macOS-style window buttons (red/yellow/green on the left) or the native Windows ones. */
+function applyWindowButtons() {
+  const mac = (state.settings.windowButtons || 'mac') === 'mac';
+  document.body.classList.toggle('mac-buttons', mac);
+  $('#titlebar .traffic').hidden = !mac;
 }
 export function applyTheme() {
   delete document.documentElement.dataset.theme; // the old built-in themes are gone
@@ -1782,6 +1789,7 @@ document.addEventListener('settings', (e) => {
   if (k.some((x) => x.startsWith('ambient'))) applyAmbient();
   if (k.some((x) => x.startsWith('mica'))) applyMica();
   if (k.includes('fsButtons')) applyFsButtons();
+  if (k.includes('windowButtons')) applyWindowButtons();
   if (k.includes('visualizer')) applyVis();
   if (k.includes('visAuto')) scheduleAuto();
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
@@ -1842,6 +1850,11 @@ function initButtons() {
   applyFsButtons();
   bc.on('fullscreen', applyFullscreen);
   syncFsVolume();
+  $$('#titlebar .tl').forEach((b) => (b.onclick = () => bc.windowControl(b.dataset.w)));
+  // Glyphs as in macOS: ×, − and the diagonal arrows, shown when hovering the group.
+  $('#titlebar .tl-close').innerHTML = '<svg viewBox="0 0 12 12"><path d="M3.5 3.5l5 5M8.5 3.5l-5 5"/></svg>';
+  $('#titlebar .tl-min').innerHTML = '<svg viewBox="0 0 12 12"><path d="M3 6h6"/></svg>';
+  $('#titlebar .tl-max').innerHTML = '<svg viewBox="0 0 12 12"><path class="fill" d="M3.2 7.6V3.2h4.4zM8.8 4.4v4.4H4.4z"/></svg>';
   $('#sb-toggle').innerHTML = icon('menu');
   $('#sb-toggle').onclick = () => saveSettings({ sidebarOpen: !state.settings.sidebarOpen });
   setupSidebarMode();

@@ -16,12 +16,13 @@ contextBridge.exposeInMainWorld('bc', {
   proxyPort: () => ipcRenderer.invoke('proxy-port'),
   openLog: () => ipcRenderer.invoke('open-log'),
   setFullscreen: (on) => ipcRenderer.invoke('set-fullscreen', on),
+  windowControl: (what) => ipcRenderer.invoke('window-control', what),
   openExternal: (u) => ipcRenderer.invoke('open-external', u),
   appInfo: () => ipcRenderer.invoke('app-info'),
   playerState: (st) => ipcRenderer.send('player-state', st),
   setProgress: (p) => ipcRenderer.send('set-progress', p),
   on: (ch, fn) => {
-    if (!['command', 'downloads', 'local-scan', 'import-progress', 'yt-status', 'fullscreen'].includes(ch)) return;
+    if (!['command', 'downloads', 'local-scan', 'import-progress', 'yt-status', 'fullscreen', 'maximized'].includes(ch)) return;
     ipcRenderer.on(ch, (_e, data) => fn(data));
   },
   platform: process.platform,

@@ -535,6 +535,7 @@ function general() {
   });
   return card('general', tr('General'), 'settings',
     row(tr('Idioma de la interfaz'), tr('Idioma de los menús, botones y textos de BitChord. Al cambiarlo, la ventana se recarga (la música se pausa un momento).'), langSel),
+    row(tr('Botones de la ventana'), tr('Cerrar, minimizar y maximizar: los círculos de colores de macOS (a la izquierda) o los de Windows (a la derecha).'), select('windowButtons', [['mac', tr('Estilo macOS')], ['windows', tr('Estilo Windows')]])),
     row(tr('Cerrar a la bandeja del sistema'), tr('Al cerrar la ventana, BitChord sigue sonando junto al reloj.'), toggle('closeToTray')),
     row(tr('Idioma de YouTube Music'), tr('Idioma de títulos y recomendaciones.'), select('language', [['es', 'Español'], ['en', 'English'], ['pt', 'Português'], ['fr', 'Français'], ['de', 'Deutsch'], ['it', 'Italiano']])),
     row(tr('País'), tr('Afecta a las listas y a la disponibilidad.'), select('region', [['ES', tr('España')], ['MX', tr('México')], ['AR', 'Argentina'], ['CO', 'Colombia'], ['CL', 'Chile'], ['PE', tr('Perú')], ['US', tr('Estados Unidos')], ['GB', tr('Reino Unido')]])),

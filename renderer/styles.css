@@ -1219,3 +1219,19 @@ body.no-mica-player #player .icon-btn:active:not(.on) { background: rgba(255,255
    strip reaches the top of the window instead of stopping under the title bar. */
 #titlebar { transition: -webkit-backdrop-filter .3s, backdrop-filter .3s; }
 body.route-settings:not(.np-open) #titlebar { -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+
+/* ---------------------------------------------------------------- macOS-style window buttons
+   Red (close), yellow (minimise) and green (maximise) on the left of the title bar; the symbols
+   appear when the mouse is over the group, as on a Mac. The native Windows buttons are hidden. */
+.traffic { display: flex; gap: 8px; margin-right: 6px; -webkit-app-region: no-drag; flex: none; }
+.traffic[hidden] { display: none; }
+.tl { width: 13px; height: 13px; border-radius: 50%; padding: 0; display: grid; place-items: center;
+  box-shadow: inset 0 0 0 .5px rgba(0,0,0,.25); transition: filter .15s; }
+.tl-close { background: #ff5f57; } .tl-min { background: #febc2e; } .tl-max { background: #28c840; }
+.tl svg { width: 9px; height: 9px; opacity: 0; transition: opacity .12s; stroke: rgba(0,0,0,.6); stroke-width: 1.4; stroke-linecap: round; fill: none; }
+.tl svg .fill { fill: rgba(0,0,0,.6); stroke: none; }
+.traffic:hover .tl svg { opacity: 1; }
+.tl:active { filter: brightness(.8); }
+body.mac-buttons .brand { width: calc(var(--sidebar) - 16px - 61px); }
+body.mac-buttons .settings-btn { margin-right: 14px; }
+@media (max-width: 1100px) { body.mac-buttons .brand { width: 0; overflow: hidden; } }

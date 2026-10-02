@@ -1,6 +1,13 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Botones de la ventana": "Window buttons",
+  "Cerrar, minimizar y maximizar: los círculos de colores de macOS (a la izquierda) o los de Windows (a la derecha).": "Close, minimise and maximise: macOS's coloured circles (on the left) or Windows' (on the right).",
+  "Estilo macOS": "macOS style",
+  "Estilo Windows": "Windows style",
+  "Cerrar": "Close",
+  "Minimizar": "Minimise",
+  "Maximizar": "Maximise",
   "Anterior": "Previous",
   "Pausa": "Pause",
   "Reproducir": "Play",
