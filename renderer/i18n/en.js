@@ -1,6 +1,7 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Ir a Inicio": "Go to Home",
   "Borrar de las búsquedas recientes": "Remove from recent searches",
   "Búsquedas recientes": "Recent searches",
   "Nombre cambiado también en tu cuenta de YouTube Music": "Name changed in your YouTube Music account too",

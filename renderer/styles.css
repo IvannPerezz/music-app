@@ -1478,3 +1478,8 @@ body.route-settings #sb-resize { display: none; }
 /* Deleting a recent search: the row slides away to the right and folds up. */
 #suggest li.leaving { opacity: 0; transform: translateX(40px); height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; margin: 0; overflow: hidden; pointer-events: none;
   transition: opacity .2s ease, transform .25s cubic-bezier(.4,0,1,1), height .28s cubic-bezier(.32,.72,0,1) .05s, padding .28s cubic-bezier(.32,.72,0,1) .05s; }
+
+/* The BitChord logo goes to Home. */
+/* Only the logo and the name are clickable; the rest of that space still drags the window. */
+.brand img, .brand span { -webkit-app-region: no-drag; cursor: pointer; transition: opacity .15s; }
+.brand img:hover, .brand img:hover + span, .brand span:hover { opacity: .8; }

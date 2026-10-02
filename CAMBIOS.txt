@@ -15,6 +15,11 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.27.3
+------------------------------------------------------------
+- Al pulsar el logo de BitChord (arriba a la izquierda) vas a Inicio.
+
+------------------------------------------------------------
 v0.6.27.2
 ------------------------------------------------------------
 - Al borrar una búsqueda reciente con la ×, se desliza hacia la derecha mientras se

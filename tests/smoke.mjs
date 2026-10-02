@@ -191,6 +191,9 @@ await shot('06b-search');
 // the pinned shortcut lights up only when it's the one clicked.
 await win.evaluate(async () => { const sb = (await window.bc.settingsGet()).data.sidebar.map((x) => (x.id === 'lib:playlists' ? { ...x, on: true } : x)); await window.__bc.saveSidebar?.(sb); });
 await win.click('#nav-library'); await win.waitForTimeout(900); await shot('06-library');
+await win.click('.brand img'); await win.waitForTimeout(700);
+if (!(await win.isVisible('#home-greet'))) errors.push('El logo no lleva a Inicio');
+await win.click('#nav-library'); await win.waitForTimeout(900);
 // Inside a playlist: search by artist, sort by title, hide the album column.
 await win.locator('.card.playlist >> nth=0').click(); await win.waitForTimeout(900);
 const rows = () => win.evaluate(() => [...document.querySelectorAll('.track-list .row .ttl')].map((t) => t.textContent));

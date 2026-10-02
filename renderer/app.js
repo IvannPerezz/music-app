@@ -2254,6 +2254,7 @@ function initButtons() {
   $('#titlebar .tl-close').innerHTML = '<svg viewBox="0 0 12 12"><path d="M3.5 3.5l5 5M8.5 3.5l-5 5"/></svg>';
   $('#titlebar .tl-min').innerHTML = '<svg viewBox="0 0 12 12"><path d="M3 6h6"/></svg>';
   $('#titlebar .tl-max').innerHTML = '<svg viewBox="0 0 12 12"><path class="fill" d="M3.2 7.6V3.2h4.4zM8.8 4.4v4.4H4.4z"/></svg>';
+  $('.brand').onclick = () => go({ name: 'home' });
   $('#sb-toggle').innerHTML = icon('menu');
   $('#sb-toggle').onclick = () => saveSettings({ sidebarOpen: !state.settings.sidebarOpen });
   setupSidebarMode();
