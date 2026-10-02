@@ -7,6 +7,7 @@ import * as settings from './settings.js';
 import { webmToOggOpus } from './mux/webm-opus.js';
 import { tagMp4 } from './mux/mp4-tag.js';
 import { fetchLyrics } from './lyrics.js';
+import { tr } from './i18n.js';
 
 let indexFile = null;
 let coverDir = null;
@@ -110,7 +111,7 @@ async function run(job) {
     for (;;) {
       r = await fetch(stream.url, { headers: { ...stream.headers, Range: `bytes=${pos}-${end}` }, signal: job.abort.signal });
       if (r.status === 206 || (r.status === 200 && pos === 0)) break;
-      if (++tries > 3) throw new Error(`HTTP ${r.status} al descargar`);
+      if (++tries > 3) throw new Error(tr('HTTP {status} al descargar', { status: r.status }));
       if (r.status === 403 && stream.clientName) {
         // Refused past the authorisation boundary: same format from another client.
         markRefused(t.id, stream.clientName);

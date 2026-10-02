@@ -4,6 +4,7 @@
 
 export const EQ_FREQS = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 export const EQ_PRESETS = {
+  // Labels are translated where they're shown (eq-panel.js); this module also runs without a window.
   flat: { label: 'Plano', bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
   bass: { label: 'Refuerzo de graves', bands: [6, 5, 4, 2, 0, 0, 0, 0, 0, 0] },
   treble: { label: 'Refuerzo de agudos', bands: [0, 0, 0, 0, 0, 1, 2, 4, 5, 6] },

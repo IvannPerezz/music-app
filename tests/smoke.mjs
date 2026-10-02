@@ -50,8 +50,10 @@ const from = await win.evaluate(() => document.querySelector('#np-from').innerTe
 if (!/desde|radio/i.test(from)) errors.push('Falta «Reproduciendo desde…»: ' + from);
 // The volume bar slides away after a moment and comes back near the left edge.
 const volShown = () => win.evaluate(() => document.body.classList.contains('fs-vol-show'));
-await win.mouse.move(700, 400); await win.waitForTimeout(3200);
-if (await volShown()) errors.push('La barra de volumen no se esconde');
+await win.mouse.move(700, 400);
+// It hides a moment after the window has gone full screen, which can take a while to report.
+try { await win.waitForFunction(() => !document.body.classList.contains('fs-vol-show'), null, { timeout: 6000 }); }
+catch { errors.push('La barra de volumen no se esconde'); }
 await shot('02c-fullscreen-vol-hidden');
 // Favourite, shuffle and repeat switched on: Mica disc; the minimise arrow has Mica too.
 for (const id of ['#fs-like', '#shuffle', '#repeat']) await win.click(id);
@@ -163,6 +165,22 @@ const off = await win.evaluate(() => ['queue', 'player', 'sidebar'].map((k) => d
 if (off.join() !== 'true,true,false') errors.push('Los interruptores de Mica no se aplican: ' + off.join());
 await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('10-mica-off');
 
+// Interface language: switch to English (the window reloads) and check a few texts.
+await win.click('#settings-btn'); await win.waitForTimeout(600);
+await win.locator('#set-general select').first().selectOption('en');
+await win.waitForTimeout(2500);
+await win.waitForSelector('#nav-items .nav-item');
+const en = await win.evaluate(() => ({
+  nav: [...document.querySelectorAll('#nav-items .nav-label')].map((e) => e.textContent).join(','),
+  settings: document.querySelector('#settings-btn').title,
+  search: document.querySelector('#search').placeholder,
+  lang: document.documentElement.lang,
+}));
+if (!en.nav.includes('Home') || en.settings !== 'Settings (Ctrl+,)' || en.lang !== 'en') errors.push('Interfaz en inglés: ' + JSON.stringify(en));
+await shot('11-english-home');
+await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('12-english-settings');
+await win.click('.row >> nth=0'); await win.waitForTimeout(800);
+await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('13-english-now-playing');
 await app.close();
 fs.rmSync(userData, { recursive: true, force: true });
 if (errors.length) { console.error('Errores en la interfaz:\n' + errors.join('\n')); process.exit(1); }

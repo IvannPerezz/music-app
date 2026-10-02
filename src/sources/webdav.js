@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { safeStorage } from 'electron';
+import { tr } from '../i18n.js';
 
 const AUDIO = /\.(mp3|m4a|mp4|aac|flac|ogg|opus|wav|webm|weba|alac|wma)$/i;
 const COVER = /^(cover|folder|front|album|artwork)\.(jpe?g|png|webp)$/i;
@@ -37,7 +38,7 @@ function authHeaders(server) {
 
 export function addServer({ url, user, pass, label }) {
   url = String(url || '').trim();
-  if (!/^https?:\/\//i.test(url)) throw new Error('La dirección debe empezar por http:// o https://');
+  if (!/^https?:\/\//i.test(url)) throw new Error(tr('La dirección debe empezar por http:// o https://'));
   if (!url.endsWith('/')) url += '/';
   const s = { id: 'w' + crypto.randomBytes(4).toString('hex'), url, user: user || '', passEnc: pass ? enc(pass) : '', label: label || new URL(url).host };
   servers.push(s);
@@ -57,8 +58,8 @@ async function propfind(server, url) {
     headers: { ...authHeaders(server), Depth: '1', 'Content-Type': 'application/xml' },
     body: '<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/></d:prop></d:propfind>',
   });
-  if (r.status === 401) throw new Error('Usuario o contraseña incorrectos');
-  if (r.status !== 207) throw new Error(`El servidor respondió HTTP ${r.status} (¿es una dirección WebDAV?)`);
+  if (r.status === 401) throw new Error(tr('Usuario o contraseña incorrectos'));
+  if (r.status !== 207) throw new Error(tr('El servidor respondió HTTP {status} (¿es una dirección WebDAV?)', { status: r.status }));
   const xml = await r.text();
   const out = [];
   for (const m of xml.matchAll(/<(?:\w+:)?response\b[^>]*>([\s\S]*?)<\/(?:\w+:)?response>/gi)) {

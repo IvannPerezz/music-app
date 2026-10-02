@@ -15,6 +15,21 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.17
+------------------------------------------------------------
+- Idiomas: BitChord se puede usar en inglés. En Ajustes > General hay un ajuste nuevo,
+  "Idioma de la interfaz" (Español / English). Al cambiarlo, la ventana se recarga y la
+  música se pausa un momento.
+- Se traduce toda la app: menús, botones, avisos, Ajustes, Biblioteca, el importador de
+  Spotify, la pantalla completa y el visualizador, y también el menú del icono de la
+  bandeja, los botones de la miniatura de la barra de tareas y los mensajes de error.
+- Es independiente del "Idioma de YouTube Music", que sigue decidiendo el idioma de los
+  títulos y de los apartados que da YouTube (por ejemplo "Selección rápida" o "Álbumes
+  para ti"). Si quieres todo en inglés, cambia los dos.
+- En Acerca de, la lista de atajos de teclado incluye ahora V (visualizador) y F11
+  (pantalla completa).
+
+------------------------------------------------------------
 v0.6.16.3
 ------------------------------------------------------------
 - Ajustes > Ecualizador: el texto de explicación es ahora más corto ("10 Bandas, aplicado

@@ -2,6 +2,7 @@
 import crypto from 'node:crypto';
 import { shell } from 'electron';
 import * as settings from './settings.js';
+import { tr } from './i18n.js';
 
 const artistOf = (t) => (t.artists || [])[0]?.name || '';
 
@@ -37,7 +38,7 @@ function sign(params, secret) {
 }
 async function lfmCall(params, { post = false } = {}) {
   const key = settings.get('lastfmApiKey'), secret = settings.get('lastfmSecret');
-  if (!key || !secret) throw new Error('Falta la API key / secret de Last.fm');
+  if (!key || !secret) throw new Error(tr('Falta la API key / secret de Last.fm'));
   const p = { ...params, api_key: key };
   p.api_sig = sign(p, secret);
   p.format = 'json';
@@ -56,7 +57,7 @@ export async function lastfmBeginAuth() {
   return true;
 }
 export async function lastfmFinishAuth() {
-  if (!lfmToken) throw new Error('Primero pulsa "Conectar"');
+  if (!lfmToken) throw new Error(tr('Primero pulsa «1. Autorizar en Last.fm»'));
   const j = await lfmCall({ method: 'auth.getSession', token: lfmToken });
   settings.set({ lastfmSession: j.session.key, lastfmUser: j.session.name });
   lfmToken = null;

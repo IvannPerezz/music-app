@@ -3,11 +3,12 @@ import { bc, $, $$, icon, esc, api, toast, h, state, saveSettings, art, store, c
 import { eqPanel } from './eq-panel.js';
 import { refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent, applyTheme, setThemeCss } from './app.js';
 import { colorPicker } from './color-picker.js';
+import { tr, LANGUAGES, uiLang, syncUiLang } from './i18n.js';
 
-const QUALITY = [['low', 'Baja (~64 kbps)'], ['normal', 'Normal (~96 kbps)'], ['high', 'Alta (~160 kbps)'], ['max', 'Máxima disponible']];
+const QUALITY = [['low', tr('Baja (~64 kbps)')], ['normal', tr('Normal (~96 kbps)')], ['high', tr('Alta (~160 kbps)')], ['max', tr('Máxima disponible')]];
 const SECTIONS = [
-  ['account', 'Cuenta'], ['playback', 'Reproducción'], ['sources', 'Fuentes'], ['eq', 'Ecualizador'], ['lyrics', 'Letras'], ['downloads', 'Descargas'],
-  ['local', 'Música local'], ['import', 'Importar'], ['integrations', 'Integraciones'], ['theme', 'Tema'], ['sidebar', 'Personalización'], ['general', 'General'], ['about', 'Acerca de'],
+  ['account', tr('Cuenta')], ['playback', tr('Reproducción')], ['sources', tr('Fuentes')], ['eq', tr('Ecualizador')], ['lyrics', tr('Letras')], ['downloads', tr('Descargas')],
+  ['local', tr('Música local')], ['import', tr('Importar')], ['integrations', tr('Integraciones')], ['theme', tr('Tema')], ['sidebar', tr('Personalización')], ['general', tr('General')], ['about', tr('Acerca de')],
 ];
 
 function row(label, desc, control) {
@@ -53,66 +54,66 @@ function card(id, title, ic, ...rows) {
 
 // ------------------------------------------------------------------ sections
 function playback() {
-  const cf = range('crossfade', 0, 12, 1, (v) => (v ? `${v} s` : 'No'));
-  return card('playback', 'Reproducción', 'play',
-    row('Calidad de streaming', 'Límite de bitrate al escuchar por internet.', select('streamQuality', QUALITY)),
-    row('Reproducción sin pausas (gapless)', 'Precarga la siguiente canción y la encadena sin silencio.', toggle('gapless')),
-    row('Fundido entre canciones', 'Crossfade de 0 a 12 segundos.', cf),
-    row(`Automix <span class="beta">Beta</span>`, 'Transiciones tipo DJ: detecta el tempo y los compases de cada canción, ajusta el tempo de la siguiente para que los beats coincidan (sin cambiar el tono) y mezcla con intercambio de graves. Sustituye al fundido cuando está activo.', toggle('automix')),
-    row('Duración de la mezcla', 'Compases que dura cada transición del Automix.', select('automixBars', [[4, '4 compases'], [8, '8 compases'], [16, '16 compases']])),
-    row('Saltar silencios', 'Recorta los silencios del principio y del final de cada canción.', toggle('skipSilence')),
-    row('Normalizar volumen', 'Iguala el volumen entre canciones usando el dato de sonoridad de YouTube.', toggle('normalize')),
-    row('Velocidad de reproducción', 'Sin cambiar el tono.', range('speed', 0.5, 2, 0.05, (v) => `${(+v).toFixed(2)}×`)),
-    row('Reproducción automática', 'Cuando se acaba la cola, sigue con canciones parecidas (radio).', toggle('autoplayRadio')),
-    row('Recordar la cola al abrir', 'Vuelve a cargar lo que estabas escuchando.', toggle('resumeOnStart')),
+  const cf = range('crossfade', 0, 12, 1, (v) => (v ? `${v} s` : tr('No')));
+  return card('playback', tr('Reproducción'), 'play',
+    row(tr('Calidad de streaming'), tr('Límite de bitrate al escuchar por internet.'), select('streamQuality', QUALITY)),
+    row(tr('Reproducción sin pausas (gapless)'), tr('Precarga la siguiente canción y la encadena sin silencio.'), toggle('gapless')),
+    row(tr('Fundido entre canciones'), tr('Crossfade de 0 a 12 segundos.'), cf),
+    row(`Automix <span class="beta">Beta</span>`, tr('Transiciones tipo DJ: detecta el tempo y los compases de cada canción, ajusta el tempo de la siguiente para que los beats coincidan (sin cambiar el tono) y mezcla con intercambio de graves. Sustituye al fundido cuando está activo.'), toggle('automix')),
+    row(tr('Duración de la mezcla'), tr('Compases que dura cada transición del Automix.'), select('automixBars', [4, 8, 16].map((n) => [n, tr('{n} compases', { n })]))),
+    row(tr('Saltar silencios'), tr('Recorta los silencios del principio y del final de cada canción.'), toggle('skipSilence')),
+    row(tr('Normalizar volumen'), tr('Iguala el volumen entre canciones usando el dato de sonoridad de YouTube.'), toggle('normalize')),
+    row(tr('Velocidad de reproducción'), tr('Sin cambiar el tono.'), range('speed', 0.5, 2, 0.05, (v) => `${(+v).toFixed(2)}×`)),
+    row(tr('Reproducción automática'), tr('Cuando se acaba la cola, sigue con canciones parecidas (radio).'), toggle('autoplayRadio')),
+    row(tr('Recordar la cola al abrir'), tr('Vuelve a cargar lo que estabas escuchando.'), toggle('resumeOnStart')),
   );
 }
 
 function sourcesCard() {
-  const el = card('sources', 'Fuentes de música', 'library',
-    h(`<div class="set-note">Como en la app de Android, BitChord puede sacar el audio de varios sitios. YouTube Music es siempre la fuente principal (catálogo completo, radio, recomendaciones); el resto se usan cuando están activadas.</div>`),
-    row('YouTube Music', 'Catálogo completo · Opus hasta ~160 kbps. Siempre activa.', h(`<span class="badge">Principal</span>`)),
-    row('JioSaavn', 'Si una canción tiene una coincidencia segura en JioSaavn (mismo título, artista y duración), suena desde allí en AAC de hasta 320 kbps. JioSaavn solo da servicio en algunos países: si no encuentra nada, se usa YouTube Music.', toggle('sourceJioSaavn')),
+  const el = card('sources', tr('Fuentes de música'), 'library',
+    h(`<div class="set-note">${tr('Como en la app de Android, BitChord puede sacar el audio de varios sitios. YouTube Music es siempre la fuente principal (catálogo completo, radio, recomendaciones); el resto se usan cuando están activadas.')}</div>`),
+    row(tr('YouTube Music'), tr('Catálogo completo · Opus hasta ~160 kbps. Siempre activa.'), h(`<span class="badge">${tr('Principal')}</span>`)),
+    row(tr('JioSaavn'), tr('Si una canción tiene una coincidencia segura en JioSaavn (mismo título, artista y duración), suena desde allí en AAC de hasta 320 kbps. JioSaavn solo da servicio en algunos países: si no encuentra nada, se usa YouTube Music.'), toggle('sourceJioSaavn')),
   );
   // WebDAV servers
   const list = h('<div class="folders"></div>');
   const drawServers = async () => {
     list.innerHTML = '';
     const servers = await api('webdavServers');
-    if (!servers.length) list.append(h('<div class="set-desc">Ningún servidor añadido.</div>'));
+    if (!servers.length) list.append(h(`<div class="set-desc">${tr('Ningún servidor añadido.')}</div>`));
     servers.forEach((sv) => {
-      const it = h(`<div class="folder">${icon('folder')}<span class="path" style="direction:ltr">${esc(sv.label)} · ${esc(sv.url)}</span><span class="set-desc">${sv.tracks} canciones</span><button class="icon-btn" title="Quitar">${icon('close')}</button></div>`);
+      const it = h(`<div class="folder">${icon('folder')}<span class="path" style="direction:ltr">${esc(sv.label)} · ${esc(sv.url)}</span><span class="set-desc">${tr('{n} canciones', { n: sv.tracks })}</span><button class="icon-btn" title="${tr('Quitar')}">${icon('close')}</button></div>`);
       it.querySelector('button').onclick = async () => { await api('webdavRemove', sv.id); drawServers(); };
       list.append(it);
     });
   };
   drawServers();
-  const form = h(`<details class="adv"><summary>Añadir servidor WebDAV (Nextcloud, ownCloud, Synology, QNAP…)</summary>
+  const form = h(`<details class="adv"><summary>${tr('Añadir servidor WebDAV (Nextcloud, ownCloud, Synology, QNAP…)')}</summary>
     <div class="dav-form">
-      <input class="text" data-k="url" placeholder="https://mi-nas.local/remote.php/dav/files/usuario/Música/">
-      <input class="text" data-k="user" placeholder="Usuario (opcional)">
-      <input class="text" data-k="pass" type="password" placeholder="Contraseña (opcional)">
+      <input class="text" data-k="url" placeholder="${tr('https://mi-nas.local/remote.php/dav/files/usuario/Música/')}">
+      <input class="text" data-k="user" placeholder="${tr('Usuario (opcional)')}">
+      <input class="text" data-k="pass" type="password" placeholder="${tr('Contraseña (opcional)')}">
     </div></details>`);
-  const addBtn = btn('Probar y añadir', 'ghost', 'check');
+  const addBtn = btn(tr('Probar y añadir'), 'ghost', 'check');
   addBtn.onclick = async () => {
     const v = (k) => form.querySelector(`[data-k=${k}]`).value.trim();
     addBtn.disabled = true;
-    try { await api('webdavAdd', { url: v('url'), user: v('user'), pass: v('pass') }); toast('Servidor añadido. Escaneando…'); form.querySelectorAll('input').forEach((i) => (i.value = '')); drawServers(); }
+    try { await api('webdavAdd', { url: v('url'), user: v('user'), pass: v('pass') }); toast(tr('Servidor añadido. Escaneando…')); form.querySelectorAll('input').forEach((i) => (i.value = '')); drawServers(); }
     catch (e) { toast(e.message, true); }
     addBtn.disabled = false;
   };
   form.append(addBtn);
-  const rescan = btn('Volver a escanear', 'ghost', 'refresh');
-  rescan.onclick = async () => { toast('Escaneando servidores…'); const n = (await api('webdavRescan')).length; toast(`${n} canciones en tus servidores`); drawServers(); };
-  el.append(row('Servidores WebDAV', 'Tu música en un NAS o en la nube. Se entiende la estructura "Artista/Álbum/01 - Título" y las carátulas cover.jpg / folder.jpg. Aparece en Biblioteca → En red.', rescan), list, form);
-  el.append(row('Carpetas de red (SMB)', 'En Windows, añade la carpeta compartida como una carpeta más en "Música local" (por ejemplo \\\\NAS\\Música).', h(`<span class="badge">En Música local</span>`)));
-  el.append(h(`<div class="set-note">Las fuentes "Hi‑Res" por módulos de la app móvil (plugins que extraen FLAC de servicios de pago como Tidal, Qobuz o Apple Music) no están incluidas.</div>`));
+  const rescan = btn(tr('Volver a escanear'), 'ghost', 'refresh');
+  rescan.onclick = async () => { toast(tr('Escaneando servidores…')); const n = (await api('webdavRescan')).length; toast(tr('{n} canciones en tus servidores', { n })); drawServers(); };
+  el.append(row(tr('Servidores WebDAV'), tr('Tu música en un NAS o en la nube. Se entiende la estructura "Artista/Álbum/01 - Título" y las carátulas cover.jpg / folder.jpg. Aparece en Biblioteca → En red.'), rescan), list, form);
+  el.append(row(tr('Carpetas de red (SMB)'), tr('En Windows, añade la carpeta compartida como una carpeta más en "Música local" (por ejemplo \\\\NAS\\Música).'), h(`<span class="badge">${tr('En Música local')}</span>`)));
+  el.append(h(`<div class="set-note">${tr('Las fuentes "Hi‑Res" por módulos de la app móvil (plugins que extraen FLAC de servicios de pago como Tidal, Qobuz o Apple Music) no están incluidas.')}</div>`));
   return el;
 }
 
 function equalizer() {
-  return card('eq', 'Ecualizador', 'equalizer',
-    h('<div class="set-note">10 Bandas, aplicado a todo lo que suena.</div>'),
+  return card('eq', tr('Ecualizador'), 'equalizer',
+    h(`<div class="set-note">${tr('10 Bandas, aplicado a todo lo que suena.')}</div>`),
     eqPanel(),
   );
 }
@@ -129,9 +130,9 @@ function lyrics() {
       const el = h(`
         <div class="prov${disabled.has(id) ? ' off' : ''}" draggable="true">
           <span class="prov-n">${i + 1}</span>
-          <div class="prov-t"><b>${esc(p.label)}</b>${p.word ? '<span class="badge">palabra a palabra</span>' : ''}<div class="set-desc">${esc(p.detail)}</div></div>
-          <button class="icon-btn" data-a="up" title="Subir">${icon('up')}</button>
-          <button class="icon-btn" data-a="down" title="Bajar">${icon('down')}</button>
+          <div class="prov-t"><b>${esc(p.label)}</b>${p.word ? `<span class="badge">${tr('palabra a palabra')}</span>` : ''}<div class="set-desc">${esc(tr(p.detail))}</div></div>
+          <button class="icon-btn" data-a="up" title="${tr('Subir')}">${icon('up')}</button>
+          <button class="icon-btn" data-a="down" title="${tr('Bajar')}">${icon('down')}</button>
           <label class="switch"><input type="checkbox"${disabled.has(id) ? '' : ' checked'}><span></span></label>
         </div>`);
       const move = async (to) => {
@@ -159,100 +160,100 @@ function lyrics() {
     });
   };
   draw();
-  return card('lyrics', 'Letras', 'lyrics',
-    h(`<div class="set-note">BitChord busca la letra en este orden y usa la primera sincronizada que encuentre. Arrastra para reordenar o desactiva las fuentes que no quieras. En la pantalla de reproducción puedes forzar una fuente concreta para la canción que suena.</div>`),
+  return card('lyrics', tr('Letras'), 'lyrics',
+    h(`<div class="set-note">${tr('BitChord busca la letra en este orden y usa la primera sincronizada que encuentre. Arrastra para reordenar o desactiva las fuentes que no quieras. En la pantalla de reproducción puedes forzar una fuente concreta para la canción que suena.')}</div>`),
     list,
-    row('Sincronización palabra a palabra', 'Ilumina cada palabra cuando la fuente lo permite.', toggle('lyricsWordSync')),
-    row('Tamaño del texto', '', range('lyricsFontSize', 20, 48, 1, (v) => `${v} px`)),
-    row('Desfase', 'Adelanta o retrasa la letra si va descompasada.', range('lyricsOffsetMs', -2000, 2000, 50, (v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)} s`)),
+    row(tr('Sincronización palabra a palabra'), tr('Ilumina cada palabra cuando la fuente lo permite.'), toggle('lyricsWordSync')),
+    row(tr('Tamaño del texto'), '', range('lyricsFontSize', 20, 48, 1, (v) => `${v} px`)),
+    row(tr('Desfase'), tr('Adelanta o retrasa la letra si va descompasada.'), range('lyricsOffsetMs', -2000, 2000, 50, (v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)} s`)),
   );
 }
 
 function downloads() {
-  const dir = h(`<div class="path-ctl"><span class="path">${esc(state.settings.downloadDir || state.downloads.dir || 'Música\\BitChord')}</span></div>`);
-  const change = btn('Cambiar…', 'ghost', 'folder');
-  change.onclick = async () => { const p = await api('chooseFolder', 'Carpeta de descargas'); if (p) { await saveSettings({ downloadDir: p }); refreshView(); } };
+  const dir = h(`<div class="path-ctl"><span class="path">${esc(state.settings.downloadDir || state.downloads.dir || tr('Música') + '\\BitChord')}</span></div>`);
+  const change = btn(tr('Cambiar…'), 'ghost', 'folder');
+  change.onclick = async () => { const p = await api('chooseFolder', tr('Carpeta de descargas')); if (p) { await saveSettings({ downloadDir: p }); refreshView(); } };
   dir.append(change);
-  return card('downloads', 'Descargas', 'download',
-    row('Calidad de descarga', 'Independiente de la de streaming.', select('downloadQuality', QUALITY)),
-    row('Formato', 'Opus da más calidad por tamaño; M4A (AAC) es compatible con todo. Ambos llevan título, artista, álbum, carátula y letra.', select('downloadFormat', [['opus', 'Opus (.opus)'], ['m4a', 'AAC (.m4a)']])),
-    row('Carpeta', '', dir),
-    row('Descargas', `${state.downloads.done.length} canciones descargadas.`, (() => { const b = btn('Ver descargas', 'ghost', 'library'); b.onclick = () => go({ name: 'library', tab: 'downloads' }); return b; })()),
+  return card('downloads', tr('Descargas'), 'download',
+    row(tr('Calidad de descarga'), tr('Independiente de la de streaming.'), select('downloadQuality', QUALITY)),
+    row(tr('Formato'), tr('Opus da más calidad por tamaño; M4A (AAC) es compatible con todo. Ambos llevan título, artista, álbum, carátula y letra.'), select('downloadFormat', [['opus', 'Opus (.opus)'], ['m4a', 'AAC (.m4a)']])),
+    row(tr('Carpeta'), '', dir),
+    row(tr('Descargas'), tr('{n} canciones descargadas.', { n: state.downloads.done.length }), (() => { const b = btn(tr('Ver descargas'), 'ghost', 'library'); b.onclick = () => go({ name: 'library', tab: 'downloads' }); return b; })()),
   );
 }
 
 function localMusic() {
   const box = h('<div class="folders"></div>');
   const folders = state.settings.localFolders || [];
-  if (!folders.length) box.append(h('<div class="set-desc">Aún no has añadido ninguna carpeta.</div>'));
+  if (!folders.length) box.append(h(`<div class="set-desc">${tr('Aún no has añadido ninguna carpeta.')}</div>`));
   api('localFolders').then((info) => {
     folders.forEach((f) => {
       const fi = info.find((x) => x.path === f);
       const el = h(`<div class="folder">
         <div class="folder-art">${fi?.cover ? `<img src="${esc(art(fi.cover))}" alt="">` : fi?.thumbs?.[0] ? `<img src="${esc(art(fi.thumbs[0]))}" alt="">` : icon('folder')}</div>
-        <div class="folder-text"><b class="ellipsis">${esc(fi?.name || f)}</b><span class="folder-sub"><span class="path"><bdi>${esc(f)}</bdi></span><span>${fi ? `&nbsp;· ${fi.count} canciones` : ''}${fi?.watched ? ' · se actualiza sola' : ''}</span></span></div>
-        <button class="btn ghost small" data-a="open">Ver playlist</button>
-        <button class="icon-btn" data-a="rm" title="Quitar de BitChord (no borra nada del disco)">${icon('close')}</button></div>`);
+        <div class="folder-text"><b class="ellipsis">${esc(fi?.name || f)}</b><span class="folder-sub"><span class="path"><bdi>${esc(f)}</bdi></span><span>${fi ? `&nbsp;· ${tr('{n} canciones', { n: fi.count })}` : ''}${fi?.watched ? ' · ' + tr('se actualiza sola') : ''}</span></span></div>
+        <button class="btn ghost small" data-a="open">${tr('Ver playlist')}</button>
+        <button class="icon-btn" data-a="rm" title="${tr('Quitar de BitChord (no borra nada del disco)')}">${icon('close')}</button></div>`);
       el.querySelector('[data-a=open]').onclick = () => fi && go({ name: 'localfolder', id: fi.id });
       el.querySelector('[data-a=rm]').onclick = async () => { await saveSettings({ localFolders: folders.filter((x) => x !== f) }); refreshView(); };
       box.append(el);
     });
   });
-  const add = btn('Añadir carpeta', 'ghost', 'folder');
+  const add = btn(tr('Añadir carpeta'), 'ghost', 'folder');
   add.onclick = async () => {
-    const p = await api('chooseFolder', 'Carpeta con música');
-    if (p && !folders.includes(p)) { await saveSettings({ localFolders: [...folders, p] }); toast('Escaneando la carpeta…'); refreshView(); }
+    const p = await api('chooseFolder', tr('Carpeta con música'));
+    if (p && !folders.includes(p)) { await saveSettings({ localFolders: [...folders, p] }); toast(tr('Escaneando la carpeta…')); refreshView(); }
   };
-  const rescan = btn('Volver a escanear', 'ghost', 'refresh');
-  rescan.onclick = async () => { toast('Escaneando…'); const n = (await api('localRescan')).length; toast(`${n} canciones en tu equipo`); };
-  const unc = h(`<input class="text" placeholder="…o escribe una ruta: \\\\NAS\\Música" style="min-width:260px">`);
+  const rescan = btn(tr('Volver a escanear'), 'ghost', 'refresh');
+  rescan.onclick = async () => { toast(tr('Escaneando…')); const n = (await api('localRescan')).length; toast(tr('{n} canciones en tu equipo', { n })); };
+  const unc = h(`<input class="text" placeholder="${tr('…o escribe una ruta:')} \\\\NAS\\${tr('Música')}" style="min-width:260px">`);
   unc.onkeydown = async (e) => {
     if (e.key !== 'Enter') return;
     const p = unc.value.trim();
-    if (p && !folders.includes(p)) { await saveSettings({ localFolders: [...folders, p] }); toast('Escaneando la carpeta…'); refreshView(); }
+    if (p && !folders.includes(p)) { await saveSettings({ localFolders: [...folders, p] }); toast(tr('Escaneando la carpeta…')); refreshView(); }
   };
   const actions = h('<div class="btn-row"></div>'); actions.append(unc, add, rescan);
-  return card('local', 'Música local', 'computer',
-    h('<div class="set-note">Cada carpeta que añadas funciona como una playlist local independiente (con su propia portada) en Biblioteca → En este equipo y en Playlists. Formatos: MP3, M4A, FLAC, OGG, Opus, WAV…</div>'),
+  return card('local', tr('Música local'), 'computer',
+    h(`<div class="set-note">${tr('Cada carpeta que añadas funciona como una playlist local independiente (con su propia portada) en Biblioteca → En este equipo y en Playlists. Formatos: MP3, M4A, FLAC, OGG, Opus, WAV…')}</div>`),
     box, actions,
-    row('Actualizar automáticamente', 'Cuando añadas, quites o cambies canciones en estas carpetas, sus playlists se actualizan solas a los pocos segundos. Usa los avisos de cambios de Windows, así que no consume recursos mientras no pasa nada. En carpetas de red puede no funcionar; ahí usa "Volver a escanear".', toggle('localWatch')),
+    row(tr('Actualizar automáticamente'), tr('Cuando añadas, quites o cambies canciones en estas carpetas, sus playlists se actualizan solas a los pocos segundos. Usa los avisos de cambios de Windows, así que no consume recursos mientras no pasa nada. En carpetas de red puede no funcionar; ahí usa "Volver a escanear".'), toggle('localWatch')),
   );
 }
 
 function importCard() {
-  const b = btn('Importar playlists de Spotify…', 'primary', 'importIcon');
+  const b = btn(tr('Importar playlists de Spotify…'), 'primary', 'importIcon');
   b.onclick = () => go({ name: 'spotify-import' });
-  return card('import', 'Importar de Spotify', 'importIcon',
-    h(`<div class="set-note">Sube el .zip con los «Datos de la cuenta» que te da Spotify y BitChord recrea tus playlists (y tus «Canciones que te gustan» como la playlist <b>Me gusta de Spotify</b>). En cada playlist eliges si se crea en <b>tu cuenta de YouTube Music</b> —y aparece también en la app oficial— o <b>solo en BitChord</b>. Antes de crear nada podrás revisar las coincidencias dudosas.</div>`),
-    row('Importar', 'Necesitas haber iniciado sesión con Google para crearlas en tu cuenta.', b),
+  return card('import', tr('Importar de Spotify'), 'importIcon',
+    h(`<div class="set-note">${tr('Sube el .zip con los «Datos de la cuenta» que te da Spotify y BitChord recrea tus playlists (y tus «Canciones que te gustan» como la playlist <b>Me gusta de Spotify</b>). En cada playlist eliges si se crea en <b>tu cuenta de YouTube Music</b> —y aparece también en la app oficial— o <b>solo en BitChord</b>. Antes de crear nada podrás revisar las coincidencias dudosas.')}</div>`),
+    row(tr('Importar'), tr('Necesitas haber iniciado sesión con Google para crearlas en tu cuenta.'), b),
   );
 }
 
 function account() {
   const a = state.account;
-  const el = card('account', 'Cuenta de Google', 'account');
+  const el = card('account', tr('Cuenta de Google'), 'account');
   if (a) {
-    el.append(h(`<div class="acct">${a.photo ? `<img src="${esc(a.photo)}" alt="">` : icon('account')}<div><b>${esc(a.name || 'Sesión iniciada')}</b><div class="set-desc">${esc(a.handle || 'YouTube Music')}</div></div></div>`));
-    const out = btn('Cerrar sesión', 'ghost', 'logout');
-    out.onclick = async () => { await api('logout'); await refreshAccount(); toast('Sesión cerrada'); refreshView(); };
-    el.append(row('Biblioteca y recomendaciones', 'Tus playlists, "Me gusta" y la página de inicio personalizada vienen de tu cuenta.', out));
+    el.append(h(`<div class="acct">${a.photo ? `<img src="${esc(a.photo)}" alt="">` : icon('account')}<div><b>${esc(a.name || tr('Sesión iniciada'))}</b><div class="set-desc">${esc(a.handle || 'YouTube Music')}</div></div></div>`));
+    const out = btn(tr('Cerrar sesión'), 'ghost', 'logout');
+    out.onclick = async () => { await api('logout'); await refreshAccount(); toast(tr('Sesión cerrada')); refreshView(); };
+    el.append(row(tr('Biblioteca y recomendaciones'), tr('Tus playlists, "Me gusta" y la página de inicio personalizada vienen de tu cuenta.'), out));
   } else {
-    const login = btn('Iniciar sesión con Google', 'primary', 'account');
+    const login = btn(tr('Iniciar sesión con Google'), 'primary', 'account');
     login.onclick = async () => {
       login.disabled = true;
       try {
         const r = await api('login');
-        if (r !== null) { await refreshAccount(); toast('Sesión iniciada'); refreshView(); }
+        if (r !== null) { await refreshAccount(); toast(tr('Sesión iniciada')); refreshView(); }
       } catch (e) { toast(e.message, true); }
       login.disabled = false;
     };
-    el.append(row('Inicia sesión', 'Para ver tus playlists, sincronizar "Me gusta" y tener recomendaciones personalizadas. Se abre la página oficial de Google; BitChord solo guarda las cookies de YouTube, cifradas en tu equipo.', login));
-    const manual = h(`<details class="adv"><summary>¿Google no te deja entrar? Pega la cookie a mano</summary>
-      <div class="set-desc">En el navegador, abre music.youtube.com con tu sesión, pulsa F12 → Red, recarga, elige cualquier petición a music.youtube.com y copia el valor de la cabecera <b>cookie</b>.</div>
+    el.append(row(tr('Inicia sesión'), tr('Para ver tus playlists, sincronizar "Me gusta" y tener recomendaciones personalizadas. Se abre la página oficial de Google; BitChord solo guarda las cookies de YouTube, cifradas en tu equipo.'), login));
+    const manual = h(`<details class="adv"><summary>${tr('¿Google no te deja entrar? Pega la cookie a mano')}</summary>
+      <div class="set-desc">${tr('En el navegador, abre music.youtube.com con tu sesión, pulsa F12 → Red, recarga, elige cualquier petición a music.youtube.com y copia el valor de la cabecera <b>cookie</b>.')}</div>
       <textarea class="text" rows="3" placeholder="VISITOR_INFO1_LIVE=…; SAPISID=…; …"></textarea></details>`);
-    const save = btn('Usar esta cookie', 'ghost');
+    const save = btn(tr('Usar esta cookie'), 'ghost');
     save.onclick = async () => {
-      try { await api('loginCookie', manual.querySelector('textarea').value); await refreshAccount(); toast('Sesión iniciada'); refreshView(); }
+      try { await api('loginCookie', manual.querySelector('textarea').value); await refreshAccount(); toast(tr('Sesión iniciada')); refreshView(); }
       catch (e) { toast(e.message, true); }
     };
     manual.append(save);
@@ -263,12 +264,12 @@ function account() {
 
 function integrations() {
   const lbStatus = h(`<span class="set-desc"></span>`);
-  const lb = text('listenbrainzToken', 'Token de usuario de ListenBrainz', {
+  const lb = text('listenbrainzToken', tr('Token de usuario de ListenBrainz'), {
     secret: true,
     onSave: async (v) => {
       if (!v) return (lbStatus.textContent = '');
       const r = await api('listenbrainzValidate', v).catch(() => ({ ok: false }));
-      lbStatus.textContent = r.ok ? `✓ Conectado como ${r.user}` : '✗ Token no válido';
+      lbStatus.textContent = r.ok ? '✓ ' + tr('Conectado como {user}', { user: r.user }) : '✗ ' + tr('Token no válido');
     },
   });
   lb.append(lbStatus);
@@ -277,24 +278,24 @@ function integrations() {
   lfm.append(text('lastfmApiKey', 'API key'), text('lastfmSecret', 'Shared secret', { secret: true }));
   const lfmBtns = h('<div class="btn-row"></div>');
   if (state.settings.lastfmSession) {
-    lfmBtns.append(h(`<span class="set-desc">✓ Conectado como <b>${esc(state.settings.lastfmUser)}</b></span>`));
-    const out = btn('Desconectar', 'ghost');
+    lfmBtns.append(h(`<span class="set-desc">✓ ${tr('Conectado como {user}', { user: `<b>${esc(state.settings.lastfmUser)}</b>` })}</span>`));
+    const out = btn(tr('Desconectar'), 'ghost');
     out.onclick = async () => { await api('lastfmLogout'); state.settings = await api('settingsGet'); refreshView(); };
     lfmBtns.append(out);
   } else {
-    const c1 = btn('1. Autorizar en Last.fm', 'ghost', 'open');
-    const c2 = btn('2. Ya he autorizado', 'ghost', 'check');
-    c1.onclick = async () => { try { await api('lastfmBegin'); toast('Autoriza BitChord en el navegador y vuelve aquí'); } catch (e) { toast(e.message, true); } };
-    c2.onclick = async () => { try { const r = await api('lastfmFinish'); state.settings = await api('settingsGet'); toast(`Conectado como ${r.user}`); refreshView(); } catch (e) { toast(e.message, true); } };
+    const c1 = btn(tr('1. Autorizar en Last.fm'), 'ghost', 'open');
+    const c2 = btn(tr('2. Ya he autorizado'), 'ghost', 'check');
+    c1.onclick = async () => { try { await api('lastfmBegin'); toast(tr('Autoriza BitChord en el navegador y vuelve aquí')); } catch (e) { toast(e.message, true); } };
+    c2.onclick = async () => { try { const r = await api('lastfmFinish'); state.settings = await api('settingsGet'); toast(tr('Conectado como {user}', { user: r.user })); refreshView(); } catch (e) { toast(e.message, true); } };
     lfmBtns.append(c1, c2);
   }
   lfm.append(lfmBtns);
 
-  return card('integrations', 'Integraciones', 'sparkle',
-    row('Discord Rich Presence', 'Muestra en tu perfil de Discord lo que escuchas (necesita la app de Discord abierta en este PC).', toggle('discordRpc')),
-    row('ListenBrainz', 'Scrobbling a <a href="#" data-url="https://listenbrainz.org/settings/">listenbrainz.org</a>. Copia tu token de la página de ajustes.', lb),
-    row('Last.fm', 'Crea una API key gratuita en <a href="#" data-url="https://www.last.fm/api/account/create">last.fm/api</a>, pégala aquí y autoriza.', lfm),
-    row('Porcentaje para scrobblear', 'Cuánto de la canción hay que escuchar (máximo 4 minutos).', range('scrobblePercent', 30, 90, 5, (v) => `${v} %`)),
+  return card('integrations', tr('Integraciones'), 'sparkle',
+    row(tr('Discord Rich Presence'), tr('Muestra en tu perfil de Discord lo que escuchas (necesita la app de Discord abierta en este PC).'), toggle('discordRpc')),
+    row(tr('ListenBrainz'), tr('Scrobbling a <a href="#" data-url="https://listenbrainz.org/settings/">listenbrainz.org</a>. Copia tu token de la página de ajustes.'), lb),
+    row(tr('Last.fm'), tr('Crea una API key gratuita en <a href="#" data-url="https://www.last.fm/api/account/create">last.fm/api</a>, pégala aquí y autoriza.'), lfm),
+    row(tr('Porcentaje para scrobblear'), tr('Cuánto de la canción hay que escuchar (máximo 4 minutos).'), range('scrobblePercent', 30, 90, 5, (v) => `${v} %`)),
   );
 }
 
@@ -325,20 +326,20 @@ function themeColors(css = '') {
 function themeEditor(theme) {
   return new Promise((resolve) => {
     const m = h(`<div class="modal-back"><div class="modal theme-editor">
-      <h3>${theme ? 'Editar tema' : 'Nuevo tema'}</h3>
-      <p class="muted">Escribe el CSS de tu tema. Lo más fácil es cambiar los colores de la plantilla; para que se use tu <code>--accent</code>, elige «El del tema» en <b>Color de acento</b>.</p>
-      <input class="text" type="text" placeholder="Nombre del tema" spellcheck="false">
+      <h3>${tr(theme ? 'Editar tema' : 'Nuevo tema')}</h3>
+      <p class="muted">${tr('Escribe el CSS de tu tema. Lo más fácil es cambiar los colores de la plantilla; para que se use tu <code>--accent</code>, elige «El del tema» en <b>Color de acento</b>.')}</p>
+      <input class="text" type="text" placeholder="${tr('Nombre del tema')}" spellcheck="false">
       <textarea class="text" spellcheck="false"></textarea>
       <div class="te-err"></div>
-      <div class="btn-row"><button class="btn ghost small" data-a="preview">Vista previa</button><button class="btn ghost small" data-a="no">Cancelar</button><button class="btn primary small" data-a="ok">Guardar y usar</button></div>
+      <div class="btn-row"><button class="btn ghost small" data-a="preview">${tr('Vista previa')}</button><button class="btn ghost small" data-a="no">${tr('Cancelar')}</button><button class="btn primary small" data-a="ok">${tr('Guardar y usar')}</button></div>
     </div></div>`);
     const name = m.querySelector('input'), code = m.querySelector('textarea'), err = m.querySelector('.te-err');
-    name.value = theme?.name || `Mi tema ${(state.settings.customThemes || []).length + 1}`;
+    name.value = theme?.name || tr('Mi tema {n}', { n: (state.settings.customThemes || []).length + 1 });
     code.value = theme?.css ?? THEME_TEMPLATE;
     const check = () => {
       // Count braces to catch the most common mistake (an unclosed block) before applying it.
       const open = (code.value.match(/{/g) || []).length, close = (code.value.match(/}/g) || []).length;
-      err.textContent = open === close ? '' : `Revisa las llaves: hay ${open} «{» y ${close} «}».`;
+      err.textContent = open === close ? '' : tr('Revisa las llaves: hay {open} «{» y {close} «}».', { open, close });
       return open === close;
     };
     const done = (v) => { m.remove(); document.removeEventListener('keydown', key, true); resolve(v); };
@@ -352,7 +353,7 @@ function themeEditor(theme) {
     code.addEventListener('input', check);
     m.querySelector('[data-a=preview]').onclick = () => { if (check()) setThemeCss(code.value); };
     m.querySelector('[data-a=no]').onclick = cancel;
-    m.querySelector('[data-a=ok]').onclick = () => { if (check()) done({ name: name.value.trim() || 'Mi tema', css: code.value }); };
+    m.querySelector('[data-a=ok]').onclick = () => { if (check()) done({ name: name.value.trim() || tr('Mi tema'), css: code.value }); };
     document.addEventListener('keydown', key, true);
     document.body.append(m);
     setTimeout(() => code.focus(), 0);
@@ -361,12 +362,12 @@ function themeEditor(theme) {
 
 function themeCard() {
   const mode = state.settings.accentMode || (state.settings.dynamicAccent === false ? 'theme' : 'cover');
-  const pickerRow = h(`<div class="cp-row"${mode === 'custom' ? '' : ' hidden'}><div class="set-text"><div class="set-label">Tu color</div><div class="set-desc">Arrastra en el cuadro para elegir saturación y brillo, en la barra de colores para el tono y en la de abajo para la transparencia. También puedes escribir el código (#RRGGBB o #RRGGBBAA).</div></div></div>`);
+  const pickerRow = h(`<div class="cp-row"${mode === 'custom' ? '' : ' hidden'}><div class="set-text"><div class="set-label">${tr('Tu color')}</div><div class="set-desc">${tr('Arrastra en el cuadro para elegir saturación y brillo, en la barra de colores para el tono y en la de abajo para la transparencia. También puedes escribir el código (#RRGGBB o #RRGGBBAA).')}</div></div></div>`);
   pickerRow.append(colorPicker(state.settings.customAccent || '#fa2d48', {
     onChange: (hex) => applyCustomAccent(hex),
     onCommit: (hex) => saveSettings({ customAccent: hex }),
   }));
-  const accentSel = select('accentMode', [['cover', 'Según la portada'], ['theme', 'El del tema'], ['custom', 'Personalizado…']], (v) => { pickerRow.hidden = v !== 'custom'; });
+  const accentSel = select('accentMode', [['cover', tr('Según la portada')], ['theme', tr('El del tema')], ['custom', tr('Personalizado…')]], (v) => { pickerRow.hidden = v !== 'custom'; });
   accentSel.value = mode;
   const grid = h('<div class="theme-grid"></div>');
   const draw = () => {
@@ -378,14 +379,14 @@ function themeCard() {
       const el = h(`<div class="theme-opt${current === id ? ' on' : ''}" role="button" tabindex="0" title="${esc(name)}">
         <div class="theme-prev" style="background:${esc(c.bg)}"><i></i><i></i><b style="background:${esc(c.acc)}"></b><u style="background:${esc(c.surf)}"></u></div>
         <span>${esc(name)}</span>
-        ${editable ? `<div class="theme-acts"><button data-a="edit" title="Editar">${icon('edit')}</button><button data-a="del" title="Eliminar">${icon('trash')}</button></div>` : ''}</div>`);
+        ${editable ? `<div class="theme-acts"><button data-a="edit" title="${tr('Editar')}">${icon('edit')}</button><button data-a="del" title="${tr('Eliminar')}">${icon('trash')}</button></div>` : ''}</div>`);
       el.onclick = async (e) => {
         const act = e.target.closest('[data-a]')?.dataset.a;
         if (act === 'edit') {
           const r = await themeEditor(custom.find((x) => x.id === id));
           if (r) await saveSettings({ customThemes: custom.map((x) => (x.id === id ? { ...x, ...r } : x)), theme: id });
         } else if (act === 'del') {
-          if (!(await confirmDialog('Eliminar tema', `¿Eliminar «${name}»? No se puede deshacer.`, { ok: 'Eliminar', danger: true }))) return;
+          if (!(await confirmDialog(tr('Eliminar tema'), tr('¿Eliminar «{name}»? No se puede deshacer.', { name }), { ok: tr('Eliminar'), danger: true }))) return;
           await saveSettings({ customThemes: custom.filter((x) => x.id !== id), theme: current === id ? 'default' : current });
         } else {
           await saveSettings({ theme: id });
@@ -397,7 +398,7 @@ function themeCard() {
     };
     tile('default', 'BitChord', '', false);
     custom.forEach((t) => tile(t.id, t.name, t.css, true));
-    const add = h(`<button class="theme-opt theme-add" title="Crear un tema con tu propio CSS"><div class="theme-prev">${icon('add')}</div><span>Crear tema</span></button>`);
+    const add = h(`<button class="theme-opt theme-add" title="${tr('Crear un tema con tu propio CSS')}"><div class="theme-prev">${icon('add')}</div><span>${tr('Crear tema')}</span></button>`);
     add.onclick = async () => {
       const r = await themeEditor(null);
       if (!r) return;
@@ -408,10 +409,10 @@ function themeCard() {
     grid.append(add);
   };
   draw();
-  return card('theme', 'Tema', 'sparkle',
-    h('<div class="set-note"><b>BitChord</b> es el tema original. Con <b>+</b> puedes crear el tuyo escribiendo CSS: parte de una plantilla con los colores de la app y ves los cambios con «Vista previa» antes de guardarlo. Pasa el ratón por un tema tuyo para editarlo o eliminarlo.</div>'),
+  return card('theme', tr('Tema'), 'sparkle',
+    h(`<div class="set-note">${tr('<b>BitChord</b> es el tema original. Con <b>+</b> puedes crear el tuyo escribiendo CSS: parte de una plantilla con los colores de la app y ves los cambios con «Vista previa» antes de guardarlo. Pasa el ratón por un tema tuyo para editarlo o eliminarlo.')}</div>`),
     grid,
-    row('Color de acento', 'El color de botones, interruptores y resaltados.', accentSel),
+    row(tr('Color de acento'), tr('El color de botones, interruptores y resaltados.'), accentSel),
     pickerRow,
   );
 }
@@ -424,13 +425,13 @@ function sidebarCard() {
     items.forEach(({ id, on }, i) => {
       const it = SIDEBAR_ITEMS[id];
       if (!it) return;
-      const group = { main: 'Navegación', lib: 'Atajo de Biblioteca', player: 'Reproductor' }[it.group];
+      const group = tr({ main: 'Navegación', lib: 'Atajo de Biblioteca', player: 'Reproductor' }[it.group]);
       const el = h(`
         <div class="prov${on ? '' : ' off'}" draggable="true">
           <span class="prov-n">${icon(it.icon)}</span>
           <div class="prov-t"><b>${esc(it.label)}</b><div class="set-desc">${group}</div></div>
-          <button class="icon-btn" data-a="up" title="Subir">${icon('up')}</button>
-          <button class="icon-btn" data-a="down" title="Bajar">${icon('down')}</button>
+          <button class="icon-btn" data-a="up" title="${tr('Subir')}">${icon('up')}</button>
+          <button class="icon-btn" data-a="down" title="${tr('Bajar')}">${icon('down')}</button>
           <label class="switch"><input type="checkbox"${on ? ' checked' : ''}><span></span></label>
         </div>`);
       const save = async (next) => { await saveSettings({ sidebar: next }); draw(); };
@@ -453,15 +454,15 @@ function sidebarCard() {
     });
   };
   draw();
-  const reset = btn('Restablecer', 'ghost', 'refresh');
+  const reset = btn(tr('Restablecer'), 'ghost', 'refresh');
   reset.onclick = async () => { await saveSettings({ sidebar: (await api('settingsDefaults')).sidebar }); draw(); };
   const info = h('<div class="info-grid"></div>');
   const INFO = [
-    ['format', 'Formato y códec', 'FLAC, MP3, AAC… y si es sin pérdida'], ['bitrate', 'Bitrate', 'kbps del audio'],
-    ['sampleRate', 'Frecuencia de muestreo', '44,1 kHz, 96 kHz…'], ['bitDepth', 'Profundidad de bits', '16-bit, 24-bit…'],
-    ['channels', 'Canales', 'Mono, estéreo, 5.1…'], ['size', 'Tamaño del archivo', 'En MB'],
-    ['year', 'Año', 'De las etiquetas'], ['genre', 'Género', 'De las etiquetas'],
-    ['album', 'Columna de álbum', ''], ['path', 'Ruta del archivo', 'Carpeta donde está'],
+    ['format', tr('Formato y códec'), tr('FLAC, MP3, AAC… y si es sin pérdida')], ['bitrate', 'Bitrate', tr('kbps del audio')],
+    ['sampleRate', tr('Frecuencia de muestreo'), tr('44,1 kHz, 96 kHz…')], ['bitDepth', tr('Profundidad de bits'), '16-bit, 24-bit…'],
+    ['channels', tr('Canales'), tr('Mono, estéreo, 5.1…')], ['size', tr('Tamaño del archivo'), tr('En MB')],
+    ['year', tr('Año'), tr('De las etiquetas')], ['genre', tr('Género'), tr('De las etiquetas')],
+    ['album', tr('Columna de álbum'), ''], ['path', tr('Ruta del archivo'), tr('Carpeta donde está')],
   ];
   INFO.forEach(([k, label, desc]) => {
     const el = h(`<label class="info-opt"><input type="checkbox"${state.settings.localInfo?.[k] ? ' checked' : ''}><span><b>${esc(label)}</b>${desc ? `<small>${esc(desc)}</small>` : ''}</span></label>`);
@@ -470,12 +471,12 @@ function sidebarCard() {
   });
   // Home screen sections.
   const HOME_KNOWN = [
-    ['recent', 'Escuchado recientemente', 'Lo último que has puesto en este equipo'], ['library', 'De tu biblioteca', ''],
-    ['quick', 'Selecciones rápidas', ''], ['covers', 'Versiones y remixes', ''], ['forgotten', 'Favoritos olvidados', ''],
-    ['trending', 'Canciones en tendencia para ti', ''], ['discover', 'Nuevos descubrimientos y los favoritos de siempre', ''],
+    ['recent', tr('Escuchado recientemente'), tr('Lo último que has puesto en este equipo')], ['library', tr('De tu biblioteca'), ''],
+    ['quick', tr('Selecciones rápidas'), ''], ['covers', tr('Versiones y remixes'), ''], ['forgotten', tr('Favoritos olvidados'), ''],
+    ['trending', tr('Canciones en tendencia para ti'), ''], ['discover', tr('Nuevos descubrimientos y los favoritos de siempre'), ''],
   ];
   const seen = store.get('homeSeen', {});
-  const extra = Object.entries(seen).filter(([k]) => !HOME_KNOWN.some(([kk]) => kk === k)).map(([k, t]) => [k, t, 'Visto en tu pantalla principal']);
+  const extra = Object.entries(seen).filter(([k]) => !HOME_KNOWN.some(([kk]) => kk === k)).map(([k, t]) => [k, t, tr('Visto en tu pantalla principal')]);
   const homeGrid = h('<div class="info-grid"></div>');
   for (const [k, label, desc] of [...HOME_KNOWN, ...extra]) {
     const on = !(state.settings.homeHidden || []).includes(k);
@@ -490,57 +491,66 @@ function sidebarCard() {
   const live = (key, fn) => (v) => { state.settings = { ...state.settings, [key]: v }; fn(); };
   const amb = () => import('./app.js').then((m) => m.applyAmbient());
   const mica = () => import('./app.js').then((m) => m.applyMica());
-  return card('sidebar', 'Personalización', 'tune',
-    h('<h3 class="set-sub">Fondo animado</h3>'),
-    h('<div class="set-note">Detrás de toda la app (y en la vista de portada y letra) se mueve lentamente, mientras suena la música, la portada que está sonando, muy desenfocada (o, si lo prefieres, manchas con sus colores más destacados). Los cambios se ven al momento mientras mueves los controles.</div>'),
-    row('Fondo animado', 'Desactívalo para usar el fondo normal del tema.', toggle('ambient', () => amb())),
-    row('Estilo', 'La propia portada desenfocada girando despacio, o manchas con sus colores principales.', select('ambientMode', [['cover', 'Portada desenfocada'], ['colors', 'Manchas de color']], () => amb())),
-    row('Intensidad del brillo', 'Lo visibles que son los colores.', range('ambientIntensity', 5, 100, 1, (v) => `${v} %`, live('ambientIntensity', amb))),
-    row('Desenfoque', 'Más alto = colores más suaves y difuminados.', range('ambientBlur', 20, 220, 5, (v) => `${v} px`, live('ambientBlur', amb))),
-    row('Velocidad de movimiento', 'Solo se mueve mientras suena una canción; en pausa se queda quieto. 0 lo deja siempre quieto.', range('ambientSpeed', 0, 100, 1, (v) => (v ? `${v} %` : 'Quieto'), live('ambientSpeed', amb))),
-    row('Tamaño', 'De la portada o de las manchas de color.', range('ambientSize', 50, 160, 5, (v) => `${v} %`, live('ambientSize', amb))),
-    row('Saturación', 'Lo vivos que son los colores. 0 lo deja en blanco y negro.', range('ambientSaturation', 0, 250, 5, (v) => `${v} %`, live('ambientSaturation', amb))),
-    h('<h3 class="set-sub">Efecto Mica</h3>'),
-    h('<div class="set-note">Cristal desenfocado y teñido con el tema, como en Windows 11: lo que pasa por detrás (el fondo animado, la música al hacer scroll) se ve a través. Actívalo o desactívalo en cada panel; si lo quitas, el panel usa el color sólido del tema. La intensidad, el desenfoque y la saturación se aplican a todos los paneles y menús con Mica.</div>'),
-    row('Barra lateral izquierda', '', toggle('micaSidebar', () => mica())),
-    row('Cola (barra lateral derecha)', '', toggle('micaQueue', () => mica())),
-    row('Controles de reproducción (abajo)', '', toggle('micaPlayer', () => mica())),
-    row('Botones de pantalla completa', 'En la vista de portada y letra y en pantalla completa: la flecha de minimizar, la columna de botones de la derecha (letra, cola, ecualizador, ajustes, salir) y favorito, aleatorio y repetir cuando están activados.', toggle('micaLyrics', () => mica())),
-    row('Intensidad del tinte', 'Más alto = más color del tema y menos transparencia.', range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
-    row('Desenfoque del cristal', 'Cuánto se difumina lo que hay detrás. 0 = cristal transparente.', range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
-    row('Saturación', 'Lo vivos que se ven los colores a través del cristal.', range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
-    h('<h3 class="set-sub">Pantalla principal</h3>'),
-    h('<div class="set-note">Marca los apartados que quieres ver en Inicio. También puedes ocultar uno directamente desde Inicio con el botón «Ocultar» que aparece al pasar el ratón por su título. Si YouTube Music añade apartados nuevos, aparecerán aquí en cuanto salgan en tu Inicio.</div>'),
+  return card('sidebar', tr('Personalización'), 'tune',
+    h(`<h3 class="set-sub">${tr('Fondo animado')}</h3>`),
+    h(`<div class="set-note">${tr('Detrás de toda la app (y en la vista de portada y letra) se mueve lentamente, mientras suena la música, la portada que está sonando, muy desenfocada (o, si lo prefieres, manchas con sus colores más destacados). Los cambios se ven al momento mientras mueves los controles.')}</div>`),
+    row(tr('Fondo animado'), tr('Desactívalo para usar el fondo normal del tema.'), toggle('ambient', () => amb())),
+    row(tr('Estilo'), tr('La propia portada desenfocada girando despacio, o manchas con sus colores principales.'), select('ambientMode', [['cover', tr('Portada desenfocada')], ['colors', tr('Manchas de color')]], () => amb())),
+    row(tr('Intensidad del brillo'), tr('Lo visibles que son los colores.'), range('ambientIntensity', 5, 100, 1, (v) => `${v} %`, live('ambientIntensity', amb))),
+    row(tr('Desenfoque'), tr('Más alto = colores más suaves y difuminados.'), range('ambientBlur', 20, 220, 5, (v) => `${v} px`, live('ambientBlur', amb))),
+    row(tr('Velocidad de movimiento'), tr('Solo se mueve mientras suena una canción; en pausa se queda quieto. 0 lo deja siempre quieto.'), range('ambientSpeed', 0, 100, 1, (v) => (v ? `${v} %` : tr('Quieto')), live('ambientSpeed', amb))),
+    row(tr('Tamaño'), tr('De la portada o de las manchas de color.'), range('ambientSize', 50, 160, 5, (v) => `${v} %`, live('ambientSize', amb))),
+    row(tr('Saturación'), tr('Lo vivos que son los colores. 0 lo deja en blanco y negro.'), range('ambientSaturation', 0, 250, 5, (v) => `${v} %`, live('ambientSaturation', amb))),
+    h(`<h3 class="set-sub">${tr('Efecto Mica')}</h3>`),
+    h(`<div class="set-note">${tr('Cristal desenfocado y teñido con el tema, como en Windows 11: lo que pasa por detrás (el fondo animado, la música al hacer scroll) se ve a través. Actívalo o desactívalo en cada panel; si lo quitas, el panel usa el color sólido del tema. La intensidad, el desenfoque y la saturación se aplican a todos los paneles y menús con Mica.')}</div>`),
+    row(tr('Barra lateral izquierda'), '', toggle('micaSidebar', () => mica())),
+    row(tr('Cola (barra lateral derecha)'), '', toggle('micaQueue', () => mica())),
+    row(tr('Controles de reproducción (abajo)'), '', toggle('micaPlayer', () => mica())),
+    row(tr('Botones de pantalla completa'), tr('En la vista de portada y letra y en pantalla completa: la flecha de minimizar, la columna de botones de la derecha (letra, cola, ecualizador, ajustes, salir) y favorito, aleatorio y repetir cuando están activados.'), toggle('micaLyrics', () => mica())),
+    row(tr('Intensidad del tinte'), tr('Más alto = más color del tema y menos transparencia.'), range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
+    row(tr('Desenfoque del cristal'), tr('Cuánto se difumina lo que hay detrás. 0 = cristal transparente.'), range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
+    row(tr('Saturación'), tr('Lo vivos que se ven los colores a través del cristal.'), range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
+    h(`<h3 class="set-sub">${tr('Pantalla principal')}</h3>`),
+    h(`<div class="set-note">${tr('Marca los apartados que quieres ver en Inicio. También puedes ocultar uno directamente desde Inicio con el botón «Ocultar» que aparece al pasar el ratón por su título. Si YouTube Music añade apartados nuevos, aparecerán aquí en cuanto salgan en tu Inicio.')}</div>`),
     homeGrid,
-    h('<h3 class="set-sub">Barra lateral</h3>'),
-    row('Mostrar la barra lateral', 'Fija, al pasar el ratón por el borde izquierdo de la ventana, o con un botón junto a las flechas de navegación.',
-      select('sidebarMode', [['fixed', 'Siempre visible'], ['hover', 'Al pasar el ratón por la izquierda'], ['button', 'Con un botón']])),
-    h(`<div class="set-note">Elige qué aparece en la barra lateral y en qué orden (arrastra o usa las flechas). Las pestañas de Biblioteca se pueden anclar como accesos directos. <b>Ajustes</b> está siempre arriba a la derecha (junto a tu perfil), así que nunca te quedas sin forma de volver aquí.</div>`),
+    h(`<h3 class="set-sub">${tr('Barra lateral')}</h3>`),
+    row(tr('Mostrar la barra lateral'), tr('Fija, al pasar el ratón por el borde izquierdo de la ventana, o con un botón junto a las flechas de navegación.'),
+      select('sidebarMode', [['fixed', tr('Siempre visible')], ['hover', tr('Al pasar el ratón por la izquierda')], ['button', tr('Con un botón')]])),
+    h(`<div class="set-note">${tr('Elige qué aparece en la barra lateral y en qué orden (arrastra o usa las flechas). Las pestañas de Biblioteca se pueden anclar como accesos directos. <b>Ajustes</b> está siempre arriba a la derecha (junto a tu perfil), así que nunca te quedas sin forma de volver aquí.')}</div>`),
     list,
-    row('Volver a la configuración original', 'Elementos y orden de la barra lateral.', reset),
-    h('<h3 class="set-sub">Datos de las pistas en «En este equipo»</h3>'),
-    h('<div class="set-note">Qué información técnica se muestra de cada archivo de tu música local.</div>'),
+    row(tr('Volver a la configuración original'), tr('Elementos y orden de la barra lateral.'), reset),
+    h(`<h3 class="set-sub">${tr('Datos de las pistas en «En este equipo»')}</h3>`),
+    h(`<div class="set-note">${tr('Qué información técnica se muestra de cada archivo de tu música local.')}</div>`),
     info,
   );
 }
 
 function general() {
-  return card('general', 'General', 'settings',
-    row('Cerrar a la bandeja del sistema', 'Al cerrar la ventana, BitChord sigue sonando junto al reloj.', toggle('closeToTray')),
-    row('Idioma de YouTube Music', 'Idioma de títulos y recomendaciones.', select('language', [['es', 'Español'], ['en', 'English'], ['pt', 'Português'], ['fr', 'Français'], ['de', 'Deutsch'], ['it', 'Italiano']])),
-    row('País', 'Afecta a las listas y a la disponibilidad.', select('region', [['ES', 'España'], ['MX', 'México'], ['AR', 'Argentina'], ['CO', 'Colombia'], ['CL', 'Chile'], ['PE', 'Perú'], ['US', 'Estados Unidos'], ['GB', 'Reino Unido']])),
-    row('Historial de reproducción', 'Lo que has escuchado en este equipo.', (() => { const b = btn('Borrar historial', 'ghost', 'trash'); b.onclick = () => { localStorage.setItem('bc.history', '[]'); toast('Historial borrado'); }; return b; })()),
+  // Interface language: kept apart from YouTube Music's (titles and recommendations). The
+  // modules read it as they load, so changing it reloads the window.
+  const langSel = select('uiLanguage', LANGUAGES, async (v) => {
+    if (v === uiLang()) return;
+    syncUiLang(v);
+    toast(tr('Cambiando el idioma…'));
+    setTimeout(() => location.reload(), 300);
+  });
+  return card('general', tr('General'), 'settings',
+    row(tr('Idioma de la interfaz'), tr('Idioma de los menús, botones y textos de BitChord. Al cambiarlo, la ventana se recarga (la música se pausa un momento).'), langSel),
+    row(tr('Cerrar a la bandeja del sistema'), tr('Al cerrar la ventana, BitChord sigue sonando junto al reloj.'), toggle('closeToTray')),
+    row(tr('Idioma de YouTube Music'), tr('Idioma de títulos y recomendaciones.'), select('language', [['es', 'Español'], ['en', 'English'], ['pt', 'Português'], ['fr', 'Français'], ['de', 'Deutsch'], ['it', 'Italiano']])),
+    row(tr('País'), tr('Afecta a las listas y a la disponibilidad.'), select('region', [['ES', tr('España')], ['MX', tr('México')], ['AR', 'Argentina'], ['CO', 'Colombia'], ['CL', 'Chile'], ['PE', tr('Perú')], ['US', tr('Estados Unidos')], ['GB', tr('Reino Unido')]])),
+    row(tr('Historial de reproducción'), tr('Lo que has escuchado en este equipo.'), (() => { const b = btn(tr('Borrar historial'), 'ghost', 'trash'); b.onclick = () => { localStorage.setItem('bc.history', '[]'); toast(tr('Historial borrado')); }; return b; })()),
   );
 }
 
 async function about() {
   const i = await bc.appInfo();
-  const log = btn('Abrir registro', 'ghost', 'folder');
+  const log = btn(tr('Abrir registro'), 'ghost', 'folder');
   log.onclick = () => bc.openLog();
-  return card('about', 'Acerca de', 'info',
-    h(`<div class="set-note">BitChord Desktop ${esc(i.version)} — port para Windows de <a href="#" data-url="https://github.com/kushagrasinghx/BitChord">BitChord</a> (GPL-3.0). Electron ${esc(i.electron)} · Chromium ${esc(i.chrome)}.<br>No está afiliado a YouTube ni a Google.</div>`),
-    row('Registro de diagnóstico', 'Si algo falla, envía este archivo.', log),
-    h(`<div class="set-note keys"><b>Atajos</b><br>Espacio play/pausa · Ctrl+←/→ anterior/siguiente · ←/→ ±5 s · ↑/↓ volumen · E ecualizador · L letra · Q cola · S aleatorio · R repetir · M silenciar · F favorito · Ctrl+F buscar · Ctrl+, ajustes</div>`),
+  return card('about', tr('Acerca de'), 'info',
+    h(`<div class="set-note">BitChord Desktop ${esc(i.version)} — ${tr('port para Windows de')} <a href="#" data-url="https://github.com/kushagrasinghx/BitChord">BitChord</a> (GPL-3.0). Electron ${esc(i.electron)} · Chromium ${esc(i.chrome)}.<br>${tr('No está afiliado a YouTube ni a Google.')}</div>`),
+    row(tr('Registro de diagnóstico'), tr('Si algo falla, envía este archivo.'), log),
+    h(`<div class="set-note keys"><b>${tr('Atajos')}</b><br>${tr('Espacio play/pausa · Ctrl+←/→ anterior/siguiente · ←/→ ±5 s · ↑/↓ volumen · E ecualizador · L letra · Q cola · V visualizador · S aleatorio · R repetir · M silenciar · F favorito · F11 pantalla completa · Ctrl+F buscar · Ctrl+, ajustes')}</div>`),
   );
 }
 
@@ -554,7 +564,7 @@ export async function settingsView(route) {
   const bar = h('<div class="set-bar"></div>');
   const chips = h('<div class="chips"></div>');
   bar.append(chips);
-  const head = h('<div class="set-head"><div class="settings"><h1 class="page-title">Ajustes</h1></div></div>');
+  const head = h(`<div class="set-head"><div class="settings"><h1 class="page-title">${tr('Ajustes')}</h1></div></div>`);
   head.append(bar);
   outer.append(head, root);
   SECTIONS.forEach(([id, label]) => {

@@ -2,6 +2,7 @@
 // Both write to the same settings, and every instance re-syncs when any of them changes.
 import { esc, h, state, saveSettings } from './core.js';
 import { EQ_FREQS, EQ_PRESETS } from './engine.js';
+import { tr } from './i18n.js';
 
 const EQ_KEYS = ['eqEnabled', 'eqBands', 'eqPreset', 'preamp'];
 const db = (v) => `${v > 0 ? '+' : ''}${v}`;
@@ -9,10 +10,10 @@ const db = (v) => `${v > 0 ? '+' : ''}${v}`;
 export function eqPanel({ compact = false } = {}) {
   const root = h(`<div class="eq-panel${compact ? ' compact' : ''}">
     <div class="eq-top">
-      <label class="eq-switch"><span>Ecualizador</span><label class="switch"><input type="checkbox" data-k="on"><span></span></label></label>
-      <select class="select" data-k="preset">${Object.entries(EQ_PRESETS).map(([k, p]) => `<option value="${k}">${esc(p.label)}</option>`).join('')}<option value="custom">Personalizado</option></select>
+      <label class="eq-switch"><span>${tr('Ecualizador')}</span><label class="switch"><input type="checkbox" data-k="on"><span></span></label></label>
+      <select class="select" data-k="preset">${Object.entries(EQ_PRESETS).map(([k, p]) => `<option value="${k}">${esc(tr(p.label))}</option>`).join('')}<option value="custom">${tr('Personalizado')}</option></select>
     </div>
-    <div class="eq-pre"><span>Preamplificación</span><input type="range" min="-12" max="6" step="1" data-k="preamp"><span class="range-val" data-k="preval"></span></div>
+    <div class="eq-pre"><span>${tr('Preamplificación')}</span><input type="range" min="-12" max="6" step="1" data-k="preamp"><span class="range-val" data-k="preval"></span></div>
     <div class="eq"></div>
   </div>`);
   const sw = root.querySelector('[data-k=on]');

@@ -35,6 +35,7 @@ console.log(`BitChord ${VERSION} · Electron ${process.versions.electron} · ${p
 
 const settings = await import('./src/settings.js');
 settings.load(userData);
+const { tr } = await import('./src/i18n.js');
 const yt = MOCK ? await import('./src/mock.js') : await import('./src/yt.js');
 const lyrics = MOCK ? await import('./src/mock.js') : await import('./src/lyrics.js');
 const { startProxy } = MOCK ? await import('./src/mock.js') : await import('./src/proxy.js');
@@ -71,9 +72,9 @@ function updateThumbar() {
   if (process.platform !== 'win32' || !win) return;
   if (!win || win.isDestroyed()) return;
   win.setThumbarButtons([
-    { tooltip: 'Anterior', icon: img('tb-prev.png'), click: () => send('command', 'prev') },
-    { tooltip: playing ? 'Pausa' : 'Reproducir', icon: img(playing ? 'tb-pause.png' : 'tb-play.png'), click: () => send('command', 'toggle') },
-    { tooltip: 'Siguiente', icon: img('tb-next.png'), click: () => send('command', 'next') },
+    { tooltip: tr('Anterior'), icon: img('tb-prev.png'), click: () => send('command', 'prev') },
+    { tooltip: tr(playing ? 'Pausa' : 'Reproducir'), icon: img(playing ? 'tb-pause.png' : 'tb-play.png'), click: () => send('command', 'toggle') },
+    { tooltip: tr('Siguiente'), icon: img('tb-next.png'), click: () => send('command', 'next') },
   ]);
 }
 
@@ -82,13 +83,13 @@ function createTray() {
   tray = new Tray(img(process.platform === 'win32' ? 'icon.ico' : 'tray.png'));
   tray.setToolTip('BitChord');
   const menu = () => Menu.buildFromTemplate([
-    { label: 'Mostrar BitChord', click: () => { win.show(); win.focus(); } },
+    { label: tr('Mostrar BitChord'), click: () => { win.show(); win.focus(); } },
     { type: 'separator' },
-    { label: playing ? 'Pausa' : 'Reproducir', click: () => send('command', 'toggle') },
-    { label: 'Siguiente', click: () => send('command', 'next') },
-    { label: 'Anterior', click: () => send('command', 'prev') },
+    { label: tr(playing ? 'Pausa' : 'Reproducir'), click: () => send('command', 'toggle') },
+    { label: tr('Siguiente'), click: () => send('command', 'next') },
+    { label: tr('Anterior'), click: () => send('command', 'prev') },
     { type: 'separator' },
-    { label: 'Salir', click: () => { quitting = true; app.quit(); } },
+    { label: tr('Salir'), click: () => { quitting = true; app.quit(); } },
   ]);
   tray.setContextMenu(menu());
   tray.on('click', () => { win.isVisible() ? win.focus() : win.show(); });
@@ -217,6 +218,7 @@ app.whenReady().then(async () => {
     const next = settings.set(patch);
     if ('discordRpc' in patch) discord.setEnabled(!!patch.discordRpc);
     if ('language' in patch || 'region' in patch) applyYtConfig();
+    if ('uiLanguage' in patch) { tray?.refresh?.(); updateThumbar(); }
     if ('closeToTray' in patch && patch.closeToTray) createTray();
     if ('localFolders' in patch && JSON.stringify(before.localFolders) !== JSON.stringify(patch.localFolders)) { local.pruneFolderMeta(patch.localFolders || []); rescanLocal(); }
     if ('localFolders' in patch || 'localWatch' in patch) applyLocalWatch();
@@ -232,7 +234,7 @@ app.whenReady().then(async () => {
     return await yt.accountInfo();
   });
   handle('login-cookie', async (cookie) => {
-    if (!/SAPISID=/.test(cookie || '')) throw new Error('La cookie no parece de una sesión de YouTube (falta SAPISID).');
+    if (!/SAPISID=/.test(cookie || '')) throw new Error(tr('La cookie no parece de una sesión de YouTube (falta SAPISID).'));
     auth.saveCookie(cookie.trim());
     applyYtConfig();
     return await yt.accountInfo();
@@ -271,7 +273,7 @@ app.whenReady().then(async () => {
   handle('playlist-add', (id, tracks) => playlists.addTracks(id, tracks));
   handle('playlist-remove-at', (id, i) => playlists.removeAt(id, i));
   handle('playlist-cover-pick', async (id) => {
-    const r = await dialog.showOpenDialog(win, { title: 'Portada de la playlist', properties: ['openFile'], filters: [{ name: 'Imágenes', extensions: ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'] }] });
+    const r = await dialog.showOpenDialog(win, { title: tr('Portada de la playlist'), properties: ['openFile'], filters: [{ name: tr('Imágenes'), extensions: ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'] }] });
     if (r.canceled) return null;
     return playlists.setCover(id, fs.readFileSync(r.filePaths[0]), nativeImage);
   });
@@ -320,7 +322,7 @@ app.whenReady().then(async () => {
           // YouTube is refusing us: save the rest locally instead of insisting.
           for (const rest of items.slice(n + 1)) {
             const fid = playlists.create(rest.name, rest.tracks, { description: rest.description, origin: 'spotify' });
-            out.push({ name: rest.name, dest: rest.dest, error: rest.dest === 'yt' ? 'No se intentó: YouTube estaba limitando las peticiones' : null, count: rest.tracks.length, ...(rest.dest === 'yt' ? { fallback: fid } : { id: fid }) });
+            out.push({ name: rest.name, dest: rest.dest, error: rest.dest === 'yt' ? tr('No se intentó: YouTube estaba limitando las peticiones') : null, count: rest.tracks.length, ...(rest.dest === 'yt' ? { fallback: fid } : { id: fid }) });
           }
           break;
         }

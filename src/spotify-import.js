@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { unzipSync, strFromU8 } from 'fflate';
+import { tr } from './i18n.js';
 
 const LIKED = '__liked__';
 
@@ -22,7 +23,7 @@ function fromPlaylistJson(json, out) {
 
 function fromLibraryJson(json, out) {
   const tracks = (json.tracks || []).filter((t) => t.track).map((t) => ({ title: t.track, artist: t.artist || '', album: t.album || '', uri: t.uri || '' }));
-  if (tracks.length) out.unshift({ key: LIKED, name: 'Me gusta de Spotify', description: 'Tus «Canciones que te gustan» de Spotify', tracks, skipped: 0, liked: true });
+  if (tracks.length) out.unshift({ key: LIKED, name: tr('Me gusta de Spotify'), description: tr('Tus «Canciones que te gustan» de Spotify'), tracks, skipped: 0, liked: true });
 }
 
 /** Reads a Spotify export (.zip, or Playlist*.json / YourLibrary.json). */
@@ -41,7 +42,7 @@ export function parse(file) {
     // Playlist1.json, Playlist2.json… in order.
     for (const name of Object.keys(files).sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))) handle(name, strFromU8(files[name]));
   } else handle(file, buf.toString('utf8'));
-  if (!out.length) throw new Error('No he encontrado playlists en ese archivo. Usa el .zip de «Datos de la cuenta» de Spotify (contiene Playlist1.json y YourLibrary.json).');
+  if (!out.length) throw new Error(tr('No he encontrado playlists en ese archivo. Usa el .zip de «Datos de la cuenta» de Spotify (contiene Playlist1.json y YourLibrary.json).'));
   return out;
 }
 
@@ -108,7 +109,7 @@ let running = null;
 
 /** Matches every track of the chosen playlists. onProgress({done,total}). Returns results per playlist key. */
 export async function match(playlists, search, onProgress = () => {}) {
-  if (running) throw new Error('Ya hay una importación en curso');
+  if (running) throw new Error(tr('Ya hay una importación en curso'));
   const jobs = [];
   playlists.forEach((p) => p.tracks.forEach((t, i) => jobs.push({ key: p.key, i, t })));
   const results = Object.fromEntries(playlists.map((p) => [p.key, new Array(p.tracks.length)]));
@@ -130,7 +131,7 @@ export async function match(playlists, search, onProgress = () => {}) {
   try { await Promise.all([worker(), worker()]); }
   finally { running = null; }
   if (blocked) throw blocked;
-  if (cancelled) throw new Error('Importación cancelada');
+  if (cancelled) throw new Error(tr('Importación cancelada'));
   return results;
 }
 

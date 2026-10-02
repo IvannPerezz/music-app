@@ -3,6 +3,7 @@
 // page allowed to eval, which the presets need. This side taps the audio after the equalizer,
 // sends the samples to the iframe every frame and picks the presets.
 import { state, saveSettings, toast } from './core.js';
+import { tr } from './i18n.js';
 
 const SIZE = 1024; // samples per channel Butterchurn works with
 let engine = null, taps = null, frame = null, host = null, raf = 0, autoTimer = 0;
@@ -52,7 +53,7 @@ function onMessage(e) {
     raf = requestAnimationFrame(loop);
     notify();
   } else if (m.type === 'error') {
-    toast('No se pudo iniciar el visualizador: ' + String(m.message || '').slice(0, 160), true);
+    toast(tr('No se pudo iniciar el visualizador:') + ' ' + String(m.message || '').slice(0, 160), true);
     unmountVisualizer();
   }
 }

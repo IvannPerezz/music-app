@@ -4,6 +4,7 @@ import { BrowserWindow, session, safeStorage } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tr } from './i18n.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,7 +52,7 @@ export function login(parent) {
       });
     }
     const win = new BrowserWindow({
-      parent, modal: false, width: 500, height: 740, title: 'Iniciar sesión con Google',
+      parent, modal: false, width: 500, height: 740, title: tr('Iniciar sesión con Google'),
       autoHideMenuBar: true, backgroundColor: '#ffffff',
       webPreferences: { partition: PARTITION, contextIsolation: false, sandbox: true, nodeIntegration: false, preload: path.join(__dirname, 'login-preload.cjs') },
     });

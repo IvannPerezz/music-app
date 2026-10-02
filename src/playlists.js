@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { tr } from './i18n.js';
 
 let file = null;
 let coverDir = null;
@@ -31,7 +32,7 @@ export const list = () => lists.map(summary).sort((a, b) => b.updated - a.update
 
 export function get(id) {
   const p = lists.find((x) => x.id === id);
-  if (!p) throw new Error('Esa playlist ya no existe');
+  if (!p) throw new Error(tr('Esa playlist ya no existe'));
   return { ...summary(p), tracks: p.tracks };
 }
 
@@ -59,7 +60,7 @@ export function remove(id) {
 
 export function addTracks(id, tracks) {
   const p = lists.find((x) => x.id === id);
-  if (!p) throw new Error('Esa playlist ya no existe');
+  if (!p) throw new Error(tr('Esa playlist ya no existe'));
   const have = new Set(p.tracks.map((t) => t.id));
   const add = tracks.map(clean).filter((t) => !have.has(t.id) && have.add(t.id));
   p.tracks.push(...add);
@@ -91,9 +92,9 @@ export const coverPath = (id) => path.join(coverDir, String(id).replace(/[^\w-]/
 /** Saves a cover from image bytes (any format Chromium decodes), centre-cropped to a 1000 px square JPEG. */
 export function setCover(id, bytes, nativeImage) {
   const p = lists.find((x) => x.id === id);
-  if (!p) throw new Error('Esa playlist ya no existe');
+  if (!p) throw new Error(tr('Esa playlist ya no existe'));
   let img = nativeImage.createFromBuffer(Buffer.from(bytes));
-  if (img.isEmpty()) throw new Error('No se pudo leer la imagen (usa JPG, PNG, WebP o BMP)');
+  if (img.isEmpty()) throw new Error(tr('No se pudo leer la imagen (usa JPG, PNG, WebP o BMP)'));
   const { width, height } = img.getSize();
   const side = Math.min(width, height);
   img = img.crop({ x: Math.floor((width - side) / 2), y: Math.floor((height - side) / 2), width: side, height: side });
@@ -130,7 +131,7 @@ export function ytCoverMap() {
 }
 export function setYtCover(id, bytes, nativeImage) {
   let img = nativeImage.createFromBuffer(Buffer.from(bytes));
-  if (img.isEmpty()) throw new Error('No se pudo leer la imagen (usa JPG, PNG, WebP o BMP)');
+  if (img.isEmpty()) throw new Error(tr('No se pudo leer la imagen (usa JPG, PNG, WebP o BMP)'));
   const { width, height } = img.getSize();
   const side = Math.min(width, height);
   img = img.crop({ x: Math.floor((width - side) / 2), y: Math.floor((height - side) / 2), width: side, height: side });

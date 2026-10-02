@@ -58,6 +58,12 @@ npm run package            # carpeta portable + instalador ligero en dist/ (desc
 - `settings-view.js`, `library-view.js`, `import-view.js`, `eq-panel.js`, `color-picker.js`, `lyrics-parse.js`, `icons.js`.
 - `visualizer.js` + `visualizer/` — visualizador MilkDrop (Butterchurn, MIT, copiado en `visualizer/vendor/`). Va en un **iframe sandbox** servido por el proxy en `/vis/` (`src/vis-files.js`, también en el mock): Butterchurn necesita `eval` para los presets y la ventana principal no lo permite (CSP). La app le manda las muestras de audio (tomadas tras el ecualizador, `engine.tap`) por `postMessage` en cada fotograma.
 
+## Idiomas (OBLIGATORIO para cualquier texto nuevo de la interfaz)
+- Todo texto que vea el usuario pasa por `tr('texto en español')` (`renderer/i18n.js` en la interfaz, `src/i18n.js` en el proceso principal). Se llama `tr` porque `t` es una canción en todo el código. Variables con llaves: `tr('{n} canciones', { n })`.
+- La traducción inglesa va en `renderer/i18n/en.js` (clave = el texto español exacto). `npm test` ejecuta antes `node scripts/i18n-keys.mjs`, que falla si falta alguna traducción.
+- Textos fijos de `index.html`: `title`/`placeholder` se traducen solos al arrancar; para texto visible añade `data-i18n`.
+- El idioma de la interfaz (`uiLanguage`, Ajustes → General) es distinto del de YouTube Music (`language`). Se lee al cargar los módulos (copia en `localStorage`), así que cambiarlo recarga la ventana.
+
 ## Cosas a tener en cuenta
 - Desde la nube no se podía probar contra YouTube; **en este PC sí**: después de tocar `src/yt.js` o `src/proxy.js`, prueba con `npm start` y mira `bitchord.log` (cada canción apunta qué cliente consiguió el audio: `[yt] audio de … vía …`).
 - `backdrop-filter` (efecto Mica) deja de funcionar si un antecesor tiene una animación con `fill-mode: both/forwards` activa; por eso `.view-in` usa `backwards`.

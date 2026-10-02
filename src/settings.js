@@ -93,6 +93,7 @@ export const DEFAULTS = {
   dynamicAccent: true,
   accentMode: null, // 'cover' | 'theme' | 'custom' (null = from dynamicAccent)
   customAccent: '#fa2d48',
+  uiLanguage: 'es', // interface language (Ajustes > General); 'language' is YouTube Music's
   language: 'es',
   region: 'ES',
 };

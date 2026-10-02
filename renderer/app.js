@@ -7,6 +7,7 @@ import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
 import { mountVisualizer, unmountVisualizer, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange, favorites, toggleFavorite } from './visualizer.js';
 import { importView } from './import-view.js';
+import { tr, translateStatic, syncUiLang, locale } from './i18n.js';
 
 // ------------------------------------------------------------------ router
 const nav = { stack: [], index: -1 };
@@ -49,25 +50,25 @@ export async function render(restoreScroll = false, animate = true) {
     if (token !== renderToken) return;
     console.error(e);
     content.innerHTML = '';
-    content.append(h(`<div class="empty">${icon('cloudOff')}<div><b>No se pudo cargar</b></div><div class="muted">${esc(e.message)}</div><button class="btn ghost" style="margin-top:12px">Reintentar</button></div>`));
+    content.append(h(`<div class="empty">${icon('cloudOff')}<div><b>${tr('No se pudo cargar')}</b></div><div class="muted">${esc(e.message)}</div><button class="btn ghost" style="margin-top:12px">${tr('Reintentar')}</button></div>`));
     content.querySelector('button').onclick = () => render();
   }
   content.style.scrollBehavior = '';
 }
 // ------------------------------------------------------------------ customizable sidebar
 export const SIDEBAR_ITEMS = {
-  home: { label: 'Inicio', icon: 'home', group: 'main', route: { name: 'home' } },
-  search: { label: 'Buscar', icon: 'search', group: 'main', route: { name: 'search', q: '' } },
-  library: { label: 'Biblioteca', icon: 'library', group: 'main', route: { name: 'library' } },
-  'lib:playlists': { label: 'Playlists', icon: 'queue', group: 'lib', route: { name: 'library', tab: 'playlists' } },
-  'lib:likes': { label: 'Favoritos', icon: 'heartFill', group: 'lib', route: { name: 'library', tab: 'likes' } },
-  'lib:downloads': { label: 'Descargas', icon: 'download', group: 'lib', route: { name: 'library', tab: 'downloads' } },
-  'lib:local': { label: 'En este equipo', icon: 'computer', group: 'lib', route: { name: 'library', tab: 'local' } },
-  'lib:network': { label: 'En red', icon: 'folder', group: 'lib', route: { name: 'library', tab: 'network' } },
-  'lib:history': { label: 'Historial', icon: 'history', group: 'lib', route: { name: 'library', tab: 'history' } },
-  'lib:account': { label: 'Tu YouTube Music', icon: 'account', group: 'lib', route: { name: 'library', tab: 'account' } },
-  nowplaying: { label: 'Reproduciendo', icon: 'disc', group: 'player', action: () => (npOpen() ? closeNowPlaying() : openNowPlaying()) },
-  queue: { label: 'Cola', icon: 'queue', group: 'player', action: () => toggleQueue() },
+  home: { label: tr('Inicio'), icon: 'home', group: 'main', route: { name: 'home' } },
+  search: { label: tr('Buscar'), icon: 'search', group: 'main', route: { name: 'search', q: '' } },
+  library: { label: tr('Biblioteca'), icon: 'library', group: 'main', route: { name: 'library' } },
+  'lib:playlists': { label: tr('Playlists'), icon: 'queue', group: 'lib', route: { name: 'library', tab: 'playlists' } },
+  'lib:likes': { label: tr('Favoritos'), icon: 'heartFill', group: 'lib', route: { name: 'library', tab: 'likes' } },
+  'lib:downloads': { label: tr('Descargas'), icon: 'download', group: 'lib', route: { name: 'library', tab: 'downloads' } },
+  'lib:local': { label: tr('En este equipo'), icon: 'computer', group: 'lib', route: { name: 'library', tab: 'local' } },
+  'lib:network': { label: tr('En red'), icon: 'folder', group: 'lib', route: { name: 'library', tab: 'network' } },
+  'lib:history': { label: tr('Historial'), icon: 'history', group: 'lib', route: { name: 'library', tab: 'history' } },
+  'lib:account': { label: tr('Tu YouTube Music'), icon: 'account', group: 'lib', route: { name: 'library', tab: 'account' } },
+  nowplaying: { label: tr('Reproduciendo'), icon: 'disc', group: 'player', action: () => (npOpen() ? closeNowPlaying() : openNowPlaying()) },
+  queue: { label: tr('Cola'), icon: 'queue', group: 'player', action: () => toggleQueue() },
 };
 
 export function renderSidebar() {
@@ -117,13 +118,13 @@ export function trackRow(t, i, list, opts = {}) {
     <div class="row${opts.compact ? ' compact' : ''}${opts.details && t.file ? ' tall' : ''}${opts.details && state.settings.localInfo?.album === false ? ' no-album' : ''}" data-id="${esc(t.id)}">
       <div class="thumb">${opts.numbered ? `<span class="num">${i + 1}</span>` : t.thumb ? `<img loading="lazy" src="${esc(art(t.thumb))}" alt="">` : `<span class="num">${icon('disc')}</span>`}<span class="ov">${icon('play')}</span></div>
       <div style="min-width:0">
-        <div class="ttl ellipsis">${esc(t.title)}${t.isVideo ? ' <span class="badge">Vídeo</span>' : ''}</div>
-        <div class="sub ellipsis">${dl || t.local ? `<span class="dl-mark" title="${t.remote ? 'En tu servidor' : t.local ? 'En este equipo' : 'Descargada'}">${icon(t.remote ? 'folder' : t.local ? 'computer' : 'downloaded')}</span>` : ''}${(t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ')}</div>
+        <div class="ttl ellipsis">${esc(t.title)}${t.isVideo ? ` <span class="badge">${tr('Vídeo')}</span>` : ''}</div>
+        <div class="sub ellipsis">${dl || t.local ? `<span class="dl-mark" title="${tr(t.remote ? 'En tu servidor' : t.local ? 'En este equipo' : 'Descargada')}">${icon(t.remote ? 'folder' : t.local ? 'computer' : 'downloaded')}</span>` : ''}${(t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ')}</div>
         ${opts.details && t.file ? fileDetails(t) : ''}
       </div>
       <div class="alb ellipsis">${t.album?.name ? (t.album.id ? `<span class="link" data-album="${esc(t.album.id)}">${esc(t.album.name)}</span>` : esc(t.album.name)) : ''}</div>
       <div class="dur">${t.duration ? fmt(t.duration) : ''}</div>
-      <button class="icon-btn more" title="Más opciones">${icon('more')}</button>
+      <button class="icon-btn more" title="${tr('Más opciones')}">${icon('more')}</button>
     </div>`);
   el.addEventListener('click', (e) => {
     const a = e.target.closest('[data-artist]');
@@ -146,13 +147,13 @@ export function fileDetails(t) {
   if (on.format) {
     const codec = f.codec.replace(/^MPEG-4\//, '').replace(/^MPEG 1 Layer 3$/, 'MP3');
     const fmt = codec && codec.toUpperCase() !== f.ext ? `${codec} · ${f.ext}` : f.ext || codec;
-    chips.push(`<span class="chip-i${f.lossless ? ' hi' : ''}">${esc(fmt)}${f.lossless ? ' · Sin pérdida' : ''}</span>`);
+    chips.push(`<span class="chip-i${f.lossless ? ' hi' : ''}">${esc(fmt)}${f.lossless ? ' · ' + tr('Sin pérdida') : ''}</span>`);
   }
   if (on.bitrate && f.bitrate) chips.push(`<span class="chip-i">${f.bitrate} kbps</span>`);
-  if (on.sampleRate && f.sampleRate) chips.push(`<span class="chip-i">${(f.sampleRate / 1000).toLocaleString('es-ES', { maximumFractionDigits: 1 })} kHz</span>`);
+  if (on.sampleRate && f.sampleRate) chips.push(`<span class="chip-i">${(f.sampleRate / 1000).toLocaleString(locale(), { maximumFractionDigits: 1 })} kHz</span>`);
   if (on.bitDepth && f.bitDepth) chips.push(`<span class="chip-i${f.bitDepth >= 24 ? ' hi' : ''}">${f.bitDepth}-bit</span>`);
-  if (on.channels && f.channels) chips.push(`<span class="chip-i">${{ 1: 'Mono', 2: 'Estéreo', 6: '5.1', 8: '7.1' }[f.channels] || f.channels + ' canales'}</span>`);
-  if (on.size && f.size) chips.push(`<span class="chip-i">${(f.size / 1048576).toLocaleString('es-ES', { maximumFractionDigits: 1, minimumFractionDigits: 1 })} MB</span>`);
+  if (on.channels && f.channels) chips.push(`<span class="chip-i">${{ 1: tr('Mono'), 2: tr('Estéreo'), 6: '5.1', 8: '7.1' }[f.channels] || tr('{n} canales', { n: f.channels })}</span>`);
+  if (on.size && f.size) chips.push(`<span class="chip-i">${(f.size / 1048576).toLocaleString(locale(), { maximumFractionDigits: 1, minimumFractionDigits: 1 })} MB</span>`);
   if (on.year && f.year) chips.push(`<span class="chip-i">${f.year}</span>`);
   if (on.genre && f.genre) chips.push(`<span class="chip-i">${esc(f.genre)}</span>`);
   const pathLine = on.path && f.path ? `<div class="file-path ellipsis" title="${esc(f.path)}">${esc(f.path)}</div>` : '';
@@ -224,12 +225,12 @@ const views = {
       if (hidden.has(key)) return;
       const hd = el.querySelector('h2');
       if (hd) {
-        const x = h(`<button class="sec-hide" title="Ocultar este apartado">${icon('close')}<span>Ocultar</span></button>`);
+        const x = h(`<button class="sec-hide" title="${tr('Ocultar este apartado')}">${icon('close')}<span>${tr('Ocultar')}</span></button>`);
         x.onclick = async () => {
           await saveSettings({ homeHidden: [...new Set([...(state.settings.homeHidden || []), key])] });
           el.classList.add('sec-leaving');
           setTimeout(() => el.remove(), 260);
-          toast(`«${sec.title}» oculto · recupéralo en Ajustes → Personalización`);
+          toast(tr('«{name}» oculto · recupéralo en Ajustes → Personalización', { name: sec.title }));
         };
         hd.append(x);
       }
@@ -238,12 +239,12 @@ const views = {
     const root = h('<div></div>');
     root.append(h(`<h1 class="page-title" id="home-greet">${esc(greeting())}</h1>`));
     const recent = history.all().slice(0, 8);
-    if (recent.length) { const sec = { title: 'Escuchado recientemente', layout: 'list', items: recent }; add(sec, section(sec)); }
+    if (recent.length) { const sec = { title: tr('Escuchado recientemente'), layout: 'list', items: recent }; add(sec, section(sec)); }
     let sections = [];
     try { sections = await api('home'); }
     catch (e) {
       if (!recent.length) throw e;
-      root.append(h(`<div class="empty small">${icon('cloudOff')}<div class="muted">Sin conexión con YouTube Music: ${esc(e.message)}</div></div>`));
+      root.append(h(`<div class="empty small">${icon('cloudOff')}<div class="muted">${tr('Sin conexión con YouTube Music:')} ${esc(e.message)}</div></div>`));
     }
     sections.forEach((s) => add(s, section(s)));
     // The account may have arrived while Home was loading (before it was on the page).
@@ -253,9 +254,9 @@ const views = {
 
   async search(route) {
     const root = h('<div></div>');
-    const filters = [['all', 'Todo'], ['song', 'Canciones'], ['video', 'Vídeos'], ['album', 'Álbumes'], ['artist', 'Artistas'], ['playlist', 'Playlists']];
+    const filters = [['all', tr('Todo')], ['song', tr('Canciones')], ['video', tr('Vídeos')], ['album', tr('Álbumes')], ['artist', tr('Artistas')], ['playlist', tr('Playlists')]];
     if (!route.q) {
-      root.append(h(`<div class="empty">${icon('search')}<div><b>Busca en YouTube Music</b></div><div class="muted">Canciones, artistas, álbumes y playlists</div></div>`));
+      root.append(h(`<div class="empty">${icon('search')}<div><b>${tr('Busca en YouTube Music')}</b></div><div class="muted">${tr('Canciones, artistas, álbumes y playlists')}</div></div>`));
       setTimeout(() => $('#search').focus(), 0);
       return root;
     }
@@ -270,21 +271,21 @@ const views = {
     root.append(chips);
     const sections = await api('search', route.q, type);
     const nonEmpty = sections.filter((s) => s.items.length);
-    if (!nonEmpty.length) root.append(h(`<div class="empty">${icon('search')}<div>Sin resultados</div></div>`));
+    if (!nonEmpty.length) root.append(h(`<div class="empty">${icon('search')}<div>${tr('Sin resultados')}</div></div>`));
     nonEmpty.forEach((s) => root.append(section(s, { wrap: type !== 'all' })));
     return root;
   },
 
-  async album(route) { return detailView(await api('album', route.id), 'Álbum'); },
+  async album(route) { return detailView(await api('album', route.id), tr('Álbum')); },
   async playlist(route) {
     const d = await api('playlist', route.id);
     const custom = state.ytCovers[route.id];
-    const view = detailView({ ...d, thumb: custom || d.thumb }, 'Playlist');
+    const view = detailView({ ...d, thumb: custom || d.thumb }, tr('Playlist'));
     // Custom artwork kept on this computer (YouTube doesn't let apps change it).
     const head = view.querySelector('.detail-head');
     if (!head.querySelector(':scope > img, :scope > .mosaic')) head.prepend(h(`<div class="mosaic empty">${icon('queue')}</div>`));
     coverEditor(view, {
-      title: 'Portada de la playlist (solo en BitChord)', hasCover: !!custom,
+      title: tr('Portada de la playlist (solo en BitChord)'), hasCover: !!custom,
       onData: async (bytes) => { const url = await api('ytCoverData', route.id, bytes); state.ytCovers = { ...state.ytCovers, [route.id]: url }; },
       onRemove: async () => { await api('ytCoverRemove', route.id); const m = { ...state.ytCovers }; delete m[route.id]; state.ytCovers = m; },
     });
@@ -298,20 +299,20 @@ const views = {
       <div class="detail-head artist">
         ${a.thumb ? `<img src="${esc(art(a.thumb))}" alt="">` : ''}
         <div style="min-width:0">
-          <div class="kind">Artista</div>
+          <div class="kind">${tr('Artista')}</div>
           <h1>${esc(a.title)}</h1>
           <div class="muted">${esc(a.subtitle || '')}</div>
           ${a.description ? `<div class="desc">${esc(a.description)}</div>` : ''}
-          <div class="actions"><button class="btn primary" data-a="play">${icon('play')}Reproducir</button><button class="btn ghost" data-a="radio">${icon('radio')}Radio</button></div>
+          <div class="actions"><button class="btn primary" data-a="play">${icon('play')}${tr('Reproducir')}</button><button class="btn ghost" data-a="radio">${icon('radio')}${tr('Radio')}</button></div>
         </div>
       </div>`);
     const songs = a.sections.find((s) => s.layout === 'list')?.items || [];
-    head.querySelector('[data-a=play]').onclick = () => songs.length ? player.playList(songs, 0) : toast('Este artista no tiene canciones disponibles');
+    head.querySelector('[data-a=play]').onclick = () => songs.length ? player.playList(songs, 0) : toast(tr('Este artista no tiene canciones disponibles'));
     head.querySelector('[data-a=radio]').onclick = () => songs.length && player.playRadio(songs[Math.floor(Math.random() * songs.length)]);
     root.append(head);
     a.sections.forEach((s) => {
       if (s.layout === 'list') {
-        const el = h(`<section class="section"><h2>${esc(s.title || 'Canciones')}</h2></section>`);
+        const el = h(`<section class="section"><h2>${esc(s.title || tr('Canciones'))}</h2></section>`);
         const box = h('<div class="tracks"></div>');
         s.items.forEach((t, i) => box.append(trackRow(t, i, s.items, {})));
         el.append(box);
@@ -327,22 +328,22 @@ const views = {
     const p = await api('playlistGet', route.id);
     const view = detailView({
       kind: 'localplaylist', id: p.id, title: p.name,
-      subtitle: p.origin === 'spotify' ? 'Playlist de BitChord · importada de Spotify' : 'Playlist de BitChord',
+      subtitle: tr(p.origin === 'spotify' ? 'Playlist de BitChord · importada de Spotify' : 'Playlist de BitChord'),
       thumb: p.cover || p.thumbs[0] || null, mosaic: p.cover ? [] : p.thumbs,
       tracks: p.tracks, sections: [],
-    }, 'Playlist', { playlistId: p.id });
+    }, tr('Playlist'), { playlistId: p.id });
     const actions = view.querySelector('.actions');
     coverEditor(view, {
-      title: 'Portada de la playlist', hasCover: !!p.cover,
+      title: tr('Portada de la playlist'), hasCover: !!p.cover,
       onData: (bytes) => api('playlistCoverData', p.id, bytes),
       onRemove: () => api('playlistCoverRemove', p.id),
     });
-    const ren = h(`<button class="btn ghost">${icon('edit')}Renombrar</button>`);
-    ren.onclick = async () => { const n = await askText('Renombrar playlist', { value: p.name, ok: 'Guardar' }); if (n) { await api('playlistRename', p.id, n); refreshView(); } };
-    const del = h(`<button class="btn ghost">${icon('trash')}Borrar</button>`);
+    const ren = h(`<button class="btn ghost">${icon('edit')}${tr('Renombrar')}</button>`);
+    ren.onclick = async () => { const n = await askText(tr('Renombrar playlist'), { value: p.name, ok: tr('Guardar') }); if (n) { await api('playlistRename', p.id, n); refreshView(); } };
+    const del = h(`<button class="btn ghost">${icon('trash')}${tr('Borrar')}</button>`);
     del.onclick = async () => {
-      if (!(await confirmDialog('Borrar playlist', `¿Borrar «${p.name}»? Las canciones no se borran, solo la lista.`, { ok: 'Borrar', danger: true }))) return;
-      await api('playlistDelete', p.id); toast('Playlist borrada'); go({ name: 'library', tab: 'playlists' }, { replace: true });
+      if (!(await confirmDialog(tr('Borrar playlist'), tr('¿Borrar «{name}»? Las canciones no se borran, solo la lista.', { name: p.name }), { ok: tr('Borrar'), danger: true }))) return;
+      await api('playlistDelete', p.id); toast(tr('Playlist borrada')); go({ name: 'library', tab: 'playlists' }, { replace: true });
     };
     actions.append(ren, del);
     return view;
@@ -352,43 +353,43 @@ const views = {
     const view = detailView({
       kind: 'localfolder', id: f.id, title: f.name, noDownload: true,
       subtitle: f.path,
-      meta: `${f.count} canciones · ${Math.round(f.duration / 60)} min · ${sizeLabel(f.size)}${f.watching ? ' · se actualiza sola' : ''}`,
+      meta: `${tr('{n} canciones', { n: f.count })} · ${Math.round(f.duration / 60)} min · ${sizeLabel(f.size)}${f.watching ? ' · ' + tr('se actualiza sola') : ''}`,
       thumb: f.cover || f.thumbs[0] || null, mosaic: f.cover ? [] : f.thumbs,
       tracks: f.tracks, sections: [],
-    }, 'Carpeta local', { details: true });
+    }, tr('Carpeta local'), { details: true });
     coverEditor(view, {
-      title: 'Portada de la carpeta', hasCover: !!f.cover,
+      title: tr('Portada de la carpeta'), hasCover: !!f.cover,
       onData: (bytes) => api('localFolderCoverData', f.id, bytes),
       onRemove: () => api('localFolderCoverRemove', f.id),
     });
     const actions = view.querySelector('.actions');
-    const ren = h(`<button class="btn ghost">${icon('edit')}Renombrar</button>`);
+    const ren = h(`<button class="btn ghost">${icon('edit')}${tr('Renombrar')}</button>`);
     ren.onclick = async () => {
-      const n = await askText('Nombre en BitChord', { value: f.customName ? f.name : '', ok: 'Guardar', placeholder: f.path.split(/[\\/]/).filter(Boolean).pop() || 'Nombre', message: 'Solo cambia el nombre dentro de BitChord; la carpeta no se toca. Déjalo vacío para usar el nombre de la carpeta.', allowEmpty: true });
+      const n = await askText(tr('Nombre en BitChord'), { value: f.customName ? f.name : '', ok: tr('Guardar'), placeholder: f.path.split(/[\\/]/).filter(Boolean).pop() || tr('Nombre'), message: tr('Solo cambia el nombre dentro de BitChord; la carpeta no se toca. Déjalo vacío para usar el nombre de la carpeta.'), allowEmpty: true });
       if (n !== null) { await api('localFolderRename', f.id, n); refreshView(); }
     };
-    const open = h(`<button class="btn ghost">${icon('folder')}Abrir carpeta</button>`);
+    const open = h(`<button class="btn ghost">${icon('folder')}${tr('Abrir carpeta')}</button>`);
     open.onclick = () => api('localFolderOpen', f.id);
-    const rescan = h(`<button class="btn ghost">${icon('refresh')}Volver a escanear</button>`);
-    rescan.onclick = async () => { rescan.disabled = true; toast('Escaneando la carpeta…'); await api('localFolderRescan', f.id); refreshView(); };
+    const rescan = h(`<button class="btn ghost">${icon('refresh')}${tr('Volver a escanear')}</button>`);
+    rescan.onclick = async () => { rescan.disabled = true; toast(tr('Escaneando la carpeta…')); await api('localFolderRescan', f.id); refreshView(); };
     actions.append(ren, open, rescan);
     return view;
   },
   settings: (route) => settingsView(route),
 };
 
-export const sizeLabel = (b) => (b >= 1073741824 ? (b / 1073741824).toLocaleString('es-ES', { maximumFractionDigits: 2 }) + ' GB' : (b / 1048576).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + ' MB');
+export const sizeLabel = (b) => (b >= 1073741824 ? (b / 1073741824).toLocaleString(locale(), { maximumFractionDigits: 2 }) + ' GB' : (b / 1048576).toLocaleString(locale(), { maximumFractionDigits: 1 }) + ' MB');
 
 /** Click the artwork (or drop an image on it) to set a custom cover. */
 function coverEditor(view, { title, hasCover, onData, onRemove }) {
   const head = view.querySelector('.detail-head');
   const artEl = head.firstElementChild;
-  const wrap = h(`<div class="cover-edit" title="Cambiar portada"><span class="cover-ov">${icon('edit')}<b>Cambiar portada</b><small>o arrastra una imagen aquí</small></span></div>`);
+  const wrap = h(`<div class="cover-edit" title="${tr('Cambiar portada')}"><span class="cover-ov">${icon('edit')}<b>${tr('Cambiar portada')}</b><small>${tr('o arrastra una imagen aquí')}</small></span></div>`);
   artEl.replaceWith(wrap);
   wrap.prepend(artEl);
   const setFrom = async (file) => {
-    try { await onData(await squareJpeg(file)); toast('Portada actualizada'); refreshView(); }
-    catch (e) { toast(e.message || 'No se pudo usar esa imagen', true); }
+    try { await onData(await squareJpeg(file)); toast(tr('Portada actualizada')); refreshView(); }
+    catch (e) { toast(e.message || tr('No se pudo usar esa imagen'), true); }
   };
   const pickFile = () => {
     const input = h('<input type="file" accept="image/*" hidden>');
@@ -397,15 +398,15 @@ function coverEditor(view, { title, hasCover, onData, onRemove }) {
   };
   wrap.onclick = (e) => openMenu([
     { header: title },
-    { icon: 'image', label: 'Elegir imagen…', action: pickFile },
-    ...(hasCover ? [{ icon: 'remove', label: 'Quitar portada personalizada', action: async () => { await onRemove(); refreshView(); } }] : []),
+    { icon: 'image', label: tr('Elegir imagen…'), action: pickFile },
+    ...(hasCover ? [{ icon: 'remove', label: tr('Quitar portada personalizada'), action: async () => { await onRemove(); refreshView(); } }] : []),
   ], { x: e.clientX, y: e.clientY });
   wrap.addEventListener('dragover', (e) => { e.preventDefault(); wrap.classList.add('drop'); });
   wrap.addEventListener('dragleave', () => wrap.classList.remove('drop'));
   wrap.addEventListener('drop', (e) => {
     e.preventDefault(); wrap.classList.remove('drop');
     const f = [...e.dataTransfer.files].find((x) => x.type.startsWith('image/'));
-    if (f) setFrom(f); else toast('Eso no es una imagen', true);
+    if (f) setFrom(f); else toast(tr('Eso no es una imagen'), true);
   });
 }
 
@@ -419,25 +420,25 @@ export function detailView(d, kindLabel, rowOpts = {}) {
         <div class="kind">${kindLabel}</div>
         <h1>${esc(d.title)}</h1>
         <div>${esc(d.subtitle || '')}</div>
-        <div class="muted" style="font-size:13px;margin-top:4px">${esc(d.meta || `${d.tracks.length} canciones${total ? ' · ' + Math.round(total / 60) + ' min' : ''}`)}</div>
+        <div class="muted" style="font-size:13px;margin-top:4px">${esc(d.meta || `${tr('{n} canciones', { n: d.tracks.length })}${total ? ' · ' + Math.round(total / 60) + ' min' : ''}`)}</div>
         ${d.description ? `<div class="desc">${esc(d.description)}</div>` : ''}
         <div class="actions">
-          <button class="btn primary" data-a="play">${icon('play')}Reproducir</button>
-          <button class="btn ghost" data-a="shuffle">${icon('shuffle')}Aleatorio</button>
-          <button class="btn ghost" data-a="queue">${icon('addQueue')}A la cola</button>
-          ${d.noDownload ? '' : `<button class="btn ghost" data-a="download">${icon('download')}Descargar</button>`}
+          <button class="btn primary" data-a="play">${icon('play')}${tr('Reproducir')}</button>
+          <button class="btn ghost" data-a="shuffle">${icon('shuffle')}${tr('Aleatorio')}</button>
+          <button class="btn ghost" data-a="queue">${icon('addQueue')}${tr('A la cola')}</button>
+          ${d.noDownload ? '' : `<button class="btn ghost" data-a="download">${icon('download')}${tr('Descargar')}</button>`}
         </div>
       </div>
     </div>`);
   head.querySelector('[data-a=play]').onclick = () => d.tracks.length && player.playList(d.tracks, 0);
   head.querySelector('[data-a=shuffle]').onclick = () => d.tracks.length && player.playList(d.tracks, 0, { shuffle: true });
-  head.querySelector('[data-a=queue]').onclick = () => { player.enqueue(d.tracks); toast(`${d.tracks.length} canciones añadidas a la cola`); };
+  head.querySelector('[data-a=queue]').onclick = () => { player.enqueue(d.tracks); toast(tr('{n} canciones añadidas a la cola', { n: d.tracks.length })); };
   const dlb = head.querySelector('[data-a=download]');
   if (dlb) dlb.onclick = () => downloadTracks(d.tracks);
   root.append(head);
   const box = h('<div class="tracks"></div>');
   d.tracks.forEach((t, i) => box.append(trackRow(t, i, d.tracks, { numbered: d.kind === 'album', details: !!rowOpts.details, ...(rowOpts.playlistId ? { playlistId: rowOpts.playlistId, playlistIndex: i } : {}) })));
-  if (!d.tracks.length) box.append(h(`<div class="empty">No hay canciones.</div>`));
+  if (!d.tracks.length) box.append(h(`<div class="empty">${tr('No hay canciones.')}</div>`));
   root.append(box);
   (d.sections || []).forEach((s) => root.append(section(s)));
   return root;
@@ -445,9 +446,9 @@ export function detailView(d, kindLabel, rowOpts = {}) {
 
 export async function downloadTracks(tracks) {
   const list = tracks.filter((t) => t && !t.local && !isDownloaded(t.id));
-  if (!list.length) return toast('Ya está todo descargado');
+  if (!list.length) return toast(tr('Ya está todo descargado'));
   await api('download', list);
-  toast(list.length === 1 ? `Descargando «${list[0].title}»…` : `Descargando ${list.length} canciones…`);
+  toast(list.length === 1 ? tr('Descargando «{name}»…', { name: list[0].title }) : tr('Descargando {n} canciones…', { n: list.length }));
 }
 
 // ------------------------------------------------------------------ menus
@@ -461,7 +462,7 @@ function fillMenu(m, items, pick) {
   });
 }
 // Menus of the full-screen buttons open in the side panel instead (title by button).
-const FS_MENUS = { 'lyrics-source': 'Letra' };
+const FS_MENUS = { 'lyrics-source': tr('Letra') };
 let fsMenuPicking = false;
 export function openMenu(items, anchor) {
   if (isFs() && anchor instanceof Element && FS_MENUS[anchor.id]) {
@@ -499,27 +500,27 @@ window.addEventListener('blur', closeMenu);
 function trackMenu(t, anchor, opts = {}) {
   const liked = likes.has(t.id);
   openMenu([
-    { icon: 'playNext', label: 'Reproducir a continuación', action: () => { player.playNext(t); toast('Se reproducirá a continuación'); } },
-    { icon: 'addQueue', label: 'Añadir a la cola', action: () => { player.enqueue([t]); toast('Añadida a la cola'); } },
-    ...(t.local ? [] : [{ icon: 'radio', label: 'Iniciar radio', action: () => player.playRadio(t) }]),
+    { icon: 'playNext', label: tr('Reproducir a continuación'), action: () => { player.playNext(t); toast(tr('Se reproducirá a continuación')); } },
+    { icon: 'addQueue', label: tr('Añadir a la cola'), action: () => { player.enqueue([t]); toast(tr('Añadida a la cola')); } },
+    ...(t.local ? [] : [{ icon: 'radio', label: tr('Iniciar radio'), action: () => player.playRadio(t) }]),
     null,
-    { icon: liked ? 'heartFill' : 'heart', label: liked ? 'Quitar de favoritos' : 'Añadir a favoritos', action: () => toggleLike(t) },
-    { icon: 'playlistAdd', label: 'Añadir a una playlist…', action: () => addToPlaylistMenu([t], anchor) },
+    { icon: liked ? 'heartFill' : 'heart', label: tr(liked ? 'Quitar de favoritos' : 'Añadir a favoritos'), action: () => toggleLike(t) },
+    { icon: 'playlistAdd', label: tr('Añadir a una playlist…'), action: () => addToPlaylistMenu([t], anchor) },
     ...(t.local ? [] : isDownloaded(t.id)
-      ? [{ icon: 'trash', label: 'Borrar descarga', action: () => api('downloadRemove', t.id).then(() => toast('Descarga borrada')) }]
-      : [{ icon: 'download', label: 'Descargar', action: () => downloadTracks([t]) }]),
+      ? [{ icon: 'trash', label: tr('Borrar descarga'), action: () => api('downloadRemove', t.id).then(() => toast(tr('Descarga borrada'))) }]
+      : [{ icon: 'download', label: tr('Descargar'), action: () => downloadTracks([t]) }]),
     null,
-    ...(t.artists || []).filter((a) => a.id).slice(0, 2).map((a) => ({ icon: 'person', label: `Ir a ${a.name}`, action: () => go({ name: 'artist', id: a.id }) })),
-    ...(t.album?.id ? [{ icon: 'album', label: 'Ir al álbum', action: () => go({ name: 'album', id: t.album.id }) }] : []),
-    ...(t.local ? [] : [{ icon: 'open', label: 'Abrir en YouTube Music', action: () => bc.openExternal(`https://music.youtube.com/watch?v=${t.id}`) }]),
-    ...(opts.queueIndex != null ? [null, { icon: 'remove', label: 'Quitar de la cola', action: () => player.removeAt(opts.queueIndex) }] : []),
-    ...(opts.playlistId ? [null, { icon: 'remove', label: 'Quitar de esta playlist', action: async () => { await api('playlistRemoveAt', opts.playlistId, opts.playlistIndex); refreshView(); } }] : []),
+    ...(t.artists || []).filter((a) => a.id).slice(0, 2).map((a) => ({ icon: 'person', label: tr('Ir a {name}', { name: a.name }), action: () => go({ name: 'artist', id: a.id }) })),
+    ...(t.album?.id ? [{ icon: 'album', label: tr('Ir al álbum'), action: () => go({ name: 'album', id: t.album.id }) }] : []),
+    ...(t.local ? [] : [{ icon: 'open', label: tr('Abrir en YouTube Music'), action: () => bc.openExternal(`https://music.youtube.com/watch?v=${t.id}`) }]),
+    ...(opts.queueIndex != null ? [null, { icon: 'remove', label: tr('Quitar de la cola'), action: () => player.removeAt(opts.queueIndex) }] : []),
+    ...(opts.playlistId ? [null, { icon: 'remove', label: tr('Quitar de esta playlist'), action: async () => { await api('playlistRemoveAt', opts.playlistId, opts.playlistIndex); refreshView(); } }] : []),
   ], anchor);
 }
 
 /** Any image the browser can decode (JPG, PNG, WebP, GIF, AVIF…) → centre-cropped square JPEG bytes. */
 async function squareJpeg(file) {
-  if (file.size > 40 * 1024 * 1024) throw new Error('La imagen es demasiado grande (máx. 40 MB)');
+  if (file.size > 40 * 1024 * 1024) throw new Error(tr('La imagen es demasiado grande (máx. 40 MB)'));
   const bmp = await createImageBitmap(file);
   const side = Math.min(bmp.width, bmp.height);
   const out = Math.min(1000, side);
@@ -542,30 +543,30 @@ export async function addToPlaylistMenu(tracks, anchor) {
   ]);
   const add = async (id, name) => {
     const n = await api('playlistAdd', id, tracks);
-    toast(n ? `Añadida${n > 1 ? 's ' + n + ' canciones' : ''} a «${name}»` : `Ya estaba en «${name}»`);
+    toast(n ? (n > 1 ? tr('Añadidas {n} canciones a «{name}»', { n, name }) : tr('Añadida a «{name}»', { name })) : tr('Ya estaba en «{name}»', { name }));
   };
   const addYt = async (id, name) => {
-    try { await api('ytPlaylistAdd', id, online.map((t) => t.id)); toast(`Añadida${online.length > 1 ? 's ' + online.length + ' canciones' : ''} a «${name}»`); }
+    try { await api('ytPlaylistAdd', id, online.map((t) => t.id)); toast(online.length > 1 ? tr('Añadidas {n} canciones a «{name}»', { n: online.length, name }) : tr('Añadida a «{name}»', { name })); }
     catch (e) { toast(e.message, true); }
   };
   const newLocal = async () => {
-    const name = await askText('Nueva playlist (solo en BitChord)', { placeholder: 'Nombre de la playlist', ok: 'Crear' });
+    const name = await askText(tr('Nueva playlist (solo en BitChord)'), { placeholder: tr('Nombre de la playlist'), ok: tr('Crear') });
     if (!name) return;
     await api('playlistCreate', name, tracks);
-    toast(`Playlist «${name}» creada`);
+    toast(tr('Playlist «{name}» creada', { name }));
   };
   const items = [];
   if (state.account && online.length) {
-    items.push({ header: 'Tus playlists de YouTube Music' }, { icon: 'add', label: 'Nueva playlist…', action: async () => {
-      const name = await askText('Nueva playlist de YouTube Music', { placeholder: 'Nombre de la playlist', ok: 'Crear' });
+    items.push({ header: tr('Tus playlists de YouTube Music') }, { icon: 'add', label: tr('Nueva playlist…'), action: async () => {
+      const name = await askText(tr('Nueva playlist de YouTube Music'), { placeholder: tr('Nombre de la playlist'), ok: tr('Crear') });
       if (!name) return;
-      try { await api('ytPlaylistCreate', name, online.map((t) => t.id)); toast(`Playlist «${name}» creada en YouTube Music`); }
+      try { await api('ytPlaylistCreate', name, online.map((t) => t.id)); toast(tr('Playlist «{name}» creada en YouTube Music', { name })); }
       catch (e) { toast(e.message, true); }
     } });
     ytLists.slice(0, 40).forEach((p) => items.push({ icon: 'queue', label: p.title, action: () => addYt(p.id, p.title) }));
-    items.push(null, { header: 'Solo en BitChord' }, { icon: 'add', label: 'Nueva playlist solo en BitChord…', action: newLocal });
+    items.push(null, { header: tr('Solo en BitChord') }, { icon: 'add', label: tr('Nueva playlist solo en BitChord…'), action: newLocal });
   } else {
-    items.push({ header: 'Añadir a playlist de BitChord' }, { icon: 'add', label: 'Nueva playlist…', action: newLocal });
+    items.push({ header: tr('Añadir a playlist de BitChord') }, { icon: 'add', label: tr('Nueva playlist…'), action: newLocal });
   }
   lists.slice(0, 30).forEach((p) => items.push({ icon: 'queue', label: p.name, hint: `${p.count}`, action: () => add(p.id, p.name) }));
   openMenu(items, anchor instanceof Element && anchor.isConnected ? anchor : { x: innerWidth / 2 - 120, y: innerHeight / 3 });
@@ -573,7 +574,7 @@ export async function addToPlaylistMenu(tracks, anchor) {
 
 export async function toggleLike(t) {
   const now = likes.toggle(t);
-  toast(now ? 'Añadida a favoritos' : 'Quitada de favoritos');
+  toast(tr(now ? 'Añadida a favoritos' : 'Quitada de favoritos'));
   updateLikeButtons();
   if (state.account && !t.local) api('rate', t.id, now ? 'like' : 'none').catch((e) => console.warn('rate', e));
 }
@@ -614,7 +615,7 @@ export const player = {
   },
 
   async playRadio(track) {
-    this.from = { label: 'Radio basada en', name: track.title };
+    this.from = { label: 'Radio basada en', name: track.title }; // label translated when shown
     this.queue = [{ ...track, _k: uid() }];
     this.extendWith = true;
     this.load(0);
@@ -765,8 +766,8 @@ export const player = {
 
   setSleep(minutes) {
     clearTimeout(this.sleepTimer);
-    if (minutes === null) { this.sleep = null; toast('Temporizador cancelado'); this.prepareNext(); updateMoreBtn(); return; }
-    if (minutes === 'track') { this.sleep = { endOfTrack: true }; toast('Se detendrá al terminar esta canción'); engine.setNext(null); updateMoreBtn(); return; }
+    if (minutes === null) { this.sleep = null; toast(tr('Temporizador cancelado')); this.prepareNext(); updateMoreBtn(); return; }
+    if (minutes === 'track') { this.sleep = { endOfTrack: true }; toast(tr('Se detendrá al terminar esta canción')); engine.setNext(null); updateMoreBtn(); return; }
     this.sleep = { until: Date.now() + minutes * 60000 };
     this.sleepTimer = setTimeout(async () => {
       // Fade out over 8 s, then pause.
@@ -774,9 +775,9 @@ export const player = {
       engine.playPause(false);
       engine.setVolume(volumeGain());
       this.sleep = null; updateMoreBtn();
-      toast('Temporizador: reproducción detenida');
+      toast(tr('Temporizador: reproducción detenida'));
     }, minutes * 60000);
-    toast(`Se detendrá en ${minutes} min`);
+    toast(tr('Se detendrá en {n} min', { n: minutes }));
     updateMoreBtn();
   },
 };
@@ -790,8 +791,8 @@ function playContext() {
   const head = $('#content .detail-head');
   if (head) return { kind: head.querySelector('.kind')?.textContent.trim() || '', name: head.querySelector('h1')?.textContent.trim() || '' };
   const r = currentRoute();
-  if (r?.name === 'search') return { kind: 'Búsqueda', name: r.q ? `«${r.q}»` : '' };
-  if (r?.name === 'home') return { kind: '', name: 'Inicio' };
+  if (r?.name === 'search') return { kind: tr('Búsqueda'), name: r.q ? `«${r.q}»` : '' };
+  if (r?.name === 'home') return { kind: '', name: tr('Inicio') };
   const title = $('#content .page-title')?.textContent.trim();
   return title ? { kind: '', name: title } : null;
 }
@@ -799,7 +800,8 @@ function updateFrom() {
   const f = player.from, el = $('#np-from');
   el.hidden = !f?.name;
   if (!f?.name) return;
-  el.querySelector('small').textContent = f.label || (f.kind ? `Reproduciendo desde ${f.kind.toLowerCase()}` : 'Reproduciendo desde');
+  // Saved queues may carry the Spanish words: translate them here, when shown.
+  el.querySelector('small').textContent = f.label ? tr(f.label) : f.kind ? tr('Reproduciendo desde {kind}', { kind: tr(f.kind).toLowerCase() }) : tr('Reproduciendo desde');
   el.querySelector('b').textContent = f.name;
   el.title = f.name;
 }
@@ -814,7 +816,7 @@ engine.addEventListener('timeupdate', onTime);
 engine.addEventListener('progress', onTime);
 engine.addEventListener('ended', () => {
   if (player.repeat === 'one') { engine.seek(0); engine.playPause(true); return; }
-  if (player.sleep?.endOfTrack) { player.sleep = null; updateMoreBtn(); engine.playPause(false); engine.seek(0); toast('Temporizador: reproducción detenida'); return; }
+  if (player.sleep?.endOfTrack) { player.sleep = null; updateMoreBtn(); engine.playPause(false); engine.seek(0); toast(tr('Temporizador: reproducción detenida')); return; }
   player.next(true);
 });
 engine.addEventListener('trackchange', (e) => {
@@ -828,7 +830,7 @@ engine.addEventListener('trackchange', (e) => {
 });
 // ---- YouTube rate limiting: show it, and stop generating traffic while it lasts.
 const ytBlock = { until: 0 };
-const isBlockedMsg = (m) => /limitado temporalmente|rechazando la reproducción/.test(String(m || ''));
+const isBlockedMsg = (m) => /limitado temporalmente|rechazando la reproducción|temporarily limit|refusing playback/i.test(String(m || ''));
 const ytBlocked = () => Date.now() < ytBlock.until;
 function showYtBanner(st) {
   const prevUntil = ytBlock.until;
@@ -839,7 +841,7 @@ function showYtBanner(st) {
   let b = $('#yt-banner'), chip = $('#yt-chip');
   if (!b) {
     b = h('<div id="yt-banner" hidden></div>'); document.body.append(b);
-    chip = h(`<button id="yt-chip" class="yt-chip" hidden title="YouTube está limitando las peticiones — pulsa para ver el aviso"></button>`);
+    chip = h(`<button id="yt-chip" class="yt-chip" hidden title="${tr('YouTube está limitando las peticiones — pulsa para ver el aviso')}"></button>`);
     $('#account-btn').before(chip);
     chip.onclick = () => { ytBlock.minimised = false; draw(); };
   }
@@ -852,9 +854,9 @@ function showYtBanner(st) {
     chip.innerHTML = `${icon('warning')}<span>${clock}</span>`;
     if (!b.hidden) {
       const msg = ytBlock.scope === 'playback'
-        ? `<b>YouTube está rechazando la reproducción desde tu conexión</b><div class="muted small">Todas las formas de obtener el audio han fallado en varias canciones seguidas. BitChord deja de intentarlo durante ${clock} para no empeorarlo. Puedes seguir navegando; la música local y las descargas funcionan.</div>`
-        : `<b>YouTube está limitando las peticiones de tu conexión</b><div class="muted small">Ha detectado demasiadas peticiones seguidas. BitChord deja de pedir nada durante ${clock} para que el bloqueo se levante cuanto antes. La música local y las descargas siguen funcionando.</div>`;
-      b.innerHTML = `${icon('info')}<div>${msg}</div><button class="icon-btn yt-x" title="Ocultar (seguirá arriba a la derecha)">${icon('close')}</button>`;
+        ? `<b>${tr('YouTube está rechazando la reproducción desde tu conexión')}</b><div class="muted small">${tr('Todas las formas de obtener el audio han fallado en varias canciones seguidas. BitChord deja de intentarlo durante {clock} para no empeorarlo. Puedes seguir navegando; la música local y las descargas funcionan.', { clock })}</div>`
+        : `<b>${tr('YouTube está limitando las peticiones de tu conexión')}</b><div class="muted small">${tr('Ha detectado demasiadas peticiones seguidas. BitChord deja de pedir nada durante {clock} para que el bloqueo se levante cuanto antes. La música local y las descargas siguen funcionando.', { clock })}</div>`;
+      b.innerHTML = `${icon('info')}<div>${msg}</div><button class="icon-btn yt-x" title="${tr('Ocultar (seguirá arriba a la derecha)')}">${icon('close')}</button>`;
       b.querySelector('.yt-x').onclick = () => { b.classList.add('leaving'); setTimeout(() => { b.classList.remove('leaving'); ytBlock.minimised = true; draw(); }, 250); };
     }
   }
@@ -882,13 +884,13 @@ engine.addEventListener('error', async (e) => {
   if (ytBlocked() || isBlockedMsg(msg)) {
     // Skipping ahead would only fire more requests at YouTube and prolong the block.
     engine.playPause(false); setPlayIcon();
-    toast(msg && isBlockedMsg(msg) ? msg : 'YouTube está limitando las peticiones; la reproducción se ha pausado.', true);
+    toast(msg && isBlockedMsg(msg) ? msg : tr('YouTube está limitando las peticiones; la reproducción se ha pausado.'), true);
     return;
   }
-  toast(msg ? `«${t.title}»: ${msg.slice(0, 220)}` : `No se pudo reproducir «${t.title}»`, true);
+  toast(msg ? `«${t.title}»: ${msg.slice(0, 220)}` : tr('No se pudo reproducir «{name}»', { name: t.title }), true);
   if (player.failStreak >= 3) {
     engine.playPause(false); setPlayIcon();
-    toast('Han fallado varias canciones seguidas, así que he pausado la cola en vez de seguir saltando.', true);
+    toast(tr('Han fallado varias canciones seguidas, así que he pausado la cola en vez de seguir saltando.'), true);
     return;
   }
   if (player.index < player.queue.length - 1) setTimeout(() => player.next(), 1500);
@@ -910,7 +912,7 @@ function setPlayIcon() {
   const b = $('#play');
   b.classList.remove('loading');
   b.innerHTML = icon(engine.paused ? 'play' : 'pause');
-  b.title = engine.paused ? 'Reproducir' : 'Pausa';
+  b.title = tr(engine.paused ? 'Reproducir' : 'Pausa');
   $('#nowplaying').classList.toggle('paused', !!engine.paused);
   document.body.classList.toggle('ambient-paused', !!engine.paused);
   if ('mediaSession' in navigator) navigator.mediaSession.playbackState = engine.paused ? 'paused' : 'playing';
@@ -919,7 +921,7 @@ function updateRepeatBtn() {
   const b = $('#repeat');
   b.innerHTML = icon(player.repeat === 'one' ? 'repeatOne' : 'repeat');
   b.classList.toggle('on', player.repeat !== 'off');
-  b.title = { off: 'Repetir: no', all: 'Repetir: todo', one: 'Repetir: una' }[player.repeat];
+  b.title = tr({ off: 'Repetir: no', all: 'Repetir: todo', one: 'Repetir: una' }[player.repeat]);
 }
 function updateMoreBtn() { for (const b of [$('#btn-more'), $('#fs-more')]) b.classList.toggle('on', !!player.sleep || engine.speed !== 1); }
 
@@ -1033,18 +1035,18 @@ $('#mute').onclick = () => {
 const isFs = () => document.body.classList.contains('fs');
 /** Asks the window to go full screen (or back); the main process answers with 'fullscreen'. */
 function setFullscreen(on) {
-  if (on && !player.current) return toast('No hay nada sonando');
+  if (on && !player.current) return toast(tr('No hay nada sonando'));
   if (on) openNowPlaying();
   bc.setFullscreen(on);
 }
 /** Applies the full-screen layout: the player bar's controls move under the artwork. */
 const FS_BUTTONS = [
   // key, label, icon, group
-  ['queue', 'Cola', 'queue', 'side'], ['eq', 'Ecualizador', 'equalizer', 'side'],
-  ['lyricsSource', 'Cambiar la fuente de la letra', 'lyrics', 'side'], ['lyricsToggle', 'Mostrar u ocultar la letra', 'subtitlesOff', 'side'],
-  ['vis', 'Visualizador y sus presets', 'visualizer', 'side'],
-  ['like', 'Favorito', 'heart', 'play'], ['shuffle', 'Aleatorio', 'shuffle', 'play'], ['repeat', 'Repetir', 'repeat', 'play'],
-  ['more', 'Más opciones (temporizador, velocidad…)', 'more', 'play'],
+  ['queue', tr('Cola'), 'queue', 'side'], ['eq', tr('Ecualizador'), 'equalizer', 'side'],
+  ['lyricsSource', tr('Cambiar la fuente de la letra'), 'lyrics', 'side'], ['lyricsToggle', tr('Mostrar u ocultar la letra'), 'subtitlesOff', 'side'],
+  ['vis', tr('Visualizador y sus presets'), 'visualizer', 'side'],
+  ['like', tr('Favorito'), 'heart', 'play'], ['shuffle', tr('Aleatorio'), 'shuffle', 'play'], ['repeat', tr('Repetir'), 'repeat', 'play'],
+  ['more', tr('Más opciones (temporizador, velocidad…)'), 'more', 'play'],
 ];
 function applyFsButtons() {
   const on = state.settings.fsButtons || {};
@@ -1053,10 +1055,10 @@ function applyFsButtons() {
 /** Settings of the full-screen mode: which buttons it shows. Opens in the middle, over a blur. */
 function fsSettings() {
   const m = h(`<div class="modal-back fs-set-back"><div class="modal fs-set">
-    <h3>Ocultar/Mostrar botones en pantalla completa</h3>
-    <h4>Columna de la derecha</h4><div data-g="side"></div>
-    <h4>Controles de reproducción</h4><div data-g="play"></div>
-    <div class="btn-row"><button class="btn primary small" data-a="ok">Listo</button></div>
+    <h3>${tr('Ocultar/Mostrar botones en pantalla completa')}</h3>
+    <h4>${tr('Columna de la derecha')}</h4><div data-g="side"></div>
+    <h4>${tr('Controles de reproducción')}</h4><div data-g="play"></div>
+    <div class="btn-row"><button class="btn primary small" data-a="ok">${tr('Listo')}</button></div>
   </div></div>`);
   for (const [k, label, ic, g] of FS_BUTTONS) {
     const row = h(`<label class="fs-opt">${icon(ic)}<span class="fs-lbl">${esc(label)}</span><span class="switch" style="flex:none"><input type="checkbox"${(state.settings.fsButtons || {})[k] !== false ? ' checked' : ''}><span></span></span></label>`);
@@ -1102,7 +1104,7 @@ function applyVis() {
   const on = !!state.settings.visualizer;
   document.body.classList.toggle('vis-on', on);
   $('#np-vis-toggle').classList.toggle('on', on);
-  $('#np-vis-toggle').title = on ? 'Volver a portada y letra (V)' : 'Visualizador (V)';
+  $('#np-vis-toggle').title = tr(on ? 'Volver a portada y letra (V)' : 'Visualizador (V)');
   if (on && npOpen()) mountVisualizer($('#nowplaying'), engine);
   if (!on) { unmountVisualizer(); if (fsPanelKind === 'vis') closeFsPanel(); }
 }
@@ -1111,14 +1113,14 @@ function toggleVisPanel() {
   if (fsPanelKind === 'vis') return closeFsPanel();
   const root = h(`<div class="vis-panel">
     <div class="vis-row">
-      <button class="btn ghost small" data-a="rand" title="Otro preset al azar">${icon('shuffle')}Al azar</button>
-      <select class="select" data-a="auto" title="Cuándo cambia de preset solo">
-        <option value="song">Con cada canción</option><option value="30">Cada 30 segundos</option>
-        <option value="60">Cada minuto</option><option value="off">Siempre el mismo</option>
+      <button class="btn ghost small" data-a="rand" title="${tr('Otro preset al azar')}">${icon('shuffle')}${tr('Al azar')}</button>
+      <select class="select" data-a="auto" title="${tr('Cuándo cambia de preset solo')}">
+        <option value="song">${tr('Con cada canción')}</option><option value="30">${tr('Cada 30 segundos')}</option>
+        <option value="60">${tr('Cada minuto')}</option><option value="off">${tr('Siempre el mismo')}</option>
       </select>
     </div>
-    <div class="vis-tabs"><span class="vis-tab-pill"></span><button data-t="all">Todos</button><button data-t="fav">Favoritos</button></div>
-    <input class="text" type="search" placeholder="Buscar preset…" spellcheck="false">
+    <div class="vis-tabs"><span class="vis-tab-pill"></span><button data-t="all">${tr('Todos')}</button><button data-t="fav">${tr('Favoritos')}</button></div>
+    <input class="text" type="search" placeholder="${tr('Buscar preset…')}" spellcheck="false">
     <div class="vis-list"></div>
   </div>`);
   const list = root.querySelector('.vis-list'), search = root.querySelector('input'), auto = root.querySelector('select');
@@ -1155,19 +1157,19 @@ function toggleVisPanel() {
     tabs.classList.toggle('fav', favOnly);
     tabs.querySelector('[data-t=all]').classList.toggle('on', !favOnly);
     tabs.querySelector('[data-t=fav]').classList.toggle('on', favOnly);
-    tabs.querySelector('[data-t=fav]').textContent = favs.size ? `Favoritos · ${favs.size}` : 'Favoritos';
+    tabs.querySelector('[data-t=fav]').textContent = favs.size ? `${tr('Favoritos')} · ${favs.size}` : tr('Favoritos');
     const q = search.value.trim().toLowerCase();
     const names = presetNames().filter((n) => (!favOnly || favs.has(n)) && (!q || n.toLowerCase().includes(q)));
     list.replaceChildren();
-    if (!presetNames().length) return list.append(h('<div class="vis-empty">Cargando los presets…</div>'));
-    if (favOnly && !favs.size) return list.append(h('<div class="vis-empty">Aún no tienes favoritos</div>'));
-    if (!names.length) return list.append(h('<div class="vis-empty">Ningún preset coincide.</div>'));
+    if (!presetNames().length) return list.append(h(`<div class="vis-empty">${tr('Cargando los presets…')}</div>`));
+    if (favOnly && !favs.size) return list.append(h(`<div class="vis-empty">${tr('Aún no tienes favoritos')}</div>`));
+    if (!names.length) return list.append(h(`<div class="vis-empty">${tr('Ningún preset coincide.')}</div>`));
     const cur = currentPreset();
     for (const n of names) {
       const fav = favs.has(n);
       list.append(h(`<div class="vis-item${n === cur ? ' checked' : ''}" data-name="${esc(n)}">
         <button class="vis-pick">${icon(n === cur ? 'check' : '')}<span class="ellipsis">${esc(n)}</span></button>
-        <button class="vis-fav${fav ? ' on' : ''}" title="${fav ? 'Quitar de favoritos' : 'Añadir a favoritos'}">${icon(fav ? 'starFill' : 'star')}</button>
+        <button class="vis-fav${fav ? ' on' : ''}" title="${tr(fav ? 'Quitar de favoritos' : 'Añadir a favoritos')}">${icon(fav ? 'starFill' : 'star')}</button>
       </div>`));
     }
     // First time: bring the current preset into view (scrolling the list only, never the window).
@@ -1176,7 +1178,7 @@ function toggleVisPanel() {
   };
   const off = onVisChange(draw);
   search.addEventListener('input', draw);
-  openFsPanel('vis', 'Visualizador', root);
+  openFsPanel('vis', tr('Visualizador'), root);
   draw();
 }
 function syncFsPanelButtons() {
@@ -1192,7 +1194,7 @@ function applyFullscreen(on) {
   if (on) $('#np-fs-slot').append(center);
   else $('#player .p-left').after(center);
   $('#btn-fs').innerHTML = icon(on ? 'fullscreenExit' : 'fullscreen');
-  $('#btn-fs').title = on ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa (F11)';
+  $('#btn-fs').title = tr(on ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa (F11)');
   $('#btn-fs').classList.toggle('on', on);
   if (on && !npOpen()) openNowPlaying();
   if (on) peekFsVolume(2500); else document.body.classList.remove('fs-vol-show');
@@ -1207,8 +1209,8 @@ function updateNowPlaying() {
   updateFrom();
   if (t?._k !== visTrackKey) { visTrackKey = t?._k; visOnTrackChange(); }
   $('#np-album').textContent = t ? [t.album?.name, t.year].filter(Boolean).join(' • ') : '';
-  $('#p-title').textContent = t ? t.title : 'Nada sonando';
-  $('#p-artist').innerHTML = t ? (t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ') : 'Busca algo para empezar';
+  $('#p-title').textContent = t ? t.title : tr('Nada sonando');
+  $('#p-artist').innerHTML = t ? (t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ') : tr('Busca algo para empezar');
   $('#p-art').src = art(t?.thumb);
   $('#np-art').src = art(t?.thumb);
   $('#np-title').textContent = t?.title || '';
@@ -1234,7 +1236,7 @@ async function updateStats() {
   const t = player.current;
   if (!t) return;
   let s = null;
-  try { s = t.local ? { codec: t.codec, bitrate: t.bitrate, client: t.remote ? 'WebDAV' : 'archivo local', sampleRate: t.sampleRate } : await api('streamInfo', t.id); } catch {}
+  try { s = t.local ? { codec: t.codec, bitrate: t.bitrate, client: t.remote ? 'WebDAV' : tr('archivo local'), sampleRate: t.sampleRate } : await api('streamInfo', t.id); } catch {}
   if (player.current?.id !== t.id) return;
   const an = engine.analysisFor(t.id);
   const sr = s?.sampleRate || engine.ctx.sampleRate;
@@ -1380,7 +1382,7 @@ function showMixBadge() {
 
 let npCloseTimer = null;
 function openNowPlaying() {
-  if (!player.current) return toast('No hay nada sonando');
+  if (!player.current) return toast(tr('No hay nada sonando'));
   const np = $('#nowplaying');
   clearTimeout(npCloseTimer); np.classList.remove('closing');
   np.hidden = false;
@@ -1397,7 +1399,7 @@ function applyLyricsHidden() {
   $('#nowplaying').classList.toggle('no-lyrics', off);
   const b = $('#np-lyrics-toggle');
   b.innerHTML = icon(off ? 'subtitles' : 'subtitlesOff');
-  b.title = off ? 'Mostrar la letra' : 'Ocultar la letra (solo portada)';
+  b.title = tr(off ? 'Mostrar la letra' : 'Ocultar la letra (solo portada)');
 }
 function closeNowPlaying() {
   const np = $('#nowplaying');
@@ -1446,8 +1448,8 @@ function renderLyrics() {
   box.innerHTML = '';
   box.style.setProperty('--lyr-size', (state.settings.lyricsFontSize || 30) + 'px');
   const label = providerMeta.find((p) => p.id === l?.provider)?.label;
-  $('#lyrics-source').innerHTML = `${icon('lyrics')}<span class="pill-label"><span>${l?.loading ? 'Buscando letra…' : label ? label + (l.forced ? '' : ' · auto') : 'Sin letra'}</span>${icon('chevron')}</span>`;
-  $('#lyrics-source').title = 'Fuente de la letra';
+  $('#lyrics-source').innerHTML = `${icon('lyrics')}<span class="pill-label"><span>${l?.loading ? tr('Buscando letra…') : label ? label + (l.forced ? '' : ' · auto') : tr('Sin letra')}</span>${icon('chevron')}</span>`;
+  $('#lyrics-source').title = tr('Fuente de la letra');
   if (!l || l.loading) { box.innerHTML = '<div class="none"><div class="spinner"></div></div>'; return; }
   const useWords = state.settings.lyricsWordSync !== false;
   if (l.synced && l.lines?.length) {
@@ -1468,13 +1470,13 @@ function renderLyrics() {
       wordEls.push(words);
       box.append(el);
     });
-    box.append(h(`<div class="src">Letra: ${esc(label || '')}</div>`));
+    box.append(h(`<div class="src">${tr('Letra:')} ${esc(label || '')}</div>`));
     syncLyrics(true);
     return;
   }
   box.classList.add('unsynced');
-  if (l.plain) { box.append(h(`<div class="plain">${esc(l.plain)}</div>`)); box.append(h(`<div class="src">Letra: ${esc(label || '')} · sin sincronizar</div>`)); return; }
-  box.innerHTML = '<div class="none">No hay letra disponible para esta canción</div>';
+  if (l.plain) { box.append(h(`<div class="plain">${esc(l.plain)}</div>`)); box.append(h(`<div class="src">${tr('Letra:')} ${esc(label || '')} · ${tr('sin sincronizar')}</div>`)); return; }
+  box.innerHTML = `<div class="none">${tr('No hay letra disponible para esta canción')}</div>`;
 }
 
 function syncLyrics(force = false) {
@@ -1517,29 +1519,29 @@ function lyricsSourceMenu(anchor) {
   const cur = player.lyrics;
   anchor.classList.add('open');
   openMenu([
-    { header: 'Fuente de la letra' },
-    { icon: 'sparkle', label: 'Automático (según tu orden)', checked: !cur?.forced, action: () => loadLyrics(t) },
+    { header: tr('Fuente de la letra') },
+    { icon: 'sparkle', label: tr('Automático (según tu orden)'), checked: !cur?.forced, action: () => loadLyrics(t) },
     null,
-    ...providerMeta.map((p) => ({ label: p.label, hint: p.word ? 'palabra a palabra' : '', checked: cur?.forced === p.id, action: () => loadLyrics(t, p.id) })),
+    ...providerMeta.map((p) => ({ label: p.label, hint: p.word ? tr('palabra a palabra') : '', checked: cur?.forced === p.id, action: () => loadLyrics(t, p.id) })),
     null,
-    { icon: 'settings', label: 'Ordenar proveedores…', action: () => go({ name: 'settings', section: 'lyrics' }) },
+    { icon: 'settings', label: tr('Ordenar proveedores…'), action: () => go({ name: 'settings', section: 'lyrics' }) },
   ], anchor);
 }
 
 // ------------------------------------------------------------------ "more" menu (sleep timer, speed…)
 function moreMenu(anchor) {
   const t = player.current;
-  const sleepLabel = player.sleep?.until ? `termina en ${Math.max(1, Math.round((player.sleep.until - Date.now()) / 60000))} min` : player.sleep?.endOfTrack ? 'al terminar la canción' : 'desactivado';
+  const sleepLabel = player.sleep?.until ? tr('termina en {n} min', { n: Math.max(1, Math.round((player.sleep.until - Date.now()) / 60000)) }) : tr(player.sleep?.endOfTrack ? 'al terminar la canción' : 'desactivado');
   openMenu([
-    { header: `Temporizador · ${sleepLabel}` },
-    ...[15, 30, 45, 60, 90].map((m) => ({ icon: 'timer', label: `${m} minutos`, action: () => player.setSleep(m) })),
-    { icon: 'timer', label: 'Al terminar la canción', action: () => player.setSleep('track') },
-    ...(player.sleep ? [{ icon: 'close', label: 'Cancelar temporizador', action: () => player.setSleep(null) }] : []),
+    { header: `${tr('Temporizador')} · ${sleepLabel}` },
+    ...[15, 30, 45, 60, 90].map((m) => ({ icon: 'timer', label: tr('{n} minutos', { n: m }), action: () => player.setSleep(m) })),
+    { icon: 'timer', label: tr('Al terminar la canción'), action: () => player.setSleep('track') },
+    ...(player.sleep ? [{ icon: 'close', label: tr('Cancelar temporizador'), action: () => player.setSleep(null) }] : []),
     null,
-    { header: `Velocidad · ${engine.speed}×` },
+    { header: `${tr('Velocidad')} · ${engine.speed}×` },
     ...[0.75, 1, 1.25, 1.5].map((s) => ({ icon: 'speed', label: `${s}×`, checked: engine.speed === s, action: () => saveSettings({ speed: s }).then(updateMoreBtn) })),
     null,
-    ...(t && !t.local ? [isDownloaded(t.id) ? { icon: 'downloaded', label: 'Descargada · mostrar archivo', action: () => api('downloadShow', t.id) } : { icon: 'download', label: 'Descargar esta canción', action: () => downloadTracks([t]) }] : []),
+    ...(t && !t.local ? [isDownloaded(t.id) ? { icon: 'downloaded', label: tr('Descargada · mostrar archivo'), action: () => api('downloadShow', t.id) } : { icon: 'download', label: tr('Descargar esta canción'), action: () => downloadTracks([t]) }] : []),
   ], anchor);
 }
 
@@ -1549,17 +1551,17 @@ function toggleEq(force) {
     const show = force != null ? force : fsPanelKind !== 'eq';
     if (show) {
       const body = h('<div></div>');
-      const more = h('<button class="text-btn" style="margin:4px 6px 12px">Más en Ajustes</button>');
+      const more = h(`<button class="text-btn" style="margin:4px 6px 12px">${tr('Más en Ajustes')}</button>`);
       more.onclick = () => { closeFsPanel(); setFullscreen(false); go({ name: 'settings', section: 'eq' }); };
       body.append(eqPanel({ compact: true }), more);
-      openFsPanel('eq', 'Ecualizador', body);
+      openFsPanel('eq', tr('Ecualizador'), body);
     } else if (fsPanelKind === 'eq') closeFsPanel();
     return;
   }
   const pop = $('#eq-pop');
   const show = force != null ? force : pop.hidden;
   if (show && !pop.firstChild) {
-    pop.append(h(`<div class="eq-pop-head"><b>Ecualizador</b><button class="text-btn" data-a="more">Más en Ajustes</button></div>`));
+    pop.append(h(`<div class="eq-pop-head"><b>${tr('Ecualizador')}</b><button class="text-btn" data-a="more">${tr('Más en Ajustes')}</button></div>`));
     pop.append(eqPanel({ compact: true }));
     pop.querySelector('[data-a=more]').onclick = () => { toggleEq(false); go({ name: 'settings', section: 'eq' }); };
   }
@@ -1581,20 +1583,20 @@ function toggleAccountPop(force) {
   const a = state.account;
   pop.innerHTML = '';
   if (a) {
-    pop.append(h(`<div class="acct-head">${a.photo ? `<img src="${esc(a.photo)}" alt="">` : `<span class="acct-ph">${icon('account')}</span>`}<div style="min-width:0"><b class="ellipsis">${esc(a.name || 'Sesión iniciada')}</b><div class="muted small ellipsis">${esc(a.handle || a.email || 'Cuenta de Google')}</div></div></div>`));
-    const out = h(`<button class="acct-item danger">${icon('logout')}<span>Cerrar sesión</span></button>`);
+    pop.append(h(`<div class="acct-head">${a.photo ? `<img src="${esc(a.photo)}" alt="">` : `<span class="acct-ph">${icon('account')}</span>`}<div style="min-width:0"><b class="ellipsis">${esc(a.name || tr('Sesión iniciada'))}</b><div class="muted small ellipsis">${esc(a.handle || a.email || tr('Cuenta de Google'))}</div></div></div>`));
+    const out = h(`<button class="acct-item danger">${icon('logout')}<span>${tr('Cerrar sesión')}</span></button>`);
     out.onclick = async () => {
       out.disabled = true;
-      try { await api('logout'); await refreshAccount(); toast('Sesión cerrada'); toggleAccountPop(false); refreshView(); }
+      try { await api('logout'); await refreshAccount(); toast(tr('Sesión cerrada')); toggleAccountPop(false); refreshView(); }
       catch (e) { toast(e.message, true); out.disabled = false; }
     };
     pop.append(h('<div class="acct-sep"></div>'), out);
   } else {
-    pop.append(h(`<div class="acct-head"><span class="acct-ph">${icon('account')}</span><div><b>Sin sesión</b><div class="muted small">Inicia sesión para ver tus playlists y recomendaciones</div></div></div>`));
-    const login = h(`<button class="acct-item">${icon('account')}<span>Iniciar sesión con Google</span></button>`);
+    pop.append(h(`<div class="acct-head"><span class="acct-ph">${icon('account')}</span><div><b>${tr('Sin sesión')}</b><div class="muted small">${tr('Inicia sesión para ver tus playlists y recomendaciones')}</div></div></div>`));
+    const login = h(`<button class="acct-item">${icon('account')}<span>${tr('Iniciar sesión con Google')}</span></button>`);
     login.onclick = async () => {
       login.disabled = true; toggleAccountPop(false);
-      try { const r = await api('login'); if (r !== null) { await refreshAccount(); toast('Sesión iniciada'); refreshView(); } }
+      try { const r = await api('login'); if (r !== null) { await refreshAccount(); toast(tr('Sesión iniciada')); refreshView(); } }
       catch (e) { toast(e.message, true); }
     };
     pop.append(h('<div class="acct-sep"></div>'), login);
@@ -1654,11 +1656,11 @@ function renderQueue() {
   const box = $('#queue-list');
   if ($('#queue').hidden) return;
   box.innerHTML = '';
-  if (!player.queue.length) { box.append(h(`<div class="empty" style="padding:40px 0">${icon('queue')}<div>La cola está vacía</div></div>`)); return; }
+  if (!player.queue.length) { box.append(h(`<div class="empty" style="padding:40px 0">${icon('queue')}<div>${tr('La cola está vacía')}</div></div>`)); return; }
   const addLabel = (t) => box.append(h(`<div class="label">${t}</div>`));
   player.queue.forEach((t, i) => {
-    if (i === player.index) addLabel('Sonando');
-    if (i === player.index + 1) addLabel(state.settings.automix ? 'A continuación · Automix' : 'A continuación');
+    if (i === player.index) addLabel(tr('Sonando'));
+    if (i === player.index + 1) addLabel(state.settings.automix ? `${tr('A continuación')} · Automix` : tr('A continuación'));
     const row = trackRow(t, i, player.queue, { compact: true, queueIndex: i, onClick: () => player.load(i) });
     if (i < player.index) row.classList.add('past');
     if (i === player.index) row.classList.add('playing');
@@ -1842,10 +1844,10 @@ function initButtons() {
     const before = new Set(state.downloads.done.map((x) => x.id));
     state.downloads = d;
     const fresh = d.done.filter((x) => !before.has(x.id));
-    if (fresh.length === 1) toast(`Descargada: ${fresh[0].track?.title || ''}`);
-    else if (fresh.length > 1) toast(`${fresh.length} descargas completadas`);
+    if (fresh.length === 1) toast(tr('Descargada: {name}', { name: fresh[0].track?.title || '' }));
+    else if (fresh.length > 1) toast(tr('{n} descargas completadas', { n: fresh.length }));
     const err = d.active.find((j) => j.status === 'error' && !j.notified);
-    if (err) toast(`Error al descargar «${err.track.title}»: ${err.error}`, true);
+    if (err) toast(tr('Error al descargar «{name}»: {error}', { name: err.track.title, error: err.error }), true);
     document.dispatchEvent(new CustomEvent('downloads'));
   });
 
@@ -1881,7 +1883,7 @@ function initButtons() {
 /** "Buenas tardes, IvanDxd": the Google account's name (as in the account menu), once known. */
 function greeting() {
   const hour = new Date().getHours();
-  const hello = hour < 6 ? 'Buenas noches' : hour < 13 ? 'Buenos días' : hour < 21 ? 'Buenas tardes' : 'Buenas noches';
+  const hello = tr(hour < 6 ? 'Buenas noches' : hour < 13 ? 'Buenos días' : hour < 21 ? 'Buenas tardes' : 'Buenas noches');
   const name = (state.account?.name || '').trim();
   return name ? `${hello}, ${name}` : hello;
 }
@@ -1890,7 +1892,7 @@ export async function refreshAccount() {
   const b = $('#account-btn');
   const a = state.account;
   b.innerHTML = a?.photo ? `<img src="${esc(a.photo)}" alt="">` : icon('account');
-  b.title = a ? `${a.name || 'Cuenta de Google'}${a.handle ? ' · ' + a.handle : ''}` : 'Iniciar sesión con Google';
+  b.title = a ? `${a.name || tr('Cuenta de Google')}${a.handle ? ' · ' + a.handle : ''}` : tr('Iniciar sesión con Google');
   b.classList.toggle('signed', !!a);
   // Home is usually drawn before the account arrives: complete the greeting in place.
   const g = $('#home-greet');
@@ -1900,6 +1902,11 @@ export async function refreshAccount() {
 async function init() {
   state.port = await bc.proxyPort();
   state.settings = await api('settingsGet');
+  // Interface language: modules read it when they load, so a change needs a fresh start.
+  if (syncUiLang(state.settings.uiLanguage)) { location.reload(); return; }
+  translateStatic();
+  const ver = $('.sidebar-foot .muted');
+  ver.textContent = ver.textContent.replace('port de BitChord', tr('port de BitChord'));
   try { state.ytCovers = await api('ytCovers'); } catch {}
   providerMeta = await api('lyricsProviders');
   try { state.downloads = await api('downloads'); } catch {}

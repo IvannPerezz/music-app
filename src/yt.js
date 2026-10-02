@@ -4,6 +4,7 @@
 
 import { Innertube, UniversalCache, YTNodes, Platform, YT } from 'youtubei.js';
 import vm from 'node:vm';
+import { tr } from './i18n.js';
 
 // youtubei.js no longer ships a JavaScript evaluator: deciphering signatures and the `n`
 // parameter means running a snippet extracted from YouTube's player. We run it in an isolated
@@ -32,8 +33,8 @@ export class BlockedError extends Error {
   constructor() {
     const min = Math.max(1, Math.ceil((block.until - Date.now()) / 60000));
     super(block.scope === 'playback'
-      ? `YouTube está rechazando la reproducción desde tu conexión. BitChord esperará ~${min} min antes de volver a intentarlo.`
-      : `YouTube ha limitado temporalmente las peticiones desde tu conexión. BitChord esperará ~${min} min antes de volver a intentarlo.`);
+      ? tr('YouTube está rechazando la reproducción desde tu conexión. BitChord esperará ~{min} min antes de volver a intentarlo.', { min })
+      : tr('YouTube ha limitado temporalmente las peticiones desde tu conexión. BitChord esperará ~{min} min antes de volver a intentarlo.', { min }));
     this.code = 'YT_BLOCKED';
   }
 }
@@ -586,7 +587,7 @@ async function resolveUncached(videoId, opts) {
   const byReason = new Map();
   for (const e of errors) { const [cl, ...r] = e.split(': '); const why = r.join(': ').slice(0, 120); byReason.set(why, [...(byReason.get(why) || []), cl]); }
   const summary = [...byReason].map(([why, cls]) => `${cls.join('/')}: ${why}`).join(' · ');
-  const err = new Error('No se pudo obtener el audio de esta canción. ' + (summary || 'ningún cliente disponible'));
+  const err = new Error(tr('No se pudo obtener el audio de esta canción.') + ' ' + (summary || tr('ningún cliente disponible')));
   err.details = errors;
   // Every client refusing at once (400s on /player, "reload the page"…) is how a soft block starts.
   const refusals = errors.filter((e) => /HTTP 4\d\d|status code 4\d\d|volver a cargar|reload|sin audio/i.test(e)).length;
@@ -643,14 +644,14 @@ export async function accountPlaylists() {
 }
 
 export async function addToAccountPlaylist(playlistId, videoIds) {
-  if (!cookie) throw new Error('Inicia sesión con Google para añadir canciones a tus playlists de YouTube Music.');
+  if (!cookie) throw new Error(tr('Inicia sesión con Google para añadir canciones a tus playlists de YouTube Music.'));
   const c = await client();
   await c.playlist.addVideos(playlistId.replace(/^VL/, ''), videoIds);
   return videoIds.length;
 }
 
 export async function library() {
-  if (!cookie) throw new Error('Inicia sesión con tu cuenta de Google para ver tu biblioteca.');
+  if (!cookie) throw new Error(tr('Inicia sesión con tu cuenta de Google para ver tu biblioteca.'));
   const [playlists, albums, artists] = await Promise.all([
     browseItems('FEmusic_liked_playlists').catch(() => []),
     browseItems('FEmusic_liked_albums').catch(() => []),
@@ -664,12 +665,12 @@ export async function library() {
 }
 
 export async function history() {
-  if (!cookie) throw new Error('Inicia sesión para ver tu historial de YouTube Music.');
+  if (!cookie) throw new Error(tr('Inicia sesión para ver tu historial de YouTube Music.'));
   return (await browseItems('FEmusic_history')).filter((i) => i.kind === 'track');
 }
 
 export async function rate(videoId, value) {
-  if (!cookie) throw new Error('Inicia sesión para sincronizar "me gusta" con YouTube Music.');
+  if (!cookie) throw new Error(tr('Inicia sesión para sincronizar "me gusta" con YouTube Music.'));
   const c = await client();
   if (value === 'like') await c.interact.like(videoId);
   else if (value === 'dislike') await c.interact.dislike(videoId);
@@ -712,13 +713,13 @@ const sleep = (ms) => new Promise((ok) => setTimeout(ok, ms));
  * import doesn't look like abuse.
  */
 export async function createAccountPlaylist(title, videoIds, { description = '', onProgress = () => {} } = {}) {
-  if (!cookie) throw new Error('Inicia sesión con Google para crear playlists en tu cuenta.');
+  if (!cookie) throw new Error(tr('Inicia sesión con Google para crear playlists en tu cuenta.'));
   const c = await client();
   const BATCH = 50;
   const first = videoIds.slice(0, BATCH);
   const res = await c.actions.execute('/playlist/create', { title: title.slice(0, 150), description: description.slice(0, 5000), privacyStatus: 'PRIVATE', videoIds: first });
   const playlistId = res.data?.playlistId;
-  if (!playlistId) throw new Error('YouTube no devolvió la playlist creada');
+  if (!playlistId) throw new Error(tr('YouTube no devolvió la playlist creada'));
   let done = first.length;
   onProgress(done);
   for (let i = BATCH; i < videoIds.length; i += BATCH) {

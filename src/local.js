@@ -4,6 +4,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { parseFile } from 'music-metadata';
 import { coverPath } from './playlists.js';
+import { tr } from './i18n.js';
 
 const EXT = new Set(['.mp3', '.m4a', '.mp4', '.aac', '.flac', '.ogg', '.opus', '.wav', '.webm', '.weba', '.wma']);
 let indexFile = null;
@@ -168,7 +169,7 @@ export const folders = (list) => list.map((f) => folderSummary(f));
 
 export function folderGet(list, id) {
   const folder = list.find((f) => folderId(f) === id);
-  if (!folder) throw new Error('Esa carpeta ya no está en BitChord');
+  if (!folder) throw new Error(tr('Esa carpeta ya no está en BitChord'));
   const entries = folderEntries(folder);
   return { ...folderSummary(folder, entries), tracks: entries.map((e) => e.track) };
 }
@@ -181,7 +182,7 @@ export function renameFolder(id, name) {
 
 export function setFolderCover(id, bytes, nativeImage) {
   let img = nativeImage.createFromBuffer(Buffer.from(bytes));
-  if (img.isEmpty()) throw new Error('No se pudo leer la imagen (usa JPG, PNG, WebP o BMP)');
+  if (img.isEmpty()) throw new Error(tr('No se pudo leer la imagen (usa JPG, PNG, WebP o BMP)'));
   const { width, height } = img.getSize();
   const side = Math.min(width, height);
   img = img.crop({ x: Math.floor((width - side) / 2), y: Math.floor((height - side) / 2), width: side, height: side });
