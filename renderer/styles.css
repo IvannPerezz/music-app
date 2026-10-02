@@ -1522,3 +1522,6 @@ body.bg-swap .amb-layer i, body.ambient-cover.bg-swap .amb-layer i { transition:
 
 /* No lyrics for this song: hidden automatically, but the source button stays usable. */
 #nowplaying.lyrics-empty #lyrics-source { opacity: 1; pointer-events: auto; }
+
+/* Cover and lyrics view: no heart next to the title (it's in the player bar). */
+#np-like { display: none !important; }
