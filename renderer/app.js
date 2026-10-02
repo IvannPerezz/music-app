@@ -1581,19 +1581,26 @@ function slideArt(img, src, dir = 1) {
   Object.assign(next.style, { left: img.offsetLeft + 'px', top: img.offsetTop + 'px', width: img.offsetWidth + 'px', height: img.offsetHeight + 'px', borderRadius: cs.borderRadius, boxShadow: cs.boxShadow, transform: cs.transform === 'none' ? '' : cs.transform });
   next.src = src;
   host.append(next);
-  // Dealt like a playing card: it flies in tilted and lifted (bigger shadow), overshoots a
-  // little, straightens and lands on top; the old cover sinks a bit under it.
+  // Shuffled like a deck of cards: the new cover comes out from BEHIND the current one towards
+  // the side, then goes over it and lands on top; the old one sinks a little under it.
   const base = cs.transform === 'none' ? '' : cs.transform + ' ';
   const shadow = cs.boxShadow && cs.boxShadow !== 'none' ? cs.boxShadow : '0 10px 30px rgba(0,0,0,.4)';
   const go = () => {
+    img.style.position = 'relative'; img.style.zIndex = '2';
+    const D = 680;
     const a = next.animate([
-      { transform: `${base}translate(${dir * 115}%, -10%) rotate(${dir * 14}deg) scale(1.06)`, opacity: 0, boxShadow: '0 40px 80px rgba(0,0,0,.6)', offset: 0 },
-      { opacity: 1, offset: .25 },
-      { transform: `${base}translate(${dir * -3}%, -1%) rotate(${dir * -2.5}deg) scale(1.03)`, boxShadow: '0 30px 70px rgba(0,0,0,.55)', offset: .72 },
-      { transform: `${base}translate(0, 0) rotate(0deg) scale(1)`, opacity: 1, boxShadow: shadow, offset: 1 },
-    ], { duration: 620, easing: 'cubic-bezier(.25,.8,.35,1)' });
-    img.animate([{ filter: 'brightness(1)', transform: base || 'none' }, { filter: 'brightness(.6)', transform: `${base}scale(.95)` }], { duration: 620, easing: 'ease-in-out' });
-    a.onfinish = () => { img.src = src; requestAnimationFrame(() => next.remove()); };
+      { transform: `${base}translate(0, 0) rotate(0deg) scale(.94)`, zIndex: 1, boxShadow: shadow, offset: 0 },
+      { transform: `${base}translate(${dir * 68}%, -4%) rotate(${dir * 10}deg) scale(.96)`, zIndex: 1, offset: .45 },
+      { transform: `${base}translate(${dir * 66}%, -5%) rotate(${dir * 9}deg) scale(1.02)`, zIndex: 3, boxShadow: '0 34px 70px rgba(0,0,0,.55)', offset: .5 },
+      { transform: `${base}translate(${dir * -2}%, -1%) rotate(${dir * -1.5}deg) scale(1.02)`, zIndex: 3, offset: .86 },
+      { transform: `${base}translate(0, 0) rotate(0deg) scale(1)`, zIndex: 3, boxShadow: shadow, offset: 1 },
+    ], { duration: D, easing: 'cubic-bezier(.45,.05,.35,1)' });
+    img.animate([
+      { filter: 'brightness(1)', transform: base || 'none', offset: 0 },
+      { filter: 'brightness(1)', transform: `${base}translateX(${dir * -6}%) rotate(${dir * -2}deg)`, offset: .45 },
+      { filter: 'brightness(.6)', transform: `${base}scale(.95)`, offset: 1 },
+    ], { duration: D, easing: 'ease-in-out' });
+    a.onfinish = () => { img.src = src; img.style.position = img.style.zIndex = ''; requestAnimationFrame(() => next.remove()); };
   };
   if (next.complete) go(); else { next.onload = go; next.onerror = () => { img.src = src; next.remove(); }; }
 }
