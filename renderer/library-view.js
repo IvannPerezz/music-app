@@ -1,6 +1,6 @@
 // Library: favourites, downloads, local files, history and the YouTube Music account library.
-import { bc, $, icon, esc, fmt, api, toast, h, state, art, likes, history, askText } from './core.js';
-import { trackRow, section, card, player, go, refreshView, currentRoute, sizeLabel, playlistMenu, isHiddenPlaylist } from './app.js';
+import { bc, $, icon, esc, fmt, api, toast, h, state, art, likes, history, askText, saveSettings } from './core.js';
+import { trackRow, section, card, player, go, refreshView, currentRoute, sizeLabel, playlistMenu, isHiddenPlaylist, sortByPlaylistOrder, renderSidebar } from './app.js';
 import { tr } from './i18n.js';
 
 const TABS = [
@@ -146,41 +146,81 @@ async function playlistsTab() {
     api('localFolders'),
     state.account ? api('accountPlaylists').catch(() => []) : Promise.resolve([]),
   ]);
-  const grid = (title, cards, style = '') => {
+  const grid = (title, cards, style = '', sortable = false) => {
     const sec = h(`<section class="section"${style ? ` style="${style}"` : ''}>${title ? `<h2>${esc(title)}</h2>` : ''}</section>`);
     const box = h('<div class="cards wrap"></div>');
     cards.forEach((c) => box.append(c));
     sec.append(box);
     root.append(sec);
+    if (sortable) makeSortable(box);
   };
   // YouTube Music playlists (the ones the app shows on the home screen too) come first.
   if (state.account) {
     const liked = h(`<div class="card playlist"><div class="art liked">${icon('heartFill')}</div><div class="t">${tr('Me gusta')}</div><div class="s">${tr('Canciones que te gustan en YouTube Music')}</div></div>`);
     liked.onclick = () => go({ name: 'playlist', id: 'LM' });
+    liked.dataset.key = 'yt:LM';
     const ytCards = ytLists.filter((p) => !isHiddenPlaylist(p.id)).map((p) => {
       const c = card(p);
+      c.dataset.key = 'yt:' + p.id;
       c.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: p.id, title: p.title }, { x: e.clientX, y: e.clientY }); });
       return c;
     });
     liked.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: 'LM', title: tr('Me gusta') }, { x: e.clientX, y: e.clientY }); });
-    grid(tr('Tus playlists de YouTube Music'), [...(isHiddenPlaylist('LM') ? [] : [liked]), ...ytCards]);
+    grid(tr('Tus playlists de YouTube Music'), sortByPlaylistOrder([...(isHiddenPlaylist('LM') ? [] : [liked]), ...ytCards], (c) => c.dataset.key), '', true);
   }
   if (lists.length) {
-    grid(state.account ? tr('Solo en BitChord') : '', lists.map((p) => {
+    grid(state.account ? tr('Solo en BitChord') : '', sortByPlaylistOrder(lists.map((p) => {
       const c = h(`<div class="card playlist"><div class="art">${coverHtml(p, 'queue')}<span class="hover-play">${icon('play')}</span></div><div class="t ellipsis">${esc(p.name)}</div><div class="s">${tr('{n} canciones', { n: p.count })}${p.origin === 'spotify' ? ' · ' + tr('de Spotify') : ''}</div></div>`);
       c.onclick = async (e) => {
         if (e.target.closest('.hover-play')) { const d = await api('playlistGet', p.id); if (d.tracks.length) player.playList(d.tracks, 0, { from: { kind: 'Playlist', name: p.name } }); return; }
         go({ name: 'localplaylist', id: p.id });
       };
       c.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'localplaylist', id: p.id, title: p.name }, { x: e.clientX, y: e.clientY }); });
+      c.dataset.key = 'bc:' + p.id;
       return c;
-    }), state.account ? 'margin-top:28px' : '');
+    }), (c) => c.dataset.key), state.account ? 'margin-top:28px' : '', true);
   }
   if (!state.account && !lists.length) {
     root.append(h(`<div class="empty">${icon('queue')}<div><b>${tr('Aún no tienes playlists')}</b></div><div class="muted">${tr('Inicia sesión con Google para ver tus playlists de YouTube Music, crea una aquí, añade canciones desde el menú ⋮ de cualquier canción o importa tus playlists de Spotify.')}</div></div>`));
   }
   if (fl.length) grid(tr('Carpetas de este equipo'), fl.map((f) => folderCard(f)), 'margin-top:28px');
   return root;
+}
+
+/** Drag a playlist card to another place in its grid; the order is saved (and used by the
+ *  sidebar too). The other cards slide to their new places. */
+function makeSortable(box) {
+  let dragged = null;
+  const cards = () => [...box.children].filter((c) => c.dataset.key);
+  const save = () => {
+    const mine = cards().map((x) => x.dataset.key);
+    const rest = (state.settings.playlistOrder || []).filter((k) => !mine.includes(k));
+    saveSettings({ playlistOrder: [...mine, ...rest] }).then(() => renderSidebar());
+  };
+  for (const c of cards()) {
+    c.draggable = true;
+    c.addEventListener('dragstart', (e) => { dragged = c; c.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', c.dataset.key); });
+    c.addEventListener('dragend', () => { c.classList.remove('dragging'); dragged = null; save(); });
+  }
+  box.addEventListener('dragover', (e) => {
+    if (!dragged || dragged.parentElement !== box) return;
+    e.preventDefault();
+    const over = e.target.closest('.card');
+    if (!over || over === dragged || over.parentElement !== box) return;
+    const r = over.getBoundingClientRect();
+    const ref = e.clientX > r.left + r.width / 2 ? over.nextElementSibling : over;
+    if (ref === dragged || ref === dragged.nextElementSibling) return;
+    // FLIP: remember where every card was, move the dragged one, then slide the others.
+    const before = new Map(cards().map((x) => [x, x.getBoundingClientRect()]));
+    box.insertBefore(dragged, ref);
+    for (const x of cards()) {
+      if (x === dragged) continue;
+      const a = before.get(x), b = x.getBoundingClientRect();
+      if (!a || (a.left === b.left && a.top === b.top)) continue;
+      x.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)` }, { transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    }
+  });
+  box.addEventListener('drop', (e) => e.preventDefault());
 }
 
 async function networkTab() {

@@ -1370,3 +1370,7 @@ body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition:
 #toast:not([hidden]) { animation: toast-in .28s cubic-bezier(.2,.8,.2,1) backwards; }
 @keyframes toast-in { from { opacity: 0; transform: translateX(-50%) translateY(10px) scale(.97); } }
 #toast.error { border-left: 3px solid var(--accent); }
+
+/* Biblioteca -> Playlists: drag to reorder. */
+.cards.wrap .card[draggable="true"] { cursor: grab; }
+.cards.wrap .card.dragging { opacity: .35; transform: scale(.96); transition: opacity .15s, transform .15s; }

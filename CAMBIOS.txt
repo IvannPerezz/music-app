@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.23
+------------------------------------------------------------
+- Biblioteca > Playlists: puedes ordenar tus playlists arrastrándolas con el ratón a otro
+  sitio. Las demás se apartan con una animación para dejarle hueco. El orden se guarda y
+  se usa también en las playlists desplegables de la barra lateral. Las de YouTube Music y
+  las de BitChord se ordenan cada una en su grupo; las playlists nuevas salen al
+  principio. (El orden solo cambia en BitChord, no en la app de YouTube Music.)
+
+------------------------------------------------------------
 v0.6.22.4
 ------------------------------------------------------------
 - El menú del click derecho de las playlists de YouTube Music tiene ahora "Ocultar en

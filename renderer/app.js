@@ -148,9 +148,11 @@ async function fillPlaylistsFold(inner) {
     state.account ? api('accountPlaylists').catch(() => []) : [],
   ]);
   const items = [
-    ...(state.account && !isHiddenPlaylist('LM') ? [{ liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
-    ...yt.filter((p) => !isHiddenPlaylist(p.id)).map((p) => ({ title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
-    ...mine.map((p) => ({ title: p.name, thumb: p.cover || p.thumbs?.[0], route: { name: 'localplaylist', id: p.id } })),
+    ...sortByPlaylistOrder([
+      ...(state.account && !isHiddenPlaylist('LM') ? [{ key: 'yt:LM', liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
+      ...yt.filter((p) => !isHiddenPlaylist(p.id)).map((p) => ({ key: 'yt:' + p.id, title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
+    ], (x) => x.key),
+    ...sortByPlaylistOrder(mine.map((p) => ({ key: 'bc:' + p.id, title: p.name, thumb: p.cover || p.thumbs?.[0], route: { name: 'localplaylist', id: p.id } })), (x) => x.key),
   ];
   const key = JSON.stringify(items.map((x) => [x.title, x.thumb]));
   if (inner.dataset.key === key) return; // nothing changed: don't redraw (no flicker)
@@ -646,6 +648,11 @@ export async function deletePlaylist(p, { leave = false } = {}) {
     if (leave) go({ name: 'library', tab: 'playlists' }, { replace: true }); else refreshView();
     return false;
   }
+}
+/** Order chosen by dragging in Biblioteca -> Playlists; playlists not placed yet (new ones) go first. */
+export function sortByPlaylistOrder(list, keyOf) {
+  const pos = new Map((state.settings.playlistOrder || []).map((k, i) => [k, i]));
+  return list.map((x, i) => [x, pos.has(keyOf(x)) ? pos.get(keyOf(x)) : -1e6 + i]).sort((a, b) => a[1] - b[1]).map(([x]) => x);
 }
 /** YouTube Music playlists hidden in BitChord (they stay in the account). */
 export const isHiddenPlaylist = (id) => (state.settings.hiddenPlaylists || []).some((x) => x.id === id);

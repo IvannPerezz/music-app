@@ -180,13 +180,21 @@ if (lit !== 'nav-library') errors.push('Al pulsar Biblioteca se resalta: ' + lit
 await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(700);
 if (!(await win.evaluate(() => document.querySelector('.sb-pl-grid.open') && document.querySelector('#nav-home').offsetHeight >= 36))) errors.push('El desplegable de playlists de la barra lateral no se abre bien');
 await shot('06c-sidebar-playlists');
+// Drag a playlist to another place: the new order is kept after redrawing.
+const firstTitles = () => win.evaluate(() => [...document.querySelectorAll('.cards.wrap')[0].querySelectorAll('.card .t')].map((t) => t.textContent));
+const t0 = await firstTitles();
+await win.locator('.cards.wrap >> nth=0').locator('.card >> nth=1').dragTo(win.locator('.cards.wrap >> nth=0').locator('.card >> nth=3'), { targetPosition: { x: 150, y: 60 } });
+await win.waitForTimeout(500);
+await win.click('#nav-home'); await win.waitForTimeout(500); await win.click('#nav-library'); await win.waitForTimeout(900);
+const t1 = await firstTitles();
+if (t1[1] === t0[1] || !t1.includes(t0[1])) errors.push('Reordenar playlists arrastrando no funciona: ' + t0.join(',') + ' → ' + t1.join(','));
 // Right click on a playlist in Biblioteca → Playlists: its menu, with "Eliminar playlist".
 await win.click('.card.playlist >> nth=1', { button: 'right' }); await win.waitForTimeout(300);
 if (!(await win.evaluate(() => !document.querySelector('#menu').hidden && document.querySelector('#menu').textContent.includes('Eliminar playlist')))) errors.push('Falta el menú de la playlist con click derecho');
 await win.keyboard.press('Escape'); await win.waitForTimeout(200);
 // A playlist YouTube won't delete: explanation + "Ocultar" hides it from Biblioteca.
 const before = await win.locator('.card.playlist').count();
-await win.click('.card.playlist >> nth=1', { button: 'right' }); await win.waitForTimeout(300);
+await win.locator('.card.playlist', { hasText: 'Paper Planes' }).first().click({ button: 'right' }); await win.waitForTimeout(300);
 await win.locator('#menu button', { hasText: 'Eliminar playlist' }).click(); await win.waitForTimeout(300);
 await win.click('.modal [data-a=ok]'); await win.waitForTimeout(600);
 if (!(await win.evaluate(() => document.querySelector('.modal h3')?.textContent === 'No se puede eliminar'))) errors.push('Falta el aviso de playlist que no se puede eliminar');
