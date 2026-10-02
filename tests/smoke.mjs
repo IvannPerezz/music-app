@@ -169,6 +169,11 @@ await win.click('#btn-eq'); await win.waitForTimeout(400); await shot('04-eq');
 await win.click('#btn-eq'); await win.waitForTimeout(300);
 await win.click('#account-btn'); await win.waitForTimeout(400); await shot('05-account');
 await win.mouse.click(700, 400); await win.waitForTimeout(200);
+// "Buscar" in the sidebar: the search box moves to the middle and grows; it goes back after searching.
+await win.click('#nav-search'); await win.waitForTimeout(700);
+const hero = await win.evaluate(() => { const r = document.querySelector('.search-wrap').getBoundingClientRect(); return { top: r.top, h: document.querySelector('#search').offsetHeight }; });
+if (hero.top < 80 || hero.h < 50) errors.push('La búsqueda no baja al centro: ' + JSON.stringify(hero));
+await win.fill('#search', 'lua'); await win.waitForTimeout(500); await shot('06a0-search-hero');
 // Search: the top result is a card (here an artist) with its songs, without «» around the query.
 await win.fill('#search', 'lua vegaa'); await win.keyboard.press('Enter'); await win.waitForTimeout(900);
 if (!(await win.isVisible('.did-you-mean'))) errors.push('Falta el «¿Querías decir…?»');

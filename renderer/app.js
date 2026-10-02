@@ -32,6 +32,7 @@ export async function render(restoreScroll = false, animate = true) {
   $('#forward').disabled = nav.index >= nav.stack.length - 1;
   markNav();
   document.body.classList.toggle('route-settings', route.name === 'settings');
+  searchHero(route.name === 'search' && !route.q);
   // Settings get the whole width: the queue hides (and comes back when leaving), the sidebar
   // folds away by CSS.
   if (route.name === 'settings' && !$('#queue').hidden && !$('#queue').classList.contains('closing')) { toggleQueue(false, { remember: false }); queueHiddenBySettings = true; }
@@ -406,8 +407,8 @@ const views = {
     const root = h('<div></div>');
     const filters = [['all', tr('Todo')], ['song', tr('Canciones')], ['video', tr('Vídeos')], ['album', tr('Álbumes')], ['artist', tr('Artistas')], ['playlist', tr('Playlists')]];
     if (!route.q) {
-      root.append(h(`<div class="empty">${icon('search')}<div><b>${tr('Busca en YouTube Music')}</b></div><div class="muted">${tr('Canciones, artistas, álbumes y playlists')}</div></div>`));
-      setTimeout(() => $('#search').focus(), 0);
+      // "Buscar" with nothing typed yet: the search box comes down to the middle (searchHero).
+      root.append(h(`<div class="search-hero-space"></div>`));
       return root;
     }
     const type = route.type || 'all';
@@ -2061,12 +2062,66 @@ function submitSearch(q) {
   suggestBox.hidden = true;
   if (!q) return;
   searchInput.blur();
+  store.set('recentSearches', [q, ...store.get('recentSearches', []).filter((x) => x.toLowerCase() !== q.toLowerCase())].slice(0, 8));
   go({ name: 'search', q, type: 'all' });
+}
+
+// ---- big centred search ("Buscar" in the sidebar)
+/** The title-bar search box glides down to the middle of the page and grows; the suggestions
+ *  (or the recent searches, before typing) open as a large panel under it. It goes back up
+ *  when you search or leave the page. */
+let heroOn = false;
+function searchHero(on) {
+  const wrap = $('.search-wrap');
+  if (on === heroOn) { if (on) searchInput.focus(); return; }
+  heroOn = on;
+  const from = wrap.getBoundingClientRect();
+  if (on) {
+    // Keep the box's place in the title bar while it's away.
+    const ph = h('<div class="search-ph"></div>');
+    ph.style.width = from.width + 'px';
+    wrap.after(ph);
+    Object.assign(wrap.style, { position: 'fixed', left: from.left + 'px', top: from.top + 'px', width: from.width + 'px', margin: 0 });
+    wrap.classList.add('hero');
+    document.body.classList.add('search-hero');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const c = $('#content').getBoundingClientRect();
+      const w = Math.min(820, c.width - 80);
+      Object.assign(wrap.style, { left: c.left + (c.width - w) / 2 + 'px', top: c.top + Math.max(40, c.height * .16) + 'px', width: w + 'px' });
+      searchInput.focus();
+      showRecentSearches();
+    }));
+  } else {
+    const ph = $('.search-ph');
+    const to = ph ? ph.getBoundingClientRect() : from;
+    suggestBox.hidden = true;
+    document.body.classList.remove('search-hero');
+    wrap.classList.remove('hero');
+    Object.assign(wrap.style, { left: to.left + 'px', top: to.top + 'px', width: to.width + 'px' });
+    setTimeout(() => {
+      if (heroOn) return;
+      wrap.removeAttribute('style'); ph?.remove();
+    }, 420);
+  }
+}
+addEventListener('resize', () => { if (heroOn) { heroOn = false; $('.search-wrap').removeAttribute('style'); $('.search-ph')?.remove(); searchHero(true); } });
+/** Before typing: the latest searches, one click to repeat them. */
+function showRecentSearches() {
+  if (!heroOn || searchInput.value.trim()) return;
+  const recent = store.get('recentSearches', []);
+  suggestBox.innerHTML = '';
+  if (recent.length) suggestBox.append(h(`<li class="sg-head">${tr('Búsquedas recientes')}</li>`));
+  recent.forEach((s) => {
+    const li = h(`<li>${icon('history')}<span>${esc(s)}</span></li>`);
+    li.onmousedown = (e) => { e.preventDefault(); searchInput.value = s; submitSearch(s); };
+    suggestBox.append(li);
+  });
+  suggestBox.hidden = !recent.length;
 }
 searchInput.addEventListener('input', () => {
   clearTimeout(suggestTimer);
   const q = searchInput.value.trim();
-  if (!q) { suggestBox.hidden = true; return; }
+  if (!q) { suggestBox.hidden = true; showRecentSearches(); return; }
   suggestTimer = setTimeout(async () => {
     try {
       const list = await api('suggestions', q);
@@ -2087,13 +2142,19 @@ searchInput.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     if (suggestBox.hidden || !items.length) return;
     e.preventDefault();
-    suggestSel = (suggestSel + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+    const pick = items.filter((li) => !li.classList.contains('sg-head'));
+    if (!pick.length) return;
+    suggestSel = (suggestSel + (e.key === 'ArrowDown' ? 1 : -1) + pick.length) % pick.length;
+    pick.forEach((li, i) => li.classList.toggle('sel', i === suggestSel));
+    searchInput.value = pick[suggestSel].textContent;
+    return;
     items.forEach((li, i) => li.classList.toggle('sel', i === suggestSel));
     searchInput.value = items[suggestSel].textContent;
   } else if (e.key === 'Enter') submitSearch(searchInput.value);
   else if (e.key === 'Escape') { suggestBox.hidden = true; searchInput.blur(); }
 });
-searchInput.addEventListener('blur', () => setTimeout(() => (suggestBox.hidden = true), 100));
+searchInput.addEventListener('blur', () => setTimeout(() => { if (!heroOn) suggestBox.hidden = true; }, 100));
+searchInput.addEventListener('focus', () => showRecentSearches());
 
 // ------------------------------------------------------------------ settings → engine
 export function applyAudioSettings() {

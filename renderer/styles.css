@@ -1442,3 +1442,29 @@ body.route-settings #sb-resize { display: none; }
 .list-head { color: color-mix(in srgb, var(--text) 62%, transparent); }
 .detail-head .muted, .detail-head .desc { color: color-mix(in srgb, var(--text) 70%, transparent); }
 .detail-head .kind { color: color-mix(in srgb, var(--text) 66%, transparent); }
+
+/* ---------------------------------------------------------------- big centred search
+   From "Buscar" in the sidebar: the title-bar box glides to the middle of the page and grows,
+   with the suggestions as a big Mica panel under it. */
+.search-wrap { transition: left .45s cubic-bezier(.32,.72,0,1), top .45s cubic-bezier(.32,.72,0,1), width .45s cubic-bezier(.32,.72,0,1); }
+.search-ph { flex: 0 1 460px; height: 32px; }
+.search-wrap.hero { z-index: 20; }
+.search-wrap #search { transition: background .15s, border-color .15s, height .45s cubic-bezier(.32,.72,0,1), font-size .45s cubic-bezier(.32,.72,0,1), border-radius .45s, padding .45s; }
+.search-wrap.hero #search { height: 58px; font-size: 19px; border-radius: 16px; padding: 0 20px 0 56px;
+  background: linear-gradient(140deg, rgba(255,255,255,.1), rgba(255,255,255,.03)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border-color: rgba(255,255,255,.14); box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+.search-wrap.hero #search:focus { border-color: var(--accent); }
+.search-wrap .search-icon { transition: left .45s cubic-bezier(.32,.72,0,1); }
+.search-wrap.hero .search-icon { left: 20px; }
+.search-wrap.hero .search-icon svg { width: 24px; height: 24px; transition: width .45s, height .45s; }
+.search-wrap.hero #suggest { top: 70px; padding: 8px; max-height: min(460px, calc(100vh - 340px)); overflow-y: auto; border-radius: 18px;
+  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.4);
+  animation: zoom-out-in .3s cubic-bezier(.2,.8,.2,1); scrollbar-width: none; }
+.search-wrap.hero #suggest li { padding: 12px 14px; font-size: 16px; border-radius: 10px; gap: 14px; }
+.search-wrap.hero #suggest li svg { width: 20px; height: 20px; }
+#suggest li.sg-head { cursor: default; font-size: 12px !important; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); padding: 8px 14px 4px !important; }
+#suggest li.sg-head:hover { background: none; }
+.search-hero-space { height: 50vh; }

@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.27
+------------------------------------------------------------
+- Al pulsar "Buscar" en la barra lateral, la barra de búsqueda de arriba baja deslizándose
+  al centro de la página mientras se hace más grande, lista para escribir. Debajo se abre
+  un panel grande de cristal con las sugerencias mientras escribes, o con tus búsquedas
+  recientes antes de escribir nada (con las flechas y Enter también se eligen). Al buscar
+  o ir a otra página, la barra vuelve a su sitio arriba.
+
+------------------------------------------------------------
 v0.6.26.1
 ------------------------------------------------------------
 - Playlists, álbumes y demás listas: los artistas, el álbum, la duración, la cabecera
