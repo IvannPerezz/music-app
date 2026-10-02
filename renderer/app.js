@@ -2106,8 +2106,8 @@ function searchHero(on) {
 }
 addEventListener('resize', () => { if (heroOn) { heroOn = false; $('.search-wrap').removeAttribute('style'); $('.search-ph')?.remove(); searchHero(true); } });
 /** Before typing: the latest searches, one click to repeat them. */
-function showRecentSearches() {
-  if (!heroOn || searchInput.value.trim()) return;
+function showRecentSearches(force = false) {
+  if (!heroOn || searchInput.value.trim()) { if (force) suggestBox.hidden = true; return; }
   const recent = store.get('recentSearches', []);
   suggestBox.innerHTML = '';
   if (recent.length) suggestBox.append(h(`<li class="sg-head">${tr('Búsquedas recientes')}</li>`));
@@ -2117,7 +2117,12 @@ function showRecentSearches() {
       e.preventDefault(); // keep the focus in the box
       if (e.target.closest('.sg-del')) {
         store.set('recentSearches', store.get('recentSearches', []).filter((x) => x !== s));
-        return showRecentSearches();
+        // Slide out to the right while the row folds up; then redraw (the panel closes if it was the last).
+        if (li.classList.contains('leaving')) return;
+        li.style.height = li.offsetHeight + 'px';
+        li.classList.add('leaving');
+        setTimeout(() => showRecentSearches(true), 300);
+        return;
       }
       searchInput.value = s; submitSearch(s);
     };

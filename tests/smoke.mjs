@@ -177,7 +177,7 @@ await win.fill('#search', 'lua'); await win.waitForTimeout(500); await shot('06a
 // Recent searches have an × to delete them.
 await win.evaluate(() => localStorage.setItem('bc.recentSearches', JSON.stringify(['uno', 'dos'])));
 await win.fill('#search', ''); await win.waitForTimeout(300);
-await win.locator('#suggest li', { hasText: 'uno' }).locator('.sg-del').click(); await win.waitForTimeout(200);
+await win.locator('#suggest li', { hasText: 'uno' }).locator('.sg-del').click(); await win.waitForTimeout(450);
 if (await win.evaluate(() => JSON.parse(localStorage.getItem('bc.recentSearches')).join() !== 'dos')) errors.push('La × no borra la búsqueda reciente');
 // Search: the top result is a card (here an artist) with its songs, without «» around the query.
 await win.fill('#search', 'lua vegaa'); await win.keyboard.press('Enter'); await win.waitForTimeout(900);
