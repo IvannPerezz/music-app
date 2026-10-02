@@ -15,6 +15,20 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.20
+------------------------------------------------------------
+- Búsqueda mejorada (pestaña "Todo"):
+  - El resultado principal es ahora una tarjeta grande con lo que buscas: el perfil del
+    artista (con su foto redonda), el álbum, la playlist o la canción, con botones para
+    reproducir y para abrirlo. A su lado salen sus canciones destacadas.
+  - Si el resultado principal es un artista, debajo aparecen sus canciones más
+    escuchadas, sus álbumes, singles y EPs, vídeos y actuaciones, como en YouTube Music.
+  - Después, el resto de resultados ordenados por tipo: canciones, vídeos, artistas,
+    álbumes y playlists. Antes YouTube los mandaba mezclados y BitChord no los mostraba.
+- El título de la búsqueda ya no lleva comillas « »: arriba pone "Resultados de" y debajo
+  lo que has buscado.
+
+------------------------------------------------------------
 v0.6.19.4
 ------------------------------------------------------------
 - Barra lateral: al pasar el ratón por una opción ya no aparece un recuadro alrededor;

@@ -158,6 +158,11 @@ await win.click('#btn-eq'); await win.waitForTimeout(400); await shot('04-eq');
 await win.click('#btn-eq'); await win.waitForTimeout(300);
 await win.click('#account-btn'); await win.waitForTimeout(400); await shot('05-account');
 await win.mouse.click(700, 400); await win.waitForTimeout(200);
+// Search: the top result is a card (here an artist) with its songs, without «» around the query.
+await win.fill('#search', 'lua vega'); await win.keyboard.press('Enter'); await win.waitForTimeout(900);
+const sr = await win.evaluate(() => ({ card: !!document.querySelector('.top-card.artist'), title: document.querySelector('.search-head h1')?.textContent }));
+if (!sr.card || sr.title !== 'lua vega') errors.push('Búsqueda: ' + JSON.stringify(sr));
+await shot('06b-search');
 // Sidebar highlight: with "Playlists" pinned, clicking "Biblioteca" keeps "Biblioteca" lit;
 // the pinned shortcut lights up only when it's the one clicked.
 await win.evaluate(async () => { const sb = (await window.bc.settingsGet()).data.sidebar.map((x) => (x.id === 'lib:playlists' ? { ...x, on: true } : x)); await window.__bc.saveSidebar?.(sb); });

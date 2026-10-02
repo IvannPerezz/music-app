@@ -1,6 +1,10 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Resultados de": "Results for",
+  "Canción": "Song",
+  "Ver artista": "View artist",
+  "Resultado principal": "Top result",
   "Botones de la ventana": "Window buttons",
   "Minimizar, maximizar y cerrar: los círculos de colores de macOS o los de Windows. Al cambiarlo, BitChord se reinicia.": "Minimise, maximise and close: macOS's coloured circles or Windows' buttons. Changing it restarts BitChord.",
   "Estilo macOS": "macOS style",

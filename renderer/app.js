@@ -231,6 +231,42 @@ export function section(sec, { wrap = false, radio = true } = {}) {
   return el;
 }
 
+/** Search "top result": a big card (artist, album, song…) with its songs beside it. */
+function topResult(sec) {
+  const el = h(`<section class="section top-result"><h2>${esc(sec.title)}</h2><div class="top-grid"></div></section>`);
+  const grid = el.querySelector('.top-grid');
+  const it = sec.top;
+  if (it) {
+    const kind = { artist: tr('Artista'), album: tr('Álbum'), playlist: tr('Playlist'), track: tr('Canción') }[it.kind] || '';
+    const sub = it.subtitle && !it.subtitle.toLowerCase().startsWith(kind.toLowerCase()) ? `${kind} · ${it.subtitle}` : it.subtitle || kind;
+    const c = h(`<div class="top-card ${it.kind}">
+      ${it.thumb ? `<img src="${esc(art(it.thumb))}" alt="">` : `<div class="top-ph">${icon(it.kind === 'artist' ? 'person' : 'disc')}</div>`}
+      <div class="top-text"><b class="ellipsis">${esc(it.title)}</b><span class="ellipsis">${esc(sub)}</span></div>
+      <div class="top-actions">
+        <button class="btn primary small" data-a="play">${icon('play')}${tr('Reproducir')}</button>
+        ${it.kind !== 'track' ? `<button class="btn ghost small" data-a="open">${tr(it.kind === 'artist' ? 'Ver artista' : 'Abrir')}</button>` : `<button class="btn ghost small" data-a="radio">${icon('radio')}${tr('Radio')}</button>`}
+      </div></div>`);
+    const playAll = async () => {
+      if (it.kind === 'track') return player.playRadio(it);
+      if (it.kind === 'artist') { if (sec.items.length) return player.playList(sec.items, 0, { from: { kind: tr('Artista'), name: it.title } }); return go({ name: 'artist', id: it.id }); }
+      try { const d = await api(it.kind === 'album' ? 'album' : 'playlist', it.id); if (d.tracks.length) player.playList(d.tracks, 0, { from: { kind: it.kind === 'album' ? tr('Álbum') : tr('Playlist'), name: it.title } }); }
+      catch (e) { toast(e.message, true); }
+    };
+    c.querySelector('[data-a=play]').onclick = (e) => { e.stopPropagation(); playAll(); };
+    c.querySelector('[data-a=open]')?.addEventListener('click', (e) => { e.stopPropagation(); go({ name: it.kind, id: it.id }); });
+    c.querySelector('[data-a=radio]')?.addEventListener('click', (e) => { e.stopPropagation(); player.playRadio(it); });
+    c.onclick = () => (it.kind === 'track' ? player.playRadio(it) : go({ name: it.kind, id: it.id }));
+    if (it.kind === 'track') c.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(it, { x: e.clientX, y: e.clientY }); });
+    grid.append(c);
+  }
+  if (sec.items.length) {
+    const box = h('<div class="tracks"></div>');
+    sec.items.forEach((t, i) => box.append(trackRow(t, i, sec.items, { compact: true })));
+    grid.append(box);
+  }
+  return el;
+}
+
 // ------------------------------------------------------------------ views
 const views = {
   async home() {
@@ -278,7 +314,7 @@ const views = {
       return root;
     }
     const type = route.type || 'all';
-    root.append(h(`<h1 class="page-title">«${esc(route.q)}»</h1>`));
+    root.append(h(`<div class="search-head"><span>${tr('Resultados de')}</span><h1 class="page-title">${esc(route.q)}</h1></div>`));
     const chips = h('<div class="chips"></div>');
     filters.forEach(([k, label]) => {
       const c = h(`<button class="chip${k === type ? ' active' : ''}">${label}</button>`);
@@ -289,7 +325,7 @@ const views = {
     const sections = await api('search', route.q, type);
     const nonEmpty = sections.filter((s) => s.items.length);
     if (!nonEmpty.length) root.append(h(`<div class="empty">${icon('search')}<div>${tr('Sin resultados')}</div></div>`));
-    nonEmpty.forEach((s) => root.append(section(s, { wrap: type !== 'all' })));
+    nonEmpty.forEach((s) => root.append(s.layout === 'top' ? topResult(s) : section(s, { wrap: type !== 'all' })));
     return root;
   },
 
@@ -809,7 +845,7 @@ function playContext() {
   const head = $('#content .detail-head');
   if (head) return { kind: head.querySelector('.kind')?.textContent.trim() || '', name: head.querySelector('h1')?.textContent.trim() || '' };
   const r = currentRoute();
-  if (r?.name === 'search') return { kind: tr('Búsqueda'), name: r.q ? `«${r.q}»` : '' };
+  if (r?.name === 'search') return { kind: tr('Búsqueda'), name: r.q || '' };
   if (r?.name === 'home') return { kind: '', name: tr('Inicio') };
   const title = $('#content .page-title')?.textContent.trim();
   return title ? { kind: '', name: title } : null;

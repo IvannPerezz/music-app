@@ -218,6 +218,25 @@ export function norm(node, fallback = {}) {
   return null;
 }
 
+/** The "top result" card of a search (MusicCardShelf) as an item: artist, album, playlist or song. */
+function cardShelfItem(s) {
+  const ep = s.on_tap?.payload || s.title?.endpoint?.payload || {};
+  const title = txt(s.title);
+  const subtitle = txt(s.subtitle);
+  const thumb = pickThumb(thumbsOf(s.thumbnail));
+  const browseId = ep.browseId || '';
+  if (ep.videoId) {
+    const parts = subtitle.split(' • ').map((x) => x.trim());
+    return { kind: 'track', id: ep.videoId, title, thumb, subtitle,
+      artists: (s.subtitle?.runs || []).filter((r) => r.endpoint?.payload?.browseId?.startsWith('UC')).map((r) => ({ name: r.text, id: r.endpoint.payload.browseId })),
+      album: null, duration: parseDuration(parts[parts.length - 1]) };
+  }
+  if (browseId.startsWith('UC')) return { kind: 'artist', id: browseId, title, subtitle, thumb };
+  if (browseId.startsWith('MPRE')) return { kind: 'album', id: browseId, title, subtitle, thumb };
+  if (browseId.startsWith('VL') || browseId.startsWith('PL')) return { kind: 'playlist', id: browseId, title, subtitle, thumb };
+  return null;
+}
+
 const normAll = (arr, fallback) => (arr || []).map((n) => { try { return norm(n, fallback); } catch { return null; } }).filter(Boolean);
 
 function normSection(sec, fallback) {
@@ -252,15 +271,42 @@ export async function search(query, type = 'all') {
   if (type === 'all') {
     const r = await c.music.search(query);
     const sections = [];
+    const loose = [];
+    let top = null;
     for (const s of r.contents || []) {
       if (s.type === 'MusicCardShelf') {
-        // "Top result" card.
-        const items = normAll(s.contents);
-        if (items.length) sections.push({ title: 'Resultado principal', layout: 'list', items });
+        // "Top result": the card itself (an artist, album, song…) plus the songs YouTube lists with it.
+        const item = cardShelfItem(s);
+        const fallback = item?.kind === 'artist' ? { artists: [{ name: item.title, id: item.id }] } : undefined;
+        const items = normAll(s.contents, fallback).filter((t) => t.kind === 'track');
+        if (item || items.length) { top = { title: tr('Resultado principal'), layout: 'top', top: item, items: items.slice(0, 4) }; sections.push(top); }
         continue;
       }
+      // Newer layout: the rest of the results come one per ItemSection, all kinds mixed.
+      if (s.type === 'ItemSection') { loose.push(...normAll(s.contents)); continue; }
       const n = normSection(s);
       if (n) sections.push(n);
+    }
+    if (loose.length) {
+      const seen = new Set([top?.top?.id, ...(top?.items || []).map((t) => t.id)]);
+      const groups = [
+        [tr('Canciones'), (i) => i.kind === 'track' && !i.isVideo, 'list'], [tr('Vídeos'), (i) => i.kind === 'track' && i.isVideo, 'list'],
+        [tr('Artistas'), (i) => i.kind === 'artist', 'cards'], [tr('Álbumes'), (i) => i.kind === 'album', 'cards'], [tr('Playlists'), (i) => i.kind === 'playlist', 'cards'],
+      ];
+      for (const [title, test, layout] of groups) {
+        const items = loose.filter((i) => test(i) && !seen.has(i.id) && seen.add(i.id));
+        if (items.length) sections.push({ title, layout, items });
+      }
+    }
+    // An artist as top result: follow it with their page (most played songs, latest albums,
+    // singles…), like YouTube Music does, before the rest of the results.
+    if (top?.top?.kind === 'artist') {
+      try {
+        const a = await artist(top.top.id);
+        if (a.thumb) top.top.thumb = a.thumb;
+        const extra = a.sections.slice(0, 5).map((sec) => ({ ...sec, title: sec.title ? `${sec.title} · ${a.title}` : a.title, artistId: top.top.id }));
+        sections.splice(1, 0, ...extra);
+      } catch (e) { console.warn('[yt] top artist', e?.message); }
     }
     return sections;
   }

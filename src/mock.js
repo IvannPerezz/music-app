@@ -26,6 +26,9 @@ export const home = async () => [
   { title: 'Artistas', layout: 'cards', items: Array.from({ length: 5 }, (_, i) => card('artist', i)) },
 ];
 export const search = async (q) => [
+  { title: 'Resultado principal', layout: 'top', top: { kind: 'artist', id: 'UCmock0', title: 'Lúa Vega', subtitle: 'Artista · 1,2 M de oyentes mensuales', thumb: art(5) }, items: Array.from({ length: 4 }, (_, i) => track(i)) },
+  { title: 'Canciones · Lúa Vega', layout: 'list', items: Array.from({ length: 5 }, (_, i) => track(i)), artistId: 'UCmock0' },
+  { title: 'Álbumes · Lúa Vega', layout: 'cards', items: Array.from({ length: 4 }, (_, i) => card('album', i)), artistId: 'UCmock0' },
   { title: 'Canciones', layout: 'list', items: Array.from({ length: 6 }, (_, i) => track(i + 2)) },
   { title: 'Álbumes', layout: 'cards', items: Array.from({ length: 6 }, (_, i) => card('album', i)) },
 ];
