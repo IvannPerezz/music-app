@@ -1750,7 +1750,7 @@ function openNowPlaying() {
   clearTimeout(npCloseTimer); np.classList.remove('closing');
   // Cover and lyrics (and full screen) get the whole window: the queue tucks itself away until
   // its button brings it back, and comes back by itself when this view closes.
-  if (np.hidden && !$('#queue').hidden && !$('#queue').classList.contains('closing')) { toggleQueue(false, { remember: false }); queueAutoHidden = true; }
+  if (np.hidden && !$('#queue').hidden && !$('#queue').classList.contains('closing')) { toggleQueue(false, { remember: false, instant: true }); queueAutoHidden = true; }
   np.hidden = false;
   document.body.classList.add('np-open');
   $('#btn-lyrics').classList.add('on');
@@ -1777,7 +1777,7 @@ function closeNowPlaying() {
   np.classList.add('closing');
   npCloseTimer = setTimeout(() => { np.hidden = true; np.classList.remove('closing'); document.body.classList.remove('np-open'); unmountVisualizer(); }, 230);
   if (fsPanelKind === 'vis') closeFsPanel();
-  if (queueAutoHidden) { queueAutoHidden = false; toggleQueue(true, { remember: false }); }
+  if (queueAutoHidden) { queueAutoHidden = false; setTimeout(() => { if (!npOpen()) toggleQueue(true, { remember: false }); }, 240); }
 }
 const npOpen = () => !$('#nowplaying').hidden && !$('#nowplaying').classList.contains('closing');
 
@@ -2089,13 +2089,14 @@ function renderQueue() {
 let queueCloseTimer = null;
 let queueHiddenBySettings = false;
 let queueAutoHidden = false; // tucked away by the cover/lyrics view, to come back when it closes
-function toggleQueue(force, { remember = true } = {}) {
+function toggleQueue(force, { remember = true, instant = false } = {}) {
   if (remember) queueAutoHidden = false; // the user decided: don't bring it back on our own
   const q = $('#queue');
   const isOpen = !q.hidden && !q.classList.contains('closing');
   const open = force != null ? !!force : !isOpen;
   clearTimeout(queueCloseTimer);
   if (open) { closeFsPanel(); q.classList.remove('closing'); q.hidden = false; }
+  else if (!q.hidden && instant) { q.hidden = true; q.classList.remove('closing'); }
   else if (!q.hidden) { q.classList.add('closing'); queueCloseTimer = setTimeout(() => { q.hidden = true; q.classList.remove('closing'); }, 300); }
   $('#btn-queue').classList.toggle('on', open);
   $('#fs-queue').classList.toggle('on', open);

@@ -34,7 +34,7 @@ const qOpen = () => win.evaluate(() => !document.querySelector('#queue').hidden 
 if (!(await qOpen())) errors.push('La cola no está abierta por defecto');
 await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('02-now-playing');
 if (await qOpen()) errors.push('La cola no se esconde al abrir portada y letra');
-await win.click('#np-close'); await win.waitForTimeout(500);
+await win.click('#np-close'); await win.waitForTimeout(800);
 if (!(await qOpen())) errors.push('La cola no vuelve al salir de portada y letra');
 await win.click('#btn-lyrics'); await win.waitForTimeout(900);
 // Animated background: shown in the full-screen view and only moving while a song plays.
