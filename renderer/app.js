@@ -1587,18 +1587,18 @@ function slideArt(img, src, dir = 1) {
   const shadow = cs.boxShadow && cs.boxShadow !== 'none' ? cs.boxShadow : '0 10px 30px rgba(0,0,0,.4)';
   const go = () => {
     img.style.position = 'relative'; img.style.zIndex = '2';
-    const D = 680;
+    // Softer: longer, smaller arc and tilt, no overshoot, eased in and out.
+    const D = 950;
     const a = next.animate([
-      { transform: `${base}translate(0, 0) rotate(0deg) scale(.94)`, zIndex: 1, boxShadow: shadow, offset: 0 },
-      { transform: `${base}translate(${dir * 68}%, -4%) rotate(${dir * 10}deg) scale(.96)`, zIndex: 1, offset: .45 },
-      { transform: `${base}translate(${dir * 66}%, -5%) rotate(${dir * 9}deg) scale(1.02)`, zIndex: 3, boxShadow: '0 34px 70px rgba(0,0,0,.55)', offset: .5 },
-      { transform: `${base}translate(${dir * -2}%, -1%) rotate(${dir * -1.5}deg) scale(1.02)`, zIndex: 3, offset: .86 },
+      { transform: `${base}translate(0, 0) rotate(0deg) scale(.97)`, zIndex: 1, boxShadow: shadow, offset: 0 },
+      { transform: `${base}translate(${dir * 48}%, -2.5%) rotate(${dir * 5}deg) scale(.98)`, zIndex: 1, offset: .46 },
+      { transform: `${base}translate(${dir * 47}%, -3%) rotate(${dir * 4.6}deg) scale(1)`, zIndex: 3, boxShadow: '0 26px 60px rgba(0,0,0,.5)', offset: .5 },
       { transform: `${base}translate(0, 0) rotate(0deg) scale(1)`, zIndex: 3, boxShadow: shadow, offset: 1 },
-    ], { duration: D, easing: 'cubic-bezier(.45,.05,.35,1)' });
+    ], { duration: D, easing: 'cubic-bezier(.45,0,.25,1)' });
     const sink = img.animate([
       { filter: 'brightness(1)', transform: base || 'none', offset: 0 },
-      { filter: 'brightness(1)', transform: `${base}translateX(${dir * -6}%) rotate(${dir * -2}deg)`, offset: .45 },
-      { filter: 'brightness(.6)', transform: `${base}scale(.95)`, offset: 1 },
+      { filter: 'brightness(.95)', transform: `${base}translateX(${dir * -3}%) rotate(${dir * -1}deg)`, offset: .46 },
+      { filter: 'brightness(.75)', transform: `${base}scale(.97)`, offset: 1 },
     ], { duration: D, easing: 'ease-in-out', fill: 'forwards' }); // stays sunk until it's swapped
     // The cover can move or resize meanwhile (e.g. the lyrics hide for a song without them and
     // the cover grows and re-centres): keep the card glued to it every frame.

@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.30.12
+------------------------------------------------------------
+- La animación de baraja de cartas entre portadas es más suave: dura un poco más, la
+  portada nueva se separa e inclina menos, ya no se pasa de su sitio al volver y la
+  anterior se oscurece menos.
+
+------------------------------------------------------------
 v0.6.30.11
 ------------------------------------------------------------
 - Al cambiar de canción, el fondo (el animado de la app y el de la vista de portada y
