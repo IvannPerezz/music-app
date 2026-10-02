@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.16.2
+------------------------------------------------------------
+- Al encender el visualizador, los botones de la letra (elegir la fuente y mostrar u
+  ocultar) salen deslizándose por la derecha de la pantalla en vez de desaparecer de
+  golpe, y el botón de presets del visualizador entra deslizándose. Al apagarlo pasa al
+  revés. El resto de botones de la columna se recolocan suavemente.
+
+------------------------------------------------------------
 v0.6.16.1
 ------------------------------------------------------------
 - Visualizador: al cambiar entre "Todos" y "Favoritos", el resaltado de la pestaña se
