@@ -1,5 +1,7 @@
 # BitChord Desktop
 
+A port of the BitChord apk to a desktop version using Electron (plenty of new features that the app doesn´t have)
+
 Port para Windows de [BitChord](https://github.com/kushagrasinghx/BitChord), un cliente de YouTube Music, hecho con Electron.
 
 ## Empezar
