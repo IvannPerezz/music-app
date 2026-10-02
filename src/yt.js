@@ -266,11 +266,27 @@ export async function home() {
   return sections;
 }
 
+/** Spelling suggestion in a search response: YouTube either already shows the corrected results
+ *  (ShowingResultsFor) or only suggests it (DidYouMean). Returned as a section the UI shows on top. */
+function correctionOf(r) {
+  for (const s of r.contents || []) {
+    for (const n of (s.type === 'ItemSection' ? s.contents : [s]) || []) {
+      if (n?.type === 'ShowingResultsFor' || n?.type === 'DidYouMean') {
+        const q = n.corrected_query_endpoint?.payload?.query || n.endpoint?.payload?.query || txt(n.corrected_query);
+        if (q) return { layout: 'correction', title: '', items: [], query: q, auto: n.type === 'ShowingResultsFor' };
+      }
+    }
+  }
+  return null;
+}
+
 export async function search(query, type = 'all') {
   const c = await client();
   if (type === 'all') {
     const r = await c.music.search(query);
     const sections = [];
+    const fix = correctionOf(r);
+    if (fix) sections.push(fix);
     const loose = [];
     let top = null;
     for (const s of r.contents || []) {
@@ -284,6 +300,7 @@ export async function search(query, type = 'all') {
       }
       // Newer layout: the rest of the results come one per ItemSection, all kinds mixed.
       if (s.type === 'ItemSection') { loose.push(...normAll(s.contents)); continue; }
+
       const n = normSection(s);
       if (n) sections.push(n);
     }
@@ -313,7 +330,8 @@ export async function search(query, type = 'all') {
   const r = await c.music.search(query, { type });
   const shelf = r.contents?.find((s) => s.type === 'MusicShelf') || r.contents?.[0];
   const items = normAll(shelf?.contents);
-  return [{ title: '', layout: type === 'song' || type === 'video' ? 'list' : 'cards', items }];
+  const fix = correctionOf(r);
+  return [...(fix ? [fix] : []), { title: '', layout: type === 'song' || type === 'video' ? 'list' : 'cards', items }];
 }
 
 export async function suggestions(input) {

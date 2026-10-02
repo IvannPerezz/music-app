@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.20.1
+------------------------------------------------------------
+- Búsqueda: lo que buscas aparece entre comillas ("Bad Bunyy") debajo de "Resultados de".
+- Búsqueda: si escribes algo mal, sale "¿Querías decir "bad bunny"?" con la corrección
+  que propone YouTube Music. Pulsándola se busca bien escrito. Si YouTube ya ha corregido
+  la búsqueda él solo, lo avisa debajo ("Se muestran resultados de...").
+
+------------------------------------------------------------
 v0.6.20
 ------------------------------------------------------------
 - Búsqueda mejorada (pestaña "Todo"):

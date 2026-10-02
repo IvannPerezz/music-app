@@ -1,6 +1,8 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "¿Querías decir": "Did you mean",
+  "Se muestran resultados de \"{q}\".": "Showing results for \"{q}\".",
   "Resultados de": "Results for",
   "Canción": "Song",
   "Ver artista": "View artist",

@@ -314,7 +314,7 @@ const views = {
       return root;
     }
     const type = route.type || 'all';
-    root.append(h(`<div class="search-head"><span>${tr('Resultados de')}</span><h1 class="page-title">${esc(route.q)}</h1></div>`));
+    root.append(h(`<div class="search-head"><span>${tr('Resultados de')}</span><h1 class="page-title">"${esc(route.q)}"</h1></div>`));
     const chips = h('<div class="chips"></div>');
     filters.forEach(([k, label]) => {
       const c = h(`<button class="chip${k === type ? ' active' : ''}">${label}</button>`);
@@ -323,7 +323,14 @@ const views = {
     });
     root.append(chips);
     const sections = await api('search', route.q, type);
-    const nonEmpty = sections.filter((s) => s.items.length);
+    // "¿Querías decir…?": YouTube's spelling suggestion, one click to search it.
+    const fix = sections.find((s) => s.layout === 'correction');
+    if (fix && fix.query.toLowerCase() !== route.q.trim().toLowerCase()) {
+      const el = h(`<div class="did-you-mean">${icon('search')}<span>${tr('¿Querías decir')} <a href="#">"${esc(fix.query)}"</a>?${fix.auto ? ` <small>${tr('Se muestran resultados de "{q}".', { q: esc(fix.query) })}</small>` : ''}</span></div>`);
+      el.querySelector('a').onclick = (e) => { e.preventDefault(); $('#search').value = fix.query; go({ name: 'search', q: fix.query, type }); };
+      chips.after(el);
+    }
+    const nonEmpty = sections.filter((s) => s.layout !== 'correction' && s.items.length);
     if (!nonEmpty.length) root.append(h(`<div class="empty">${icon('search')}<div>${tr('Sin resultados')}</div></div>`));
     nonEmpty.forEach((s) => root.append(s.layout === 'top' ? topResult(s) : section(s, { wrap: type !== 'all' })));
     return root;
