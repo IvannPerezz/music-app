@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.31
+------------------------------------------------------------
+- Nuevo logotipo: cinco estrellas plateadas sobre fondo rojo. Aparece arriba a la
+  izquierda, en la ventana y en la barra de tareas mientras BitChord está abierto y en
+  el icono de la bandeja del sistema.
+
+------------------------------------------------------------
 v0.6.30.16
 ------------------------------------------------------------
 - Arreglado: con el aleatorio activado en la barra de reproducción, al darle a
