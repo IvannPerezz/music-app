@@ -96,10 +96,12 @@ function markNav() {
   $$('.nav-item[data-nav]').forEach((b) => {
     const it = SIDEBAR_ITEMS[b.dataset.nav];
     if (!it.route) return;
-    const tab = route.name === 'library' ? route.tab || 'playlists' : null;
+    // Only a tab asked for explicitly (a pinned shortcut, or a chip inside Biblioteca) lights up
+    // its shortcut; clicking "Biblioteca" itself keeps "Biblioteca" lit even though it opens on
+    // Playlists (before, the highlight slid down to a pinned "Playlists").
+    const tab = route.name === 'library' ? route.tab || null : null;
     const libTab = b.dataset.nav.startsWith('lib:') ? b.dataset.nav.slice(4) : null;
-    // "Biblioteca" is only highlighted when the tab isn't pinned as its own item.
-    const pinned = (state.settings.sidebar || []).some((x) => x.on && x.id === 'lib:' + tab);
+    const pinned = !!tab && (state.settings.sidebar || []).some((x) => x.on && x.id === 'lib:' + tab);
     const active = libTab ? route.name === 'library' && tab === libTab
       : b.dataset.nav === 'library' ? route.name === 'library' && !pinned
       : route.name === it.route.name;
@@ -1988,5 +1990,5 @@ async function init() {
 }
 
 // Exposed for debugging from DevTools.
-window.__bc = { player, go, engine, state };
+window.__bc = { player, go, engine, state, saveSidebar: (sidebar) => saveSettings({ sidebar }) };
 init();

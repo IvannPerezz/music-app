@@ -158,7 +158,13 @@ await win.click('#btn-eq'); await win.waitForTimeout(400); await shot('04-eq');
 await win.click('#btn-eq'); await win.waitForTimeout(300);
 await win.click('#account-btn'); await win.waitForTimeout(400); await shot('05-account');
 await win.mouse.click(700, 400); await win.waitForTimeout(200);
+// Sidebar highlight: with "Playlists" pinned, clicking "Biblioteca" keeps "Biblioteca" lit;
+// the pinned shortcut lights up only when it's the one clicked.
+await win.evaluate(async () => { const sb = (await window.bc.settingsGet()).data.sidebar.map((x) => (x.id === 'lib:playlists' ? { ...x, on: true } : x)); await window.__bc.saveSidebar?.(sb); });
 await win.click('#nav-library'); await win.waitForTimeout(900); await shot('06-library');
+const lit = await win.evaluate(() => [...document.querySelectorAll('#nav-items .nav-item.active')].map((b) => b.id).join(','));
+if (!(await win.$('#nav-lib-playlists'))) errors.push('No se pudo anclar Playlists para la prueba');
+if (lit !== 'nav-library') errors.push('Al pulsar Biblioteca se resalta: ' + lit);
 await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('07-settings');
 // Custom CSS theme: "+" tile → editor → save; then back to the original BitChord theme.
 await win.click('.theme-add'); await win.waitForTimeout(300);

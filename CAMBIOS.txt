@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.19.3
+------------------------------------------------------------
+- Arreglado: con "Playlists" anclado en la barra lateral, al pulsar "Biblioteca" el
+  resaltado bajaba hasta "Playlists" (porque Biblioteca abre en esa pestaña). Ahora se
+  queda en "Biblioteca"; "Playlists" solo se resalta al pulsar su propio acceso o la
+  pestaña dentro de Biblioteca.
+
+------------------------------------------------------------
 v0.6.19.2
 ------------------------------------------------------------
 - Barra lateral con la ventana estrecha (solo iconos): ahora es un poco más fina y los
