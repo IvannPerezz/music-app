@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.30
+------------------------------------------------------------
+- Al cambiar de canción, la portada nueva entra deslizándose sobre la anterior (desde la
+  derecha al avanzar y desde la izquierda al volver atrás), en la vista de portada y letra
+  y en la barra de reproducción.
+- El fondo de la app (el animado de Inicio y el de la vista de portada y letra) se funde
+  rápido a negro y vuelve con la nueva canción, en vez de cambiar de golpe.
+
+------------------------------------------------------------
 v0.6.29.1
 ------------------------------------------------------------
 - Arreglado: al abrir la vista de portada y letra se veía un difuminado raro. Era la cola

@@ -1566,6 +1566,46 @@ function applyFullscreen(on) {
 }
 
 // ------------------------------------------------------------------ now playing / theming
+// ---- song change transitions
+let lastShownIndex = -1;
+/** The new cover slides in over the old one (from the right, or from the left going back). */
+function slideArt(img, src, dir = 1) {
+  if (!src || !img.getAttribute('src') || img.getAttribute('src') === src || !img.offsetWidth) { img.src = src; return; }
+  const host = img.parentElement;
+  if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+  host.querySelectorAll(':scope > .art-next').forEach((x) => x.remove());
+  const next = document.createElement('img');
+  next.className = 'art-next';
+  next.alt = '';
+  const cs = getComputedStyle(img);
+  Object.assign(next.style, { left: img.offsetLeft + 'px', top: img.offsetTop + 'px', width: img.offsetWidth + 'px', height: img.offsetHeight + 'px', borderRadius: cs.borderRadius, boxShadow: cs.boxShadow, transform: cs.transform === 'none' ? '' : cs.transform });
+  next.src = src;
+  host.append(next);
+  const go = () => {
+    const a = next.animate([{ transform: `translateX(${dir * 28}%) scale(.96)`, opacity: 0 }, { transform: cs.transform === 'none' ? 'none' : cs.transform, opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.32,.72,0,1)' });
+    a.onfinish = () => { img.src = src; requestAnimationFrame(() => next.remove()); };
+  };
+  if (next.complete) go(); else { next.onload = go; next.onerror = () => { img.src = src; next.remove(); }; }
+}
+/** Backgrounds (the animated one everywhere and the cover view's): quick fade out, swap, fade in. */
+let bgShown = null, bgTimer = 0;
+function swapBackground(url) {
+  if (url === bgShown) return;
+  const apply = () => {
+    $('.np-bg').style.backgroundImage = url;
+    document.documentElement.style.setProperty('--amb-img', url || 'none');
+  };
+  const first = bgShown === null;
+  bgShown = url;
+  if (first) return apply();
+  clearTimeout(bgTimer);
+  document.body.classList.add('bg-swap'); // fades out (CSS)
+  bgTimer = setTimeout(() => {
+    apply();
+    requestAnimationFrame(() => document.body.classList.remove('bg-swap')); // fades back in
+  }, 200);
+}
+
 let visTrackKey = null;
 function updateNowPlaying() {
   const t = player.current;
@@ -1574,13 +1614,14 @@ function updateNowPlaying() {
   $('#np-album').textContent = t ? [t.album?.name, t.year].filter(Boolean).join(' • ') : '';
   $('#p-title').textContent = t ? t.title : tr('Nada sonando');
   $('#p-artist').innerHTML = t ? (t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ') : tr('Busca algo para empezar');
-  $('#p-art').src = art(t?.thumb);
-  $('#np-art').src = art(t?.thumb);
+  const dir = t && lastShownIndex >= 0 && player.index < lastShownIndex ? -1 : 1; // previous song: slides from the left
+  lastShownIndex = player.index;
+  slideArt($('#p-art'), art(t?.thumb), dir);
+  slideArt($('#np-art'), art(t?.thumb), dir);
   $('#np-title').textContent = t?.title || '';
   $('#np-artist').textContent = t ? artistNames(t) : '';
   $('#np-stats').textContent = '';
-  $('.np-bg').style.backgroundImage = t?.thumb ? `url("${art(t.thumb)}")` : '';
-  document.documentElement.style.setProperty('--amb-img', t?.thumb ? `url("${art(t.thumb)}")` : 'none');
+  swapBackground(t?.thumb ? `url("${art(t.thumb)}")` : '');
   markPlaying();
   applyAccent(t?.thumb);
   updateLikeButtons();

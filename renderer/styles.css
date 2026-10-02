@@ -1506,3 +1506,10 @@ body.route-settings #sb-resize { display: none; }
   transition: opacity .2s ease, transform .25s ease, height .3s cubic-bezier(.32,.72,0,1) .05s, width .3s cubic-bezier(.32,.72,0,1) .05s, padding .3s .05s, margin .3s .05s; }
 .row.dismissed { height: 0 !important; padding-top: 0; padding-bottom: 0; }
 .card.dismissed { width: 0 !important; min-width: 0 !important; margin: 0; padding: 0; }
+
+/* ---------------------------------------------------------------- song change
+   The next cover slides in over the previous one; the backgrounds fade out and back in. */
+.art-next { position: absolute; z-index: 2; object-fit: cover; pointer-events: none; will-change: transform, opacity; }
+#ambient, .np-amb, .np-bg { transition: opacity .35s ease; }
+body.bg-swap #ambient, body.bg-swap .np-amb, body.bg-swap .np-bg { opacity: 0 !important; transition: opacity .2s ease; }
+body.bg-swap .amb-layer i, body.ambient-cover.bg-swap .amb-layer i { transition: none; }
