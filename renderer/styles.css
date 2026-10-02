@@ -1558,3 +1558,20 @@ body.bg-swapping .amb-layer i, body.bg-swapping .np-bg { transition: none !impor
 .sp-img img { width: 100%; height: 100%; object-fit: cover; }
 .sp-img svg { width: 22px; height: 22px; }
 .sp-err { color: #ff6961; }
+
+/* Spotify link: ticks + bottom "Sincronizar" bar, and the progress strip at the top. */
+.sp-row input { width: 17px; height: 17px; accent-color: var(--accent); flex: none; }
+label.sp-row { cursor: pointer; }
+.sp-actions { display: flex; gap: 10px; }
+.sp-busy { width: 100%; padding-top: 4px; }
+.sp-busy.in { animation: sp-busy-in .45s cubic-bezier(.32,.72,0,1) both; }
+@keyframes sp-busy-in { from { opacity: 0; transform: translateY(-8px); } }
+.sp-busy-t { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 2px; }
+.sp-busy-t .sp-pct { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sp-busy .progress div { transition: width .5s cubic-bezier(.32,.72,0,1); }
+.sp-actions.sticky-actions {
+  bottom: 12px; padding: 10px; margin-top: 12px; border-radius: 16px;
+  background: linear-gradient(140deg, rgba(255,255,255,.09), rgba(255,255,255,.02) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.3);
+}

@@ -3,7 +3,7 @@ import { bc, icon, esc, api, toast, h, state, confirmDialog } from './core.js';
 import { go } from './app.js';
 import { tr } from './i18n.js';
 
-const S = { status: null, lists: null, loading: false, connecting: false, dest: {}, clientId: '' };
+const S = { status: null, lists: null, loading: false, connecting: false, dest: {}, clientId: '', sel: new Set() };
 let mount = null;
 
 bc.on('spotify-sync', (st) => { S.status = st; paint(); });
@@ -77,7 +77,8 @@ async function doSync(id, opts) {
   try { S.status = await api('spotifySync', id, opts); }
   catch (e) { toast(e.message, true); }
   paint();
-  const errs = (S.status?.links || []).filter((l) => (!id || l.id === id) && l.error);
+  const ids = id == null ? null : new Set([].concat(id));
+  const errs = (S.status?.links || []).filter((l) => (!ids || ids.has(l.id)) && l.error);
   if (errs.length) toast(`${errs[0].name}: ${errs[0].error}`, true);
   else toast(tr('Playlists de Spotify actualizadas'));
 }
@@ -91,10 +92,11 @@ function row(p, st) {
       : !l.lastSync ? tr('Pendiente de la primera actualización')
       : `${tr('{n} canciones', { n: l.count })}${l.missing ? ' · ' + tr('{n} no encontradas en YouTube Music', { n: l.missing }) : ''} · ${tr(l.dest === 'yt' ? 'en tu YT Music' : 'en BitChord')} · ${tr('actualizada {when}', { when: ago(l.lastSync) })}`)
     : `${tr('{n} canciones', { n: p.count })}${p.mine || p.liked ? '' : ' · ' + tr('de {owner}', { owner: esc(p.owner) })}`;
-  const el = h(`<div class="imp-pl sp-row${l ? ' linked' : ''}">
+  const el = h(`<${l ? 'div' : 'label'} class="imp-pl sp-row${l ? ' linked' : ''}${!l && !S.sel.has(p.id) ? ' off' : ''}">
+    ${l ? '' : `<input type="checkbox"${S.sel.has(p.id) ? ' checked' : ''}${st.busy ? ' disabled' : ''}>`}
     <div class="sp-img">${p.image ? `<img src="${esc(p.image)}" alt="">` : icon(p.liked ? 'heartFill' : 'queue')}</div>
     <div class="imp-pl-t"><b>${esc(p.name)}</b><div class="muted small">${info}</div></div>
-  </div>`);
+  </${l ? 'div' : 'label'}>`);
   if (l) {
     if (l.target && l.lastSync) {
       const open = h(`<button class="btn ghost small">${icon('play')}${tr('Abrir')}</button>`);
@@ -110,15 +112,10 @@ function row(p, st) {
     };
     el.append(up, un);
   } else {
-    el.append(destSwitch(p.id));
-    const b = h(`<button class="btn small">${icon('refresh')}${tr('Sincronizar')}</button>`);
-    b.disabled = !!st.busy;
-    b.onclick = async () => {
-      try { S.status = await api('spotifyLink', p.id, p.name, S.dest[p.id]); } catch (e) { return toast(e.message, true); }
-      paint();
-      doSync(p.id);
-    };
-    el.append(b);
+    el.querySelector('input').onchange = (e) => { if (e.target.checked) S.sel.add(p.id); else S.sel.delete(p.id); paint(); };
+    const sw = destSwitch(p.id);
+    sw.addEventListener('click', (e) => e.preventDefault()); // don't toggle the tick
+    el.append(sw);
   }
   return el;
 }
@@ -141,12 +138,19 @@ function connected(st) {
   const auto = h(`<label class="sp-auto"><span class="switch"><input type="checkbox"${st.auto ? ' checked' : ''}><span></span></span><span>${tr('Actualizar automáticamente (al abrir BitChord y cada 6 horas)')}</span></label>`);
   auto.querySelector('input').onchange = async (e) => { S.status = await api('spotifyAuto', e.target.checked); };
   head.append(auto);
-  if (st.busy) head.append(h(`<div class="sp-busy"><div class="progress big"><div style="width:${((st.busy.index + (st.busy.count ? st.busy.done / st.busy.count : 0)) / st.busy.total) * 100}%"></div></div><span class="muted small">${tr('Playlist {i} de {total}', { i: st.busy.index + 1, total: st.busy.total })}: «${esc(st.busy.name)}»</span></div>`));
+  if (st.busy) {
+    const pct = ((st.busy.index + (st.busy.count ? st.busy.done / st.busy.count : 0)) / st.busy.total) * 100;
+    const was = mount.querySelector('.sp-busy .progress div')?.style.width;
+    const b = h(`<div class="sp-busy${was ? '' : ' in'}"><div class="sp-busy-t"><b>${tr('Importando playlist {i} de {total}', { i: st.busy.index + 1, total: st.busy.total })}</b><span class="muted small">«${esc(st.busy.name)}»${st.busy.count ? ' · ' + tr('{done} de {total} canciones', { done: st.busy.done, total: st.busy.count }) : ''}</span><span class="sp-pct">${Math.round(pct)} %</span></div><div class="progress big"><div style="width:${was || '0%'}"></div></div></div>`);
+    head.append(b);
+    requestAnimationFrame(() => requestAnimationFrame(() => { b.querySelector('.progress div').style.width = pct + '%'; }));
+  }
   root.append(head);
 
   if (!state.account) root.append(h(`<div class="set-note">${icon('info')} <span>${tr('Para crearlas en tu cuenta de YouTube Music (y verlas en la app oficial) inicia sesión con Google en Ajustes → Cuenta. Mientras tanto solo puedes guardarlas en BitChord.')}</span></div>`));
   root.append(h(`<h3 class="sp-title">${tr('Tus playlists de Spotify')}</h3>`));
   const list = h('<div class="imp-lists"></div>');
+  const linked = new Set(st.links.map((l) => l.id));
   if (!S.lists) {
     list.append(h(`<p class="muted">${icon('loading')} ${tr('Cargando tus playlists de Spotify…')}</p>`));
     if (!S.loading) {
@@ -157,13 +161,38 @@ function connected(st) {
     // Linked ones first; a linked playlist that's gone from Spotify still shows (so it can be unlinked).
     const known = new Set(S.lists.map((p) => p.id));
     const gone = st.links.filter((l) => !known.has(l.id)).map((l) => ({ id: l.id, name: l.name, count: l.count, owner: '', mine: true }));
-    const linked = new Set(st.links.map((l) => l.id));
     const all = [...gone, ...S.lists].sort((a, b) => linked.has(b.id) - linked.has(a.id));
     for (const p of all) list.append(row(p, st));
     if (!all.length) list.append(h(`<p class="muted">${tr('No hay playlists en tu Spotify.')}</p>`));
   }
   root.append(list);
+  if (S.lists?.length) {
+    // Bottom bar: sync every ticked playlist at once.
+    const n = [...S.sel].filter((id) => S.lists.some((p) => p.id === id) && !linked.has(id)).length;
+    const bar = h('<div class="actions sticky-actions sp-actions"></div>');
+    const toggle = h(`<button class="btn ghost">${tr('Marcar / desmarcar todas')}</button>`);
+    const free = S.lists.filter((p) => !linked.has(p.id));
+    toggle.disabled = !!st.busy || !free.length;
+    toggle.onclick = () => { const on = !free.every((p) => S.sel.has(p.id)); free.forEach((p) => (on ? S.sel.add(p.id) : S.sel.delete(p.id))); paint(); };
+    const go1 = h(`<button class="btn primary">${icon('refresh')}${n ? tr('Sincronizar {n} playlists', { n }) : tr('Sincronizar')}</button>`);
+    go1.disabled = !n || !!st.busy;
+    go1.onclick = () => syncSelected();
+    bar.append(go1, toggle);
+    root.append(bar);
+  }
   return root;
+}
+
+async function syncSelected() {
+  const chosen = S.lists.filter((p) => S.sel.has(p.id));
+  if (!chosen.length) return;
+  try { for (const p of chosen) S.status = await api('spotifyLink', p.id, p.name, S.dest[p.id]); }
+  catch (e) { return toast(e.message, true); }
+  S.sel.clear();
+  paint();
+  // Slide back up to the progress bar at the top.
+  document.querySelector('#content')?.scrollTo({ top: 0, behavior: 'smooth' });
+  doSync(chosen.map((p) => p.id));
 }
 
 function paint() {

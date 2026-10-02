@@ -200,10 +200,11 @@ export function unlink(id) {
 
 export function setAuto(on) { cfg.auto = !!on; save(); return status(); }
 
-/** Updates one linked playlist, or all of them (id null). */
+/** Updates one linked playlist, several (array of ids), or all of them (null). */
 export async function sync(id = null, { force = false } = {}) {
+  const ids = id == null ? null : new Set([].concat(id));
   if (busy) throw new Error(tr('Ya se está actualizando con Spotify'));
-  const todo = cfg.links.filter((l) => !id || l.id === id);
+  const todo = cfg.links.filter((l) => !ids || ids.has(l.id));
   if (!todo.length) return status();
   busy = { index: 0, total: todo.length, name: todo[0].name, done: 0, count: 0 };
   notify();

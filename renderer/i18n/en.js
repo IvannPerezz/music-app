@@ -1,6 +1,8 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Sincronizar {n} playlists": "Sync {n} playlists",
+  "Importando playlist {i} de {total}": "Importing playlist {i} of {total}",
   "Archivo .zip de datos": "Data .zip file",
   "Cuenta de Spotify (se actualiza sola)": "Spotify account (updates itself)",
   "nunca": "never",

@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.32.1
+------------------------------------------------------------
+- Cuenta de Spotify: ahora marcas con un tick las playlists que quieres y las sincronizas
+  todas a la vez con el botón "Sincronizar" de abajo (también hay "Marcar / desmarcar
+  todas"). Al pulsarlo, la página sube sola hasta arriba, donde una barra muestra el
+  progreso: qué playlist se está importando, cuántas canciones lleva y el porcentaje.
+
+------------------------------------------------------------
 v0.6.32
 ------------------------------------------------------------
 - Nuevo: vincula tu cuenta de Spotify para que tus playlists se mantengan al día solas.
