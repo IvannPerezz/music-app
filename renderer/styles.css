@@ -1468,3 +1468,9 @@ body.route-settings #sb-resize { display: none; }
 #suggest li.sg-head { cursor: default; font-size: 12px !important; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); padding: 8px 14px 4px !important; }
 #suggest li.sg-head:hover { background: none; }
 .search-hero-space { height: 50vh; }
+
+/* Recent searches: an × at the right of each one to delete it. */
+#suggest li .sg-del { margin-left: auto; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); opacity: .6; transition: opacity .15s, background .15s, color .15s; }
+#suggest li:hover .sg-del { opacity: 1; }
+#suggest li .sg-del:hover { background: rgba(255,255,255,.12); color: var(--text); }
+#suggest li .sg-del svg { width: 16px !important; height: 16px !important; color: inherit !important; }

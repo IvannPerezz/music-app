@@ -2112,8 +2112,15 @@ function showRecentSearches() {
   suggestBox.innerHTML = '';
   if (recent.length) suggestBox.append(h(`<li class="sg-head">${tr('Búsquedas recientes')}</li>`));
   recent.forEach((s) => {
-    const li = h(`<li>${icon('history')}<span>${esc(s)}</span></li>`);
-    li.onmousedown = (e) => { e.preventDefault(); searchInput.value = s; submitSearch(s); };
+    const li = h(`<li>${icon('history')}<span>${esc(s)}</span><button class="sg-del" title="${tr('Borrar de las búsquedas recientes')}">${icon('close')}</button></li>`);
+    li.onmousedown = (e) => {
+      e.preventDefault(); // keep the focus in the box
+      if (e.target.closest('.sg-del')) {
+        store.set('recentSearches', store.get('recentSearches', []).filter((x) => x !== s));
+        return showRecentSearches();
+      }
+      searchInput.value = s; submitSearch(s);
+    };
     suggestBox.append(li);
   });
   suggestBox.hidden = !recent.length;

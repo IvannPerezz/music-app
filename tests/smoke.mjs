@@ -174,6 +174,11 @@ await win.click('#nav-search'); await win.waitForTimeout(700);
 const hero = await win.evaluate(() => { const r = document.querySelector('.search-wrap').getBoundingClientRect(); return { top: r.top, h: document.querySelector('#search').offsetHeight }; });
 if (hero.top < 80 || hero.h < 50) errors.push('La búsqueda no baja al centro: ' + JSON.stringify(hero));
 await win.fill('#search', 'lua'); await win.waitForTimeout(500); await shot('06a0-search-hero');
+// Recent searches have an × to delete them.
+await win.evaluate(() => localStorage.setItem('bc.recentSearches', JSON.stringify(['uno', 'dos'])));
+await win.fill('#search', ''); await win.waitForTimeout(300);
+await win.locator('#suggest li', { hasText: 'uno' }).locator('.sg-del').click(); await win.waitForTimeout(200);
+if (await win.evaluate(() => JSON.parse(localStorage.getItem('bc.recentSearches')).join() !== 'dos')) errors.push('La × no borra la búsqueda reciente');
 // Search: the top result is a card (here an artist) with its songs, without «» around the query.
 await win.fill('#search', 'lua vegaa'); await win.keyboard.press('Enter'); await win.waitForTimeout(900);
 if (!(await win.isVisible('.did-you-mean'))) errors.push('Falta el «¿Querías decir…?»');

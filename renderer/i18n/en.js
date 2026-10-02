@@ -1,6 +1,7 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Borrar de las búsquedas recientes": "Remove from recent searches",
   "Búsquedas recientes": "Recent searches",
   "Nombre cambiado también en tu cuenta de YouTube Music": "Name changed in your YouTube Music account too",
   "YouTube no ha dejado cambiar el nombre de esta playlist (puede que no sea tuya).": "YouTube didn't allow renaming this playlist (it may not be yours).",

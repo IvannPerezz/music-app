@@ -15,6 +15,11 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.27.1
+------------------------------------------------------------
+- Búsquedas recientes: cada una tiene una × a la derecha para borrarla de la lista.
+
+------------------------------------------------------------
 v0.6.27
 ------------------------------------------------------------
 - Al pulsar "Buscar" en la barra lateral, la barra de búsqueda de arriba baja deslizándose
