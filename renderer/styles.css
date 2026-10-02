@@ -324,8 +324,12 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 #toast.error { border-left: 3px solid var(--accent); }
 
 @media (max-width: 1100px) {
-  :root { --sidebar: 72px; }
-  .nav-item { font-size: 0; justify-content: center; padding: 0; }
+  /* Narrow window: icons only, centred in a slimmer bar. */
+  :root { --sidebar: 64px; }
+  .nav-item { justify-content: center; padding: 0; gap: 0; }
+  .nav-item .nav-label { display: none; }
+  #sidebar { padding-left: 8px; padding-right: 8px; }
+  #sidebar > * { min-width: 0; }
   .sidebar-foot, .brand span { display: none; }
   .brand { width: 56px; }
   .np-inner { padding: 24px 32px; gap: 32px; }
@@ -1233,3 +1237,15 @@ body.route-settings:not(.np-open) #titlebar { -webkit-backdrop-filter: blur(24px
 .traffic:hover .tl svg { opacity: 1; }
 .tl:active { filter: brightness(.8); }
 body.mac-buttons .settings-btn { margin-right: 8px; }
+
+/* Sidebar: the highlight of the current page slides to the item you pick (like the visualizer
+   tabs). Queue / now playing keep their own highlight, as they're toggles on top of the page. */
+#nav-items { position: relative; }
+.nav-pill { position: absolute; left: 0; right: 0; top: 0; height: 38px; border-radius: 8px; background: rgba(255,255,255,.08);
+  pointer-events: none; opacity: 0; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .2s ease; }
+.nav-pill.on { opacity: 1; }
+.nav-pill.no-anim { transition: none; }
+#nav-items .nav-item { position: relative; }
+#nav-items .nav-item.active:not([data-group="player"]) { background: none; }
+#nav-items .nav-item.active:not([data-group="player"]):hover { background: rgba(255,255,255,.05); }
+#nav-items .nav-item .ico { transition: color .25s ease; }

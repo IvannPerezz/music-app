@@ -74,14 +74,14 @@ export const SIDEBAR_ITEMS = {
 
 export function renderSidebar() {
   const box = $('#nav-items');
-  box.innerHTML = '';
+  box.innerHTML = '<span class="nav-pill no-anim"></span>';
   let lastGroup = null;
   for (const { id, on } of state.settings.sidebar || []) {
     const it = SIDEBAR_ITEMS[id];
     if (!it || !on) continue;
     if (lastGroup && lastGroup !== it.group) box.append(h('<div class="nav-sep"></div>'));
     lastGroup = it.group;
-    const b = h(`<button class="nav-item" id="nav-${id.replace(':', '-')}" data-nav="${id}"><span class="ico">${icon(it.icon)}</span><span class="nav-label">${esc(it.label)}</span></button>`);
+    const b = h(`<button class="nav-item" id="nav-${id.replace(':', '-')}" data-nav="${id}" data-group="${it.group}"><span class="ico">${icon(it.icon)}</span><span class="nav-label">${esc(it.label)}</span></button>`);
     b.onclick = () => (it.action ? it.action() : go({ ...it.route }));
     box.append(b);
   }
@@ -106,8 +106,22 @@ function markNav() {
     b.classList.toggle('active', active);
   });
   $$('.nav-item[data-route]').forEach((b) => b.classList.toggle('active', b.dataset.route === route.name));
+  moveNavPill();
   $('#settings-btn')?.classList.toggle('active', route.name === 'settings');
 }
+
+/** Slides the sidebar highlight to the page's item (first time / after a redraw: no animation). */
+function moveNavPill() {
+  const pill = $('#nav-items .nav-pill');
+  if (!pill) return;
+  const cur = $$('#nav-items .nav-item.active').find((b) => b.dataset.group !== 'player');
+  pill.classList.toggle('on', !!cur);
+  if (!cur) return;
+  pill.style.height = cur.offsetHeight + 'px';
+  pill.style.transform = `translateY(${cur.offsetTop}px)`;
+  if (pill.classList.contains('no-anim')) requestAnimationFrame(() => requestAnimationFrame(() => pill.classList.remove('no-anim')));
+}
+addEventListener('resize', () => { const p = $('#nav-items .nav-pill'); if (p) { p.classList.add('no-anim'); moveNavPill(); } });
 
 /** Re-render the current view keeping the scroll position. */
 export const refreshView = () => { scrollMemo.set(nav.index, $('#content').scrollTop); render(true, false); };
