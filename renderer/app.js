@@ -328,7 +328,7 @@ const views = {
     if (fix && fix.query.toLowerCase() !== route.q.trim().toLowerCase()) {
       const el = h(`<div class="did-you-mean">${icon('search')}<span>${tr('¿Querías decir')} <a href="#">"${esc(fix.query)}"</a>?${fix.auto ? ` <small>${tr('Se muestran resultados de "{q}".', { q: esc(fix.query) })}</small>` : ''}</span></div>`);
       el.querySelector('a').onclick = (e) => { e.preventDefault(); $('#search').value = fix.query; go({ name: 'search', q: fix.query, type }); };
-      chips.after(el);
+      chips.before(el); // above the content-type filters
     }
     const nonEmpty = sections.filter((s) => s.layout !== 'correction' && s.items.length);
     if (!nonEmpty.length) root.append(h(`<div class="empty">${icon('search')}<div>${tr('Sin resultados')}</div></div>`));

@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.20.2
+------------------------------------------------------------
+- Búsqueda: el "¿Querías decir...?" aparece ahora encima de los tipos de contenido (Todo,
+  Canciones, Vídeos...), justo debajo de lo que has buscado.
+
+------------------------------------------------------------
 v0.6.20.1
 ------------------------------------------------------------
 - Búsqueda: lo que buscas aparece entre comillas ("Bad Bunyy") debajo de "Resultados de".
