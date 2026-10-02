@@ -47,6 +47,18 @@ function text(key, placeholder, { secret = false, onSave } = {}) {
 
 const btn = (label, cls = 'ghost', ic = '') => h(`<button class="btn ${cls} small">${ic ? icon(ic) : ''}${esc(label)}</button>`);
 
+/** Redraws a reorderable list and slides every row from its old place to its new one. */
+function flip(list, redraw) {
+  const before = new Map([...list.children].map((el) => [el.dataset.key, el.getBoundingClientRect().top]));
+  redraw();
+  for (const el of list.children) {
+    const was = before.get(el.dataset.key);
+    if (was == null) continue;
+    const dy = was - el.getBoundingClientRect().top;
+    if (dy) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+}
+
 function card(id, title, ic, ...rows) {
   const el = h(`<section class="set-card" id="set-${id}"><h2>${icon(ic)}${esc(title)}</h2></section>`);
   rows.filter(Boolean).forEach((r) => el.append(r));
@@ -128,7 +140,7 @@ function lyrics() {
       const p = providers.find((x) => x.id === id);
       if (!p) return;
       const el = h(`
-        <div class="prov${disabled.has(id) ? ' off' : ''}" draggable="true">
+        <div class="prov${disabled.has(id) ? ' off' : ''}" draggable="true" data-key="${esc(id)}">
           <span class="prov-n">${i + 1}</span>
           <div class="prov-t"><b>${esc(p.label)}</b>${p.word ? `<span class="badge">${tr('palabra a palabra')}</span>` : ''}<div class="set-desc">${esc(tr(p.detail))}</div></div>
           <button class="icon-btn" data-a="up" title="${tr('Subir')}">${icon('up')}</button>
@@ -138,7 +150,7 @@ function lyrics() {
       const move = async (to) => {
         if (to < 0 || to >= order.length) return;
         const o = [...order]; const [x] = o.splice(i, 1); o.splice(to, 0, x);
-        await saveSettings({ lyricsOrder: o }); draw();
+        await saveSettings({ lyricsOrder: o }); flip(list, draw);
       };
       el.querySelector('[data-a=up]').onclick = () => move(i - 1);
       el.querySelector('[data-a=down]').onclick = () => move(i + 1);
@@ -154,7 +166,7 @@ function lyrics() {
         e.preventDefault(); el.classList.remove('drag-over');
         const from = +e.dataTransfer.getData('text/plain');
         const o = [...order]; const [x] = o.splice(from, 1); o.splice(i, 0, x);
-        await saveSettings({ lyricsOrder: o }); draw();
+        await saveSettings({ lyricsOrder: o }); flip(list, draw);
       });
       list.append(el);
     });
@@ -445,14 +457,14 @@ function sidebarCard() {
       if (!it) return;
       const group = tr({ main: 'Navegación', lib: 'Atajo de Biblioteca', player: 'Reproductor' }[it.group]);
       const el = h(`
-        <div class="prov${on ? '' : ' off'}" draggable="true">
+        <div class="prov${on ? '' : ' off'}" draggable="true" data-key="${esc(id)}">
           <span class="prov-n">${icon(it.icon)}</span>
           <div class="prov-t"><b>${esc(it.label)}</b><div class="set-desc">${group}</div></div>
           <button class="icon-btn" data-a="up" title="${tr('Subir')}">${icon('up')}</button>
           <button class="icon-btn" data-a="down" title="${tr('Bajar')}">${icon('down')}</button>
           <label class="switch"><input type="checkbox"${on ? ' checked' : ''}><span></span></label>
         </div>`);
-      const save = async (next) => { await saveSettings({ sidebar: next }); draw(); };
+      const save = async (next) => { await saveSettings({ sidebar: next }); flip(list, draw); };
       const move = (to) => {
         if (to < 0 || to >= items.length) return;
         const o = items.map((x) => ({ ...x })); const [x] = o.splice(i, 1); o.splice(to, 0, x); save(o);
