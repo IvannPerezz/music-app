@@ -249,7 +249,7 @@ export function trackRow(t, i, list, opts = {}) {
     if (e.target.closest('.more')) return trackMenu(t, e.target.closest('.more'), opts);
     if (opts.onClick) return opts.onClick(t, i);
     if (opts.radio && !t.local) player.playRadio(t);
-    else player.playList(list, i);
+    else player.playList(list, i, { pick: true });
   });
   el.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(t, { x: e.clientX, y: e.clientY }, opts); });
   return el;
@@ -959,11 +959,19 @@ export const player = {
 
   get current() { return this.queue[this.index] || null; },
 
-  playList(list, start = 0, { shuffle = false, from = playContext() } = {}) {
+  /** pick: a specific song was clicked (it plays first even with shuffle on). */
+  playList(list, start = 0, { shuffle = false, from = playContext(), pick = false } = {}) {
     this.from = from;
     let q = list.filter((t) => t && t.kind === 'track');
     let idx = Math.max(0, q.indexOf(list[start]));
-    if (shuffle) { q = shuffleArr(q); idx = 0; this.setShuffle(true, false); }
+    if (shuffle) this.setShuffle(true, false);
+    // Shuffle on (from the "Aleatorio" button or already switched on in the player): play the
+    // list in random order. A clicked song goes first and the rest follow shuffled.
+    if (shuffle || this.shuffle) {
+      if (pick) { const first = q[idx]; q = [first, ...shuffleArr(q.filter((_, k) => k !== idx))]; }
+      else q = shuffleArr(q);
+      idx = 0;
+    }
     this.queue = q.map((t) => ({ ...t, _k: uid() }));
     this.extendWith = !q.every((t) => t.local);
     this.load(idx);
@@ -1111,7 +1119,7 @@ export const player = {
     try {
       const more = await api('upNext', last.id);
       const seen = new Set(this.queue.map((t) => t.id));
-      const add = more.filter((t) => !seen.has(t.id) && seen.add(t.id)).map((t) => ({ ...t, _k: uid() }));
+      const add = more.filter((t) => !seen.has(t.id) && seen.add(t.id)).map((t) => ({ ...t, _k: uid(), auto: true }));
       this.queue.push(...add);
       renderQueue();
       this.prepareNext();
@@ -1160,7 +1168,10 @@ function playContext() {
   return title ? { kind: '', name: title } : null;
 }
 function updateFrom() {
-  const f = player.from, el = $('#np-from');
+  let f = player.from;
+  const el = $('#np-from');
+  // Past the end of the playlist, autoplay adds similar songs: say so instead of the playlist.
+  if (player.current?.auto && f?.name) f = { label: 'Reproducción automática', name: tr('Parecidas a «{name}»', { name: f.name }) };
   el.hidden = !f?.name;
   if (!f?.name) return;
   // Saved queues may carry the Spanish words: translate them here, when shown.
@@ -2183,6 +2194,7 @@ function renderQueue() {
   player.queue.forEach((t, i) => {
     if (i === player.index) addLabel(tr('Sonando'));
     if (i === player.index + 1) addLabel(state.settings.automix ? `${tr('A continuación')} · Automix` : tr('A continuación'));
+    if (t.auto && i > player.index && !player.queue[i - 1]?.auto) addLabel(tr('Reproducción automática · canciones parecidas'));
     const row = trackRow(t, i, player.queue, { compact: true, queueIndex: i, onClick: () => player.load(i) });
     if (i < player.index) row.classList.add('past');
     if (i === player.index) row.classList.add('playing');

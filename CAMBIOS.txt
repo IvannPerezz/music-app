@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.30.16
+------------------------------------------------------------
+- Arreglado: con el aleatorio activado en la barra de reproducción, al darle a
+  "Reproducir" en una playlist sonaba en orden. Ahora se reproduce en orden aleatorio. Si
+  pulsas una canción concreta, suena esa primero y el resto sigue en aleatorio.
+- Cuando se acaba una playlist y la reproducción automática sigue con canciones parecidas
+  (Ajustes > Reproducción > Reproducción automática), ya no dice que suena tu playlist:
+  arriba a la izquierda pone "Reproducción automática · Parecidas a «Rock»", y en la cola
+  esas canciones aparecen separadas bajo "Reproducción automática".
+
+------------------------------------------------------------
 v0.6.30.15
 ------------------------------------------------------------
 - Cola (y las listas compactas de Inicio): los títulos y artistas aprovechan todo el ancho

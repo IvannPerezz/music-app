@@ -1,6 +1,9 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Reproducción automática": "Autoplay",
+  "Parecidas a «{name}»": "Similar to “{name}”",
+  "Reproducción automática · canciones parecidas": "Autoplay · similar songs",
   "No me interesa": "Not interested",
   "No recomendar a este artista": "Don't recommend this artist",
   "YouTube Music te recomendará menos a {name}": "YouTube Music will recommend {name} less",
