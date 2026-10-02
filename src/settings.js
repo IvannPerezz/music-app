@@ -50,6 +50,7 @@ export const DEFAULTS = {
   // Playback behaviour
   autoplayRadio: true,
   resumeOnStart: true,
+  trackCols: { num: false, thumb: true, artists: true, album: true, duration: true }, // columns of song lists (albums, playlists…)
   playlistOrder: [], // ['yt:ID' | 'bc:ID'...] order chosen by dragging in Biblioteca -> Playlists
   hiddenPlaylists: [], // [{ id, title }] YouTube Music playlists hidden in BitChord (ones YouTube won't delete)
   windowButtons: 'mac', // 'mac' (red/yellow/green, drawn by the app, on the left) | 'windows' (native)

@@ -180,6 +180,20 @@ await shot('06b-search');
 // the pinned shortcut lights up only when it's the one clicked.
 await win.evaluate(async () => { const sb = (await window.bc.settingsGet()).data.sidebar.map((x) => (x.id === 'lib:playlists' ? { ...x, on: true } : x)); await window.__bc.saveSidebar?.(sb); });
 await win.click('#nav-library'); await win.waitForTimeout(900); await shot('06-library');
+// Inside a playlist: search by artist, sort by title, hide the album column.
+await win.locator('.card.playlist >> nth=0').click(); await win.waitForTimeout(900);
+const rows = () => win.evaluate(() => [...document.querySelectorAll('.track-list .row .ttl')].map((t) => t.textContent));
+const all = await rows();
+await win.fill('.list-search input', 'night owls'); await win.waitForTimeout(200);
+const owls = await win.evaluate(() => [...document.querySelectorAll('.track-list .row .sub')].map((s) => s.textContent));
+if (!owls.length || owls.some((a) => !/Night Owls/.test(a))) errors.push('El buscador de la playlist no filtra por artista: ' + owls.join(' | '));
+await win.fill('.list-search input', ''); await win.waitForTimeout(150);
+await win.click('.list-head [data-s=title]'); await win.waitForTimeout(150);
+const sorted = await rows();
+if (sorted.join() !== [...all].sort((a, b) => a.localeCompare(b)).join()) errors.push('Ordenar por título no funciona');
+await shot('06e-playlist-tools');
+await win.click('.list-head [data-s=title]'); await win.click('.list-head [data-s=title]'); await win.waitForTimeout(150);
+await win.click('#nav-library'); await win.waitForTimeout(900);
 const lit = await win.evaluate(() => [...document.querySelectorAll('#nav-items .nav-item.active')].map((b) => b.id).join(','));
 if (!(await win.$('#nav-lib-playlists'))) errors.push('No se pudo anclar Playlists para la prueba');
 if (lit !== 'nav-library') errors.push('Al pulsar Biblioteca se resalta: ' + lit);

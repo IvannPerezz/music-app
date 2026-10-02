@@ -15,6 +15,20 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.25
+------------------------------------------------------------
+- Listas de canciones (playlists, álbumes, carpetas): encima de las canciones hay ahora un
+  buscador. Busca por el nombre de la canción, por sus artistas o por el álbum, así que
+  escribiendo un artista salen todas sus canciones y en las que participa. Esc lo borra.
+- Debajo hay una cabecera para ordenar: Título, Artista, Álbum y Duración. Un clic ordena
+  de la A a la Z (o de más corta a más larga), otro al revés y otro vuelve al orden
+  original. Cada lista recuerda su orden.
+- Botón "Columnas": eliges qué se ve de cada canción (número de pista, portada,
+  artistas, álbum y duración). Vale para todas las listas.
+- "Reproducir", "Aleatorio", "A la cola" y "Descargar" usan lo que estás viendo: si has
+  buscado u ordenado, suena en ese orden y solo lo que coincide.
+
+------------------------------------------------------------
 v0.6.24.2
 ------------------------------------------------------------
 - Ecualizador: se ha quitado el enlace "Más en Ajustes" del panel de pantalla completa y

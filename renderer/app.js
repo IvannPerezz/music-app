@@ -581,18 +581,93 @@ export function detailView(d, kindLabel, rowOpts = {}) {
         </div>
       </div>
     </div>`);
-  head.querySelector('[data-a=play]').onclick = () => d.tracks.length && player.playList(d.tracks, 0);
-  head.querySelector('[data-a=shuffle]').onclick = () => d.tracks.length && player.playList(d.tracks, 0, { shuffle: true });
-  head.querySelector('[data-a=queue]').onclick = () => { player.enqueue(d.tracks); toast(tr('{n} canciones añadidas a la cola', { n: d.tracks.length })); };
+  // Play / shuffle / queue follow what's on screen: the search and the chosen order.
+  let shown = d.tracks;
+  head.querySelector('[data-a=play]').onclick = () => shown.length && player.playList(shown, 0);
+  head.querySelector('[data-a=shuffle]').onclick = () => shown.length && player.playList(shown, 0, { shuffle: true });
+  head.querySelector('[data-a=queue]').onclick = () => { player.enqueue(shown); toast(tr('{n} canciones añadidas a la cola', { n: shown.length })); };
   const dlb = head.querySelector('[data-a=download]');
-  if (dlb) dlb.onclick = () => downloadTracks(d.tracks);
+  if (dlb) dlb.onclick = () => downloadTracks(shown);
   root.append(head);
-  const box = h('<div class="tracks"></div>');
-  d.tracks.forEach((t, i) => box.append(trackRow(t, i, d.tracks, { numbered: d.kind === 'album', details: !!rowOpts.details, ...(rowOpts.playlistId ? { playlistId: rowOpts.playlistId, playlistIndex: i } : {}) })));
-  if (!d.tracks.length) box.append(h(`<div class="empty">${tr('No hay canciones.')}</div>`));
-  root.append(box);
+  root.append(trackList(d, rowOpts, (list) => (shown = list)));
   (d.sections || []).forEach((s) => root.append(section(s)));
   return root;
+}
+
+// ------------------------------------------------------------------ song list with search, sort and columns
+const fold = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const COLS = [['num', 'Número de pista'], ['thumb', 'Portada'], ['artists', 'Artistas'], ['album', 'Álbum'], ['duration', 'Duración']];
+/** The songs of an album / playlist / folder: a search box (title, artists or album, any word
+ *  order), sortable column headers and a choice of which details each row shows. */
+function trackList(d, rowOpts, onShown) {
+  const el = h(`<div class="track-list">
+    <div class="list-tools">
+      <label class="list-search">${icon('search')}<input type="search" placeholder="${tr('Buscar en esta lista…')}" spellcheck="false"></label>
+      <button class="btn ghost small" data-a="cols">${icon('tune')}${tr('Columnas')}</button>
+    </div>
+    <div class="list-head">
+      <span class="lh-thumb"></span>
+      <span class="lh-title"><button data-s="title">${tr('Título')}</button><i>·</i><button data-s="artist">${tr('Artista')}</button></span>
+      <button class="lh-alb" data-s="album">${tr('Álbum')}</button>
+      <button class="lh-dur" data-s="duration">${tr('Duración')}</button>
+      <span></span>
+    </div>
+    <div class="tracks"></div>
+  </div>`);
+  const box = el.querySelector('.tracks'), input = el.querySelector('input'), lhead = el.querySelector('.list-head');
+  const sortKey = 'listSort.' + (d.kind || '') + ':' + (d.id || '');
+  let sort = store.get(sortKey, null); // { by, dir }
+  const original = new Map(d.tracks.map((t, i) => [t, i]));
+  const keyOf = { title: (t) => fold(t.title), artist: (t) => fold(artistNames(t)), album: (t) => fold(t.album?.name), duration: (t) => t.duration || 0 };
+  const draw = () => {
+    const cols = { num: false, thumb: true, artists: true, album: true, duration: true, ...(state.settings.trackCols || {}) };
+    const numbered = cols.num || d.kind === 'album';
+    const first = numbered || cols.thumb;
+    const tmpl = [first && '44px', 'minmax(0, 1fr)', cols.album && 'minmax(0, .8fr)', cols.duration && '56px', '34px'].filter(Boolean).join(' ');
+    for (const x of [box, lhead]) x.style.setProperty('--cols', tmpl);
+    box.className = `tracks cols${first ? '' : ' no-thumb'}${cols.album ? '' : ' no-album'}${cols.duration ? '' : ' no-dur'}${cols.artists ? '' : ' no-artists'}`;
+    lhead.className = `list-head${first ? '' : ' no-thumb'}${cols.album ? '' : ' no-album'}${cols.duration ? '' : ' no-dur'}`;
+    // Search: every word typed must appear in the title, the artists or the album.
+    const words = fold(input.value).split(/\s+/).filter(Boolean);
+    let list = words.length ? d.tracks.filter((t) => { const hay = fold(`${t.title} ${artistNames(t)} ${t.album?.name || ''}`); return words.every((w) => hay.includes(w)); }) : [...d.tracks];
+    if (sort) {
+      const k = keyOf[sort.by], m = sort.dir === 'desc' ? -1 : 1;
+      list.sort((a, b) => { const x = k(a), y = k(b); return (typeof x === 'number' ? x - y : x.localeCompare(y)) * m || original.get(a) - original.get(b); });
+    }
+    lhead.querySelectorAll('[data-s]').forEach((b) => {
+      const on = sort?.by === b.dataset.s;
+      b.classList.toggle('on', on);
+      b.dataset.dir = on ? sort.dir : '';
+      b.title = tr('Ordenar por {what}', { what: b.textContent.toLowerCase() });
+    });
+    box.replaceChildren();
+    list.forEach((t, i) => box.append(trackRow(t, i, list, { numbered, details: !!rowOpts.details, ...(rowOpts.playlistId ? { playlistId: rowOpts.playlistId, playlistIndex: original.get(t) } : {}) })));
+    if (!d.tracks.length) box.append(h(`<div class="empty">${tr('No hay canciones.')}</div>`));
+    else if (!list.length) box.append(h(`<div class="empty">${tr('Ninguna canción coincide con «{q}».', { q: esc(input.value.trim()) })}</div>`));
+    markPlaying();
+    onShown(list);
+  };
+  input.addEventListener('input', draw);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Escape' && input.value) { input.value = ''; draw(); e.stopPropagation(); } });
+  // Click a header: ascending → descending → back to the original order.
+  lhead.onclick = (e) => {
+    const b = e.target.closest('[data-s]');
+    if (!b) return;
+    const by = b.dataset.s;
+    sort = sort?.by !== by ? { by, dir: 'asc' } : sort.dir === 'asc' ? { by, dir: 'desc' } : null;
+    store.set(sortKey, sort);
+    draw();
+  };
+  el.querySelector('[data-a=cols]').onclick = (e) => {
+    const cols = { num: false, thumb: true, artists: true, album: true, duration: true, ...(state.settings.trackCols || {}) };
+    openMenu([
+      { header: tr('Información de cada canción') },
+      ...COLS.map(([k, label]) => ({ icon: cols[k] ? 'check' : '', checked: cols[k], label: tr(label), action: () => saveSettings({ trackCols: { ...cols, [k]: !cols[k] } }).then(draw) })),
+    ], e.currentTarget);
+  };
+  if (d.tracks.length < 2) el.querySelector('.list-tools').hidden = true;
+  draw();
+  return el;
 }
 
 export async function downloadTracks(tracks) {

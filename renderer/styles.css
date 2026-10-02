@@ -1382,3 +1382,25 @@ body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition:
 /* Main page: no visible scrollbar (it still scrolls with the wheel, the keyboard or by dragging). */
 #content { scrollbar-width: none; }
 #content::-webkit-scrollbar { display: none; }
+
+/* ---------------------------------------------------------------- song lists: search, sort, columns */
+.list-tools { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; }
+.list-tools[hidden] { display: none; }
+.list-search { display: flex; align-items: center; gap: 8px; flex: 0 1 340px; height: 34px; padding: 0 12px; border-radius: 10px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.08); transition: border-color .15s, background .15s; }
+.list-search:focus-within { border-color: var(--accent); background: rgba(255,255,255,.1); }
+.list-search svg { width: 17px; height: 17px; color: var(--muted); flex: none; }
+.list-search input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 13.5px; }
+.list-head { display: grid; grid-template-columns: var(--cols); gap: 12px; align-items: center; padding: 4px 8px 8px; margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255,255,255,.07); font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
+.list-head.no-thumb .lh-thumb, .list-head.no-album .lh-alb, .list-head.no-dur .lh-dur { display: none; }
+.list-head .lh-title { display: flex; align-items: center; gap: 6px; }
+.list-head .lh-title i { font-style: normal; opacity: .5; }
+.list-head button { font: inherit; text-transform: inherit; letter-spacing: inherit; color: inherit; text-align: left; padding: 2px 0; transition: color .15s; }
+.list-head .lh-dur { text-align: right; }
+.list-head button:hover, .list-head button.on { color: var(--text); }
+.list-head button.on::after { content: ""; display: inline-block; margin-left: 6px; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg); }
+.list-head button.on[data-dir="desc"]::after { transform: translateY(1px) rotate(225deg); }
+.tracks.cols .row { grid-template-columns: var(--cols); }
+.tracks.cols.no-thumb .row .thumb, .tracks.cols.no-album .row .alb, .tracks.cols.no-dur .row .dur, .tracks.cols.no-artists .row .sub { display: none; }
