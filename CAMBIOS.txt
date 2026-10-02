@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.30.11
+------------------------------------------------------------
+- Al cambiar de canción, el fondo (el animado de la app y el de la vista de portada y
+  letra) ya no se funde a negro: la portada anterior se va desvaneciendo mientras aparece
+  la nueva debajo, sin cortes y sin que el movimiento del fondo dé saltos.
+
+------------------------------------------------------------
 v0.6.30.10
 ------------------------------------------------------------
 - El cuadro de la cuenta (al pulsar tu foto) tiene ahora animación al cerrarse: se encoge

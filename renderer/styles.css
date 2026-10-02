@@ -1510,9 +1510,9 @@ body.route-settings #sb-resize { display: none; }
 /* ---------------------------------------------------------------- song change
    The next cover slides in over the previous one; the backgrounds fade out and back in. */
 .art-next { position: absolute; z-index: 2; object-fit: cover; pointer-events: none; will-change: transform, opacity; }
-#ambient, .np-amb, .np-bg { transition: opacity .35s ease; }
-body.bg-swap #ambient, body.bg-swap .np-amb, body.bg-swap .np-bg { opacity: 0 !important; transition: opacity .2s ease; }
-body.bg-swap .amb-layer i, body.ambient-cover.bg-swap .amb-layer i { transition: none; }
+/* Song change: the old background (a copy) fades out over the new one. */
+.bg-ghost { pointer-events: none; }
+body.bg-swapping .amb-layer i, body.bg-swapping .np-bg { transition: none !important; }
 
 /* Cover and lyrics view: the technical line under the song (codec, kbps…) always keeps its
    space, so the cover stays put when it appears; the text slides in. */

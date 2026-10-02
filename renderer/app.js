@@ -1618,23 +1618,46 @@ function slideArt(img, src, dir = 1) {
   };
   if (next.complete) go(); else { next.onload = go; next.onerror = () => { img.src = src; next.remove(); }; }
 }
-/** Backgrounds (the animated one everywhere and the cover view's): quick fade out, swap, fade in. */
-let bgShown = null, bgTimer = 0;
+/** Backgrounds (the animated one everywhere and the cover view's): cross-fade from the old
+ *  cover to the new one. A frozen copy of each background, still showing the old cover (and
+ *  in the same point of its movement), fades away on top while the new one is already
+ *  underneath. */
+let bgShown = null;
 function swapBackground(url) {
   if (url === bgShown) return;
+  const first = bgShown === null, old = bgShown;
+  bgShown = url;
   const apply = () => {
     $('.np-bg').style.backgroundImage = url;
     document.documentElement.style.setProperty('--amb-img', url || 'none');
   };
-  const first = bgShown === null;
-  bgShown = url;
   if (first) return apply();
-  clearTimeout(bgTimer);
-  document.body.classList.add('bg-swap'); // fades out (CSS)
-  bgTimer = setTimeout(() => {
-    apply();
-    requestAnimationFrame(() => document.body.classList.remove('bg-swap')); // fades back in
-  }, 200);
+  const root = getComputedStyle(document.documentElement);
+  const vars = ['--amb1', '--amb2', '--amb3'].map((v) => [v, root.getPropertyValue(v)]);
+  const ghosts = [];
+  for (const layer of [$('#ambient'), $('#nowplaying .np-amb'), $('#nowplaying .np-bg')]) {
+    if (!layer || getComputedStyle(layer).display === 'none' || !layer.offsetParent && layer.id !== 'ambient') continue;
+    const g = layer.cloneNode(true);
+    g.removeAttribute('id');
+    g.classList.add('bg-ghost');
+    const cs = getComputedStyle(layer);
+    for (const k of ['position', 'inset', 'zIndex', 'opacity', 'filter', 'overflow', 'pointerEvents']) g.style[k] = cs[k];
+    g.style.setProperty('--amb-img', old || 'none');
+    for (const [v, val] of vars) g.style.setProperty(v, val);
+    if (layer.classList.contains('np-bg')) g.style.backgroundImage = old;
+    layer.after(g);
+    // Same point of the drifting animation as the original, so nothing jumps.
+    const src = [...layer.querySelectorAll('i')], dst = [...g.querySelectorAll('i')];
+    src.forEach((el, i) => { const a = el.getAnimations()[0], b = dst[i]?.getAnimations()[0]; if (a && b) { b.currentTime = a.currentTime; if (a.playState === 'paused') b.pause(); } });
+    ghosts.push([g, +cs.opacity || 1]);
+  }
+  document.body.classList.add('bg-swapping'); // no colour/image transitions underneath
+  apply();
+  requestAnimationFrame(() => document.body.classList.remove('bg-swapping'));
+  for (const [g, from] of ghosts) {
+    const a = g.animate([{ opacity: from }, { opacity: 0 }], { duration: 900, easing: 'ease-in-out', fill: 'forwards' });
+    a.onfinish = () => g.remove();
+  }
 }
 
 let visTrackKey = null;
