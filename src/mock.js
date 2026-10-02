@@ -48,6 +48,7 @@ export const history = async () => Array.from({ length: 6 }, (_, i) => track(i +
 export const rate = async () => true;
 const mockLines = ['Bajo la luz de neón', 'la ciudad se queda en calma', 'y tu voz en la canción', 'me devuelve el alma', '', 'Cruzamos la avenida', 'sin mirar atrás', 'la noche está encendida', 'y no hay nada más'];
 export const fetchLyrics = async (t, provider) => {
+  if (/Paper Planes/.test(t?.title || '')) return null; // a song without lyrics (tests)
   if (provider === 'lyricsplus') {
     // word-synced sample
     return { format: 'lyricsplus', data: { lyrics: mockLines.filter(Boolean).map((text, i) => {

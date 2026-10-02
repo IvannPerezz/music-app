@@ -155,6 +155,11 @@ await win.locator('#menu [data-k=lyricsFontSize]').fill('40'); await win.waitFor
 if (!(await win.evaluate(() => getComputedStyle(document.querySelector('#lyrics')).getPropertyValue('--lyr-size').trim() === '40px'))) errors.push('El tamaño de la letra no cambia en directo');
 await shot('02a-lyrics-menu');
 await win.keyboard.press('Escape'); await win.waitForTimeout(200);
+// A song without lyrics: the lyrics hide by themselves.
+await win.evaluate(() => { const p = window.__bc.player; const { _k, ...cur } = p.current; p.playNext({ ...cur, id: 'mockvideo03', title: 'Paper Planes' }); p.next(); });
+await win.waitForTimeout(1500);
+if (!(await win.evaluate(() => document.querySelector('#nowplaying').classList.contains('no-lyrics')))) errors.push('La letra no se oculta sola si no hay');
+await win.click('#prev'); await win.waitForTimeout(1500);
 await win.click('#np-close'); await win.waitForTimeout(500);
 await win.click('#p-art', { button: 'right' }); await win.waitForTimeout(300);
 if (!(await win.evaluate(() => !document.querySelector('#menu').hidden && document.querySelector('#menu').textContent.includes('Reproducir a continuación')))) errors.push('Click derecho en la portada no abre el menú de la canción');

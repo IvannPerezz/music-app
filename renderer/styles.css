@@ -1519,3 +1519,6 @@ body.bg-swap .amb-layer i, body.ambient-cover.bg-swap .amb-layer i { transition:
 #np-stats { min-height: 1.45em; line-height: 1.45em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #np-stats.in { animation: stats-in .45s cubic-bezier(.2,.8,.2,1); }
 @keyframes stats-in { from { opacity: 0; transform: translateY(6px); } }
+
+/* No lyrics for this song: hidden automatically, but the source button stays usable. */
+#nowplaying.lyrics-empty #lyrics-source { opacity: 1; pointer-events: auto; }

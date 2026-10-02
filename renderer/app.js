@@ -1823,8 +1823,13 @@ function openNowPlaying() {
   if (state.settings.visualizer) mountVisualizer($('#nowplaying'), engine);
 }
 function applyLyricsHidden() {
+  // Hidden by the user, or automatically when the song has no lyrics (the cover then takes the
+  // whole view; the lyrics-source button stays, to try another provider).
+  const l = player.lyrics;
+  const empty = !!l && !l.loading && !(l.synced && l.lines?.length) && !l.plain;
   const off = !!state.settings.npLyricsHidden;
-  $('#nowplaying').classList.toggle('no-lyrics', off);
+  $('#nowplaying').classList.toggle('no-lyrics', off || empty);
+  $('#nowplaying').classList.toggle('lyrics-empty', empty && !off);
   const b = $('#np-lyrics-toggle');
   b.innerHTML = icon(off ? 'subtitles' : 'subtitlesOff');
   b.title = tr(off ? 'Mostrar la letra' : 'Ocultar la letra (solo portada)');
@@ -1879,6 +1884,7 @@ function renderLyrics() {
   const label = providerMeta.find((p) => p.id === l?.provider)?.label;
   $('#lyrics-source').innerHTML = `${icon('lyrics')}<span class="pill-label"><span>${l?.loading ? tr('Buscando letra…') : label ? label + (l.forced ? '' : ' · auto') : tr('Sin letra')}</span>${icon('chevron')}</span>`;
   $('#lyrics-source').title = tr('Fuente de la letra');
+  applyLyricsHidden();
   if (!l || l.loading) { box.innerHTML = '<div class="none"><div class="spinner"></div></div>'; return; }
   const useWords = state.settings.lyricsWordSync !== false;
   if (l.synced && l.lines?.length) {
