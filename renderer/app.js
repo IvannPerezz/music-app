@@ -1053,7 +1053,7 @@ function applyFsButtons() {
 /** Settings of the full-screen mode: which buttons it shows. Opens in the middle, over a blur. */
 function fsSettings() {
   const m = h(`<div class="modal-back fs-set-back"><div class="modal fs-set">
-    <h3>Pantalla completa</h3><p class="muted">Elige qué botones se ven en este modo. Los cambios se aplican al momento.</p>
+    <h3>Ocultar/Mostrar botones en pantalla completa</h3>
     <h4>Columna de la derecha</h4><div data-g="side"></div>
     <h4>Controles de reproducción</h4><div data-g="play"></div>
     <div class="btn-row"><button class="btn primary small" data-a="ok">Listo</button></div>

@@ -1153,3 +1153,10 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 .vis-list::-webkit-scrollbar-thumb, .fs-panel-body::-webkit-scrollbar-thumb, #menu::-webkit-scrollbar-thumb {
   background: rgba(255,255,255,.16); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
 .vis-list::-webkit-scrollbar-thumb:hover, .fs-panel-body::-webkit-scrollbar-thumb:hover, #menu::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,.3); }
+
+/* Full-screen settings: zoom out into place (from slightly larger) instead of rising from below. */
+.modal-back.fs-set-back { animation: fade-in .2s ease; }
+.modal.fs-set { animation: zoom-out-in .3s cubic-bezier(.2,.8,.2,1); }
+.fs-set h3 { margin-bottom: 4px; }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes zoom-out-in { from { opacity: 0; transform: scale(1.12); } }

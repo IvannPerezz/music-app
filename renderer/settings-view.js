@@ -112,7 +112,7 @@ function sourcesCard() {
 
 function equalizer() {
   return card('eq', 'Ecualizador', 'equalizer',
-    h('<div class="set-note">10 bandas, aplicado a todo lo que suena. Es el mismo ecualizador que abres con el botón de la barra de reproducción: los cambios se ven en los dos sitios.</div>'),
+    h('<div class="set-note">10 Bandas, aplicado a todo lo que suena.</div>'),
     eqPanel(),
   );
 }
