@@ -205,13 +205,13 @@ function localMusic() {
   };
   const rescan = btn(tr('Volver a escanear'), 'ghost', 'refresh');
   rescan.onclick = async () => { toast(tr('Escaneando…')); const n = (await api('localRescan')).length; toast(tr('{n} canciones en tu equipo', { n })); };
-  const unc = h(`<input class="text" placeholder="${tr('…o escribe una ruta:')} \\\\NAS\\${tr('Música')}" style="min-width:260px">`);
+  const unc = h(`<input class="text" placeholder="${tr('Escribe una ruta...')}" style="min-width:260px">`);
   unc.onkeydown = async (e) => {
     if (e.key !== 'Enter') return;
     const p = unc.value.trim();
     if (p && !folders.includes(p)) { await saveSettings({ localFolders: [...folders, p] }); toast(tr('Escaneando la carpeta…')); refreshView(); }
   };
-  const actions = h('<div class="btn-row"></div>'); actions.append(unc, add, rescan);
+  const actions = h('<div class="btn-row local-actions"></div>'); actions.append(unc, add, rescan);
   return card('local', tr('Música local'), 'computer',
     h(`<div class="set-note">${tr('Cada carpeta que añadas funciona como una playlist local independiente (con su propia portada) en Biblioteca → En este equipo y en Playlists. Formatos: MP3, M4A, FLAC, OGG, Opus, WAV…')}</div>`),
     box, actions,

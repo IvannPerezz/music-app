@@ -414,7 +414,7 @@ export default {
   "Quitar de BitChord (no borra nada del disco)": "Remove from BitChord (nothing is deleted from the disk)",
   "Carpeta con música": "Folder with music",
   "{n} canciones en tu equipo": "{n} songs on your computer",
-  "…o escribe una ruta:": "…or type a path:",
+  "Escribe una ruta...": "Type a path...",
   "Cada carpeta que añadas funciona como una playlist local independiente (con su propia portada) en Biblioteca → En este equipo y en Playlists. Formatos: MP3, M4A, FLAC, OGG, Opus, WAV…": "Each folder you add works as its own local playlist (with its own cover) in Library → On this computer and in Playlists. Formats: MP3, M4A, FLAC, OGG, Opus, WAV…",
   "Actualizar automáticamente": "Update automatically",
   "Cuando añadas, quites o cambies canciones en estas carpetas, sus playlists se actualizan solas a los pocos segundos. Usa los avisos de cambios de Windows, así que no consume recursos mientras no pasa nada. En carpetas de red puede no funcionar; ahí usa \"Volver a escanear\".": "When you add, remove or change songs in these folders, their playlists update by themselves within a few seconds. It uses Windows' change notifications, so it uses no resources while nothing happens. It may not work on network folders; there, use \"Rescan\".",

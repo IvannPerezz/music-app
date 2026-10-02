@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.18.1
+------------------------------------------------------------
+- Ajustes > Música local: el recuadro para escribir una ruta dice ahora "Escribe una
+  ruta...", y el recuadro y los botones "Añadir carpeta" y "Volver a escanear" van
+  centrados, con algo más de espacio antes de "Actualizar automáticamente".
+
+------------------------------------------------------------
 v0.6.18
 ------------------------------------------------------------
 - El menú para cambiar la fuente de la letra lleva ahora abajo el tamaño del texto y el

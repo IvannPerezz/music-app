@@ -1211,3 +1211,6 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 #player .icon-btn { transition: background .15s, opacity .15s, color .15s, transform .12s; }
 body.no-mica-player #player #like.on, body.no-mica-player #player #shuffle.on, body.no-mica-player #player #repeat.on,
 body.no-mica-player #player .icon-btn:active:not(.on) { background: rgba(255,255,255,.1); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+
+/* Ajustes > Música local: path box and buttons centred, with room before the next setting. */
+.local-actions { justify-content: center; margin: 4px 0 18px; }
