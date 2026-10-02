@@ -167,6 +167,38 @@ async function fillPlaylistsFold(inner) {
   }
 }
 
+// ------------------------------------------------------------------ resizable sidebars
+/** Drag the inner edge of the left sidebar or of the queue to make it wider or narrower. */
+function setupResizers() {
+  const root = document.documentElement.style;
+  const LIMITS = { sidebar: [180, 420, 'sidebarW', '--sidebar-user'], queue: [260, 600, 'queueW', '--queue-user'] };
+  for (const [k, [, , key, prop]] of Object.entries(LIMITS)) { const w = store.get(key, null); if (w) root.setProperty(prop, w + 'px'); }
+  const drag = (handle, kind, widthAt) => handle.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const [min, max, key, prop] = LIMITS[kind];
+    handle.setPointerCapture(e.pointerId);
+    document.body.classList.add('resizing');
+    let w = 0;
+    const move = (ev) => {
+      w = Math.round(Math.min(max, Math.max(min, widthAt(ev))));
+      root.setProperty(prop, w + 'px');
+      if (kind === 'sidebar') moveNavPill(); // the playlist grid may wrap differently
+    };
+    const up = () => {
+      document.body.classList.remove('resizing');
+      handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up);
+      if (w) store.set(key, w);
+    };
+    handle.addEventListener('pointermove', move); handle.addEventListener('pointerup', up);
+  });
+  drag($('#sb-resize'), 'sidebar', (ev) => ev.clientX - $('#sidebar').getBoundingClientRect().left);
+  drag($('#queue-resize'), 'queue', (ev) => $('#queue').getBoundingClientRect().right - ev.clientX);
+  // Double click: back to the default width.
+  $('#sb-resize').ondblclick = () => { root.removeProperty('--sidebar-user'); store.set('sidebarW', null); moveNavPill(); };
+  $('#queue-resize').ondblclick = () => { root.removeProperty('--queue-user'); store.set('queueW', null); };
+}
+
 /** Slides the sidebar highlight to the page's item (first time / after a redraw: no animation). */
 function moveNavPill() {
   const pill = $('#nav-items .nav-pill');
@@ -404,6 +436,11 @@ const views = {
       onData: async (bytes) => { const url = await api('ytCoverData', route.id, bytes); state.ytCovers = { ...state.ytCovers, [route.id]: url }; },
       onRemove: async () => { await api('ytCoverRemove', route.id); const m = { ...state.ytCovers }; delete m[route.id]; state.ytCovers = m; },
     });
+    if (state.account && route.id !== 'LM') {
+      const del = h(`<button class="btn ghost">${icon('trash')}${tr('Eliminar playlist')}</button>`);
+      del.onclick = () => deletePlaylist({ kind: 'playlist', id: route.id, title: d.title }, { leave: true });
+      view.querySelector('.actions').append(del);
+    }
     return view;
   },
 
@@ -455,11 +492,8 @@ const views = {
     });
     const ren = h(`<button class="btn ghost">${icon('edit')}${tr('Renombrar')}</button>`);
     ren.onclick = async () => { const n = await askText(tr('Renombrar playlist'), { value: p.name, ok: tr('Guardar') }); if (n) { await api('playlistRename', p.id, n); refreshView(); } };
-    const del = h(`<button class="btn ghost">${icon('trash')}${tr('Borrar')}</button>`);
-    del.onclick = async () => {
-      if (!(await confirmDialog(tr('Borrar playlist'), tr('¿Borrar «{name}»? Las canciones no se borran, solo la lista.', { name: p.name }), { ok: tr('Borrar'), danger: true }))) return;
-      await api('playlistDelete', p.id); toast(tr('Playlist borrada')); go({ name: 'library', tab: 'playlists' }, { replace: true });
-    };
+    const del = h(`<button class="btn ghost">${icon('trash')}${tr('Eliminar playlist')}</button>`);
+    del.onclick = () => deletePlaylist({ kind: 'localplaylist', id: p.id, title: p.name }, { leave: true });
     actions.append(ren, del);
     return view;
   },
@@ -564,6 +598,40 @@ export async function downloadTracks(tracks) {
   if (!list.length) return toast(tr('Ya está todo descargado'));
   await api('download', list);
   toast(list.length === 1 ? tr('Descargando «{name}»…', { name: list[0].title }) : tr('Descargando {n} canciones…', { n: list.length }));
+}
+
+// ------------------------------------------------------------------ playlist menu (right click on a playlist)
+/** p: { kind: 'playlist' (YouTube Music) | 'localplaylist' (BitChord), id, title }. */
+export function playlistMenu(p, anchor) {
+  const tracks = () => api(p.kind === 'localplaylist' ? 'playlistGet' : 'playlist', p.id).then((d) => d.tracks).catch((e) => { toast(e.message, true); return []; });
+  const from = { kind: tr('Playlist'), name: p.title };
+  const yt = p.kind === 'playlist';
+  openMenu([
+    { header: p.title },
+    { icon: 'play', label: tr('Reproducir'), action: async () => { const t = await tracks(); if (t.length) player.playList(t, 0, { from }); } },
+    { icon: 'shuffle', label: tr('Aleatorio'), action: async () => { const t = await tracks(); if (t.length) player.playList(t, 0, { shuffle: true, from }); } },
+    { icon: 'addQueue', label: tr('Añadir a la cola'), action: async () => { const t = await tracks(); if (t.length) { player.enqueue(t); toast(tr('{n} canciones añadidas a la cola', { n: t.length })); } } },
+    { icon: 'download', label: tr('Descargar'), action: async () => downloadTracks(await tracks()) },
+    null,
+    { icon: 'open', label: tr('Abrir'), action: () => go({ name: p.kind, id: p.id }) },
+    ...(yt ? [{ icon: 'open', label: tr('Abrir en YouTube Music'), action: () => bc.openExternal(`https://music.youtube.com/playlist?list=${p.id.replace(/^VL/, '')}`) }] : []),
+    ...(!yt ? [{ icon: 'edit', label: tr('Renombrar'), action: async () => { const n = await askText(tr('Renombrar playlist'), { value: p.title, ok: tr('Guardar') }); if (n) { await api('playlistRename', p.id, n); refreshView(); renderSidebar(); } } }] : []),
+    ...(yt && p.id === 'LM' ? [] : [null, { icon: 'trash', label: tr('Eliminar playlist'), action: () => deletePlaylist(p) }]),
+  ], anchor);
+}
+/** Deletes a whole playlist after a confirmation (YouTube Music ones from the account too). */
+export async function deletePlaylist(p, { leave = false } = {}) {
+  const yt = p.kind === 'playlist';
+  const msg = yt ? tr('¿Eliminar «{name}» de tu cuenta de YouTube Music? Desaparecerá también de la app oficial. Las canciones no se borran.', { name: p.title })
+    : tr('¿Borrar «{name}»? Las canciones no se borran, solo la lista.', { name: p.title });
+  if (!(await confirmDialog(tr('Eliminar playlist'), msg, { ok: tr('Eliminar'), danger: true }))) return false;
+  try {
+    await api(yt ? 'ytPlaylistDelete' : 'playlistDelete', p.id);
+    toast(tr('Playlist eliminada'));
+    renderSidebar();
+    if (leave) go({ name: 'library', tab: 'playlists' }, { replace: true }); else refreshView();
+    return true;
+  } catch (e) { toast(e.message, true); return false; }
 }
 
 // ------------------------------------------------------------------ menus
@@ -1933,6 +2001,9 @@ function initButtons() {
   $('#repeat').onclick = () => player.cycleRepeat();
   $('#btn-queue').onclick = () => toggleQueue();
   $('#queue-clear').onclick = () => player.clearUpcoming();
+  $('#queue-close').innerHTML = icon('close');
+  $('#queue-close').onclick = () => toggleQueue(false);
+  setupResizers();
   $('#btn-lyrics').onclick = () => (npOpen() ? closeNowPlaying() : openNowPlaying());
   $('#p-art').onclick = () => (npOpen() ? closeNowPlaying() : openNowPlaying());
   $('#p-art').addEventListener('contextmenu', (e) => { e.preventDefault(); if (player.current) trackMenu(player.current, { x: e.clientX, y: e.clientY }); });

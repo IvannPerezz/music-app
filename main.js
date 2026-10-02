@@ -294,6 +294,7 @@ app.whenReady().then(async () => {
   handle('playlist-move', (id, from, to) => playlists.move(id, from, to));
   handle('account-playlists', async () => (MOCK || yt.signedIn() ? yt.accountPlaylists() : []));
   handle('yt-playlist-add', (id, videoIds) => yt.addToAccountPlaylist(id, videoIds));
+  handle('yt-playlist-delete', (id) => yt.deleteAccountPlaylist(id));
   handle('yt-playlist-create', (title, videoIds) => yt.createAccountPlaylist(title, videoIds || [], { description: 'Creada con BitChord' }));
   // Spotify import
   handle('choose-file', async (title, ext) => {

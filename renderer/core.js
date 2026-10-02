@@ -111,7 +111,7 @@ export function askText(title, { value = '', placeholder = '', ok = 'Aceptar', m
 /** Yes/no modal. */
 export function confirmDialog(title, message, { ok = 'Aceptar', danger = false } = {}) {
   return new Promise((resolve) => {
-    const m = h(`<div class="modal-back"><div class="modal">
+    const m = h(`<div class="modal-back fade"><div class="modal mica">
       <h3>${esc(title)}</h3><p class="muted">${esc(message)}</p>
       <div class="btn-row"><button class="btn ghost small" data-a="no">Cancelar</button><button class="btn ${danger ? 'danger' : 'primary'} small" data-a="ok">${esc(ok)}</button></div>
     </div></div>`);

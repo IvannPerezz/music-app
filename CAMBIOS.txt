@@ -15,6 +15,23 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.22
+------------------------------------------------------------
+- Click derecho sobre una playlist en Biblioteca > Playlists: menú para reproducirla,
+  ponerla en aleatorio, añadirla a la cola, descargarla, abrirla (o abrirla en YouTube
+  Music), renombrarla (las de BitChord) y eliminarla.
+- Dentro de una playlist hay un botón "Eliminar playlist". También funciona con las de tu
+  cuenta de YouTube Music (desaparecen también de la app oficial; las canciones no se
+  borran). Pide confirmación en un cuadro de cristal Mica.
+- La cola ya no tapa el contenido: se abre al lado y lo desplaza, y se queda abierta
+  hasta que la cierras con la X que hay ahora a la izquierda de "Cola" (o con la tecla Q).
+  En pantalla completa sigue flotando como antes.
+- La barra lateral y la cola se pueden ensanchar o estrechar arrastrando su borde
+  interior con el ratón (doble clic en el borde: vuelve al tamaño original). El ancho se
+  recuerda. Las playlists desplegadas de la barra lateral se reparten en más o menos
+  columnas según el ancho.
+
+------------------------------------------------------------
 v0.6.21.1
 ------------------------------------------------------------
 - Barra lateral: el despliegue de las playlists es más fluido. Las playlists se cargan de

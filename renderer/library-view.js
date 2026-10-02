@@ -1,6 +1,6 @@
 // Library: favourites, downloads, local files, history and the YouTube Music account library.
 import { bc, $, icon, esc, fmt, api, toast, h, state, art, likes, history, askText } from './core.js';
-import { trackRow, section, card, player, go, refreshView, currentRoute, sizeLabel } from './app.js';
+import { trackRow, section, card, player, go, refreshView, currentRoute, sizeLabel, playlistMenu } from './app.js';
 import { tr } from './i18n.js';
 
 const TABS = [
@@ -157,7 +157,12 @@ async function playlistsTab() {
   if (state.account) {
     const liked = h(`<div class="card playlist"><div class="art liked">${icon('heartFill')}</div><div class="t">${tr('Me gusta')}</div><div class="s">${tr('Canciones que te gustan en YouTube Music')}</div></div>`);
     liked.onclick = () => go({ name: 'playlist', id: 'LM' });
-    const ytCards = ytLists.map((p) => card(p));
+    const ytCards = ytLists.map((p) => {
+      const c = card(p);
+      c.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: p.id, title: p.title }, { x: e.clientX, y: e.clientY }); });
+      return c;
+    });
+    liked.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: 'LM', title: tr('Me gusta') }, { x: e.clientX, y: e.clientY }); });
     grid(tr('Tus playlists de YouTube Music'), [liked, ...ytCards]);
   }
   if (lists.length) {
@@ -167,6 +172,7 @@ async function playlistsTab() {
         if (e.target.closest('.hover-play')) { const d = await api('playlistGet', p.id); if (d.tracks.length) player.playList(d.tracks, 0, { from: { kind: 'Playlist', name: p.name } }); return; }
         go({ name: 'localplaylist', id: p.id });
       };
+      c.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'localplaylist', id: p.id, title: p.name }, { x: e.clientX, y: e.clientY }); });
       return c;
     }), state.account ? 'margin-top:28px' : '');
   }

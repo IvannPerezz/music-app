@@ -153,6 +153,9 @@ if (!(await win.evaluate(() => !document.querySelector('#menu').hidden && docume
 await shot('02z-art-menu');
 await win.keyboard.press('Escape'); await win.waitForTimeout(200);
 await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('03-queue');
+// The queue sits beside the content (doesn't cover it) and has its own close button.
+const dock = await win.evaluate(() => ({ content: document.querySelector('#content').getBoundingClientRect().right, queue: document.querySelector('#queue').getBoundingClientRect().left }));
+if (dock.content > dock.queue + 1) errors.push('La cola tapa el contenido: ' + JSON.stringify(dock));
 await win.click('#btn-queue'); await win.waitForTimeout(400);
 await win.click('#btn-eq'); await win.waitForTimeout(400); await shot('04-eq');
 await win.click('#btn-eq'); await win.waitForTimeout(300);
@@ -177,6 +180,10 @@ if (lit !== 'nav-library') errors.push('Al pulsar Biblioteca se resalta: ' + lit
 await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(700);
 if (!(await win.evaluate(() => document.querySelector('.sb-pl-grid.open') && document.querySelector('#nav-home').offsetHeight >= 36))) errors.push('El desplegable de playlists de la barra lateral no se abre bien');
 await shot('06c-sidebar-playlists');
+// Right click on a playlist in Biblioteca → Playlists: its menu, with "Eliminar playlist".
+await win.click('.card.playlist >> nth=1', { button: 'right' }); await win.waitForTimeout(300);
+if (!(await win.evaluate(() => !document.querySelector('#menu').hidden && document.querySelector('#menu').textContent.includes('Eliminar playlist')))) errors.push('Falta el menú de la playlist con click derecho');
+await win.keyboard.press('Escape'); await win.waitForTimeout(200);
 await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(400);
 await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('07-settings');
 // Custom CSS theme: "+" tile → editor → save; then back to the original BitChord theme.

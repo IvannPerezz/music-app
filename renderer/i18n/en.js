@@ -1,6 +1,11 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Eliminar playlist": "Delete playlist",
+  "Playlist eliminada": "Playlist deleted",
+  "¿Eliminar «{name}» de tu cuenta de YouTube Music? Desaparecerá también de la app oficial. Las canciones no se borran.": "Delete “{name}” from your YouTube Music account? It will also disappear from the official app. The songs aren't deleted.",
+  "Cerrar la cola (Q)": "Close the queue (Q)",
+  "Arrastra para cambiar el ancho (doble clic: tamaño original)": "Drag to change the width (double click: original size)",
   "Mostrar tus playlists": "Show your playlists",
   "Ocultar tus playlists": "Hide your playlists",
   "¿Querías decir": "Did you mean",

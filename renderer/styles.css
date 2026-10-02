@@ -333,7 +333,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
   .sidebar-foot, .brand span { display: none; }
   .brand { width: 56px; }
   .np-inner { padding: 24px 32px; gap: 32px; }
-  #queue { width: 300px; }
+  :root { --queue-w: 300px; }
 }
 
 /* ================================================================ v0.2 additions */
@@ -1319,3 +1319,44 @@ body.mac-buttons .settings-btn { margin-right: 8px; }
 .sb-pl-empty { grid-column: 1 / -1; font-size: 12px; color: var(--muted); padding: 4px; }
 @media (max-width: 1100px) { .nav-fold, .sb-pl-grid { display: none; } }
 #sidebar #nav-items > * { flex: none; } /* scroll instead of squashing the items */
+
+/* ---------------------------------------------------------------- docked, resizable queue
+   The queue sits beside the content (it pushes it aside instead of covering it) and stays open
+   until closed with its × or Q. Both side panels can be resized by dragging their inner edge;
+   double click goes back to the default width. In full screen the queue still floats. */
+:root { --sidebar: var(--sidebar-user, 216px); --queue-w: var(--queue-user, 340px); }
+@media (max-width: 1100px) { :root { --sidebar: 64px; --queue-w: 300px; } }
+#queue { position: relative; top: auto; right: auto; bottom: auto; z-index: 6; flex: none; width: var(--queue-w);
+  margin: 8px 10px calc(var(--player) + 10px) 0; overflow: hidden;
+  animation: queue-dock-in .38s cubic-bezier(.32,.72,0,1); }
+#queue > * { min-width: calc(var(--queue-w) - 2px); }
+#queue.closing { animation: queue-dock-out .3s cubic-bezier(.32,.72,0,1) forwards; pointer-events: none; }
+@keyframes queue-dock-in { from { width: 0; margin-right: 0; opacity: 0; } }
+@keyframes queue-dock-out { to { width: 0; margin-right: 0; opacity: 0; border-width: 0; } }
+body.fs #queue { position: absolute; top: 10px; right: 10px; bottom: 10px; margin: 0; animation: queue-slide-in .3s cubic-bezier(.2,.8,.2,1); }
+body.fs #queue.closing { animation: queue-slide-out .3s cubic-bezier(.5,0,.75,0) forwards; }
+#queue .panel-head { justify-content: flex-start; gap: 6px; padding-left: 8px; }
+#queue .panel-head h3 { flex: 1; }
+#queue-close { width: 30px; height: 30px; }
+#queue-close svg { width: 18px; height: 18px; }
+
+.resizer { flex: none; width: 10px; margin: 8px -5px calc(var(--player) + 10px); z-index: 8; cursor: col-resize; position: relative; }
+.resizer::after { content: ""; position: absolute; top: 20%; bottom: 20%; left: 4px; width: 2px; border-radius: 2px; background: var(--accent); opacity: 0; transition: opacity .2s; }
+.resizer:hover::after, body.resizing .resizer:active::after { opacity: .7; }
+#queue[hidden] ~ .resizer, body:has(#queue[hidden]) #queue-resize, body.fs #queue-resize, body.fs #sb-resize,
+body.sb-hover #sb-resize, body.sb-collapsed #sb-resize { display: none; }
+@media (max-width: 1100px) { .resizer { display: none; } }
+body.resizing, body.resizing * { cursor: col-resize !important; user-select: none; }
+/* No transitions while dragging (the panel follows the mouse). Animations are left alone: turning
+   them off and on again would replay the queue's opening. */
+body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition: none !important; }
+
+/* The sidebar playlist grid fits as many covers per row as the width allows. */
+.sb-pl-inner { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+
+/* Confirmation dialogs: Mica glass like the rest of the app. */
+.modal-back.fade { animation: fade-in .2s ease; }
+.modal.mica { background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  animation: zoom-out-in .28s cubic-bezier(.2,.8,.2,1); }

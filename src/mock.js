@@ -121,3 +121,4 @@ export const searchSongs = async (q) => {
 export const createAccountPlaylist = async (title, ids, { onProgress = () => {} } = {}) => { for (let i = 0; i <= ids.length; i += 50) { onProgress(Math.min(i, ids.length)); await new Promise((ok) => setTimeout(ok, 50)); } return 'PLmock' + title.length; };
 export const accountPlaylists = async () => Array.from({ length: 4 }, (_, i) => card('playlist', i));
 export const addToAccountPlaylist = async (id, ids) => ids.length;
+export const deleteAccountPlaylist = async () => true;

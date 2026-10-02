@@ -714,6 +714,14 @@ export async function addToAccountPlaylist(playlistId, videoIds) {
   return videoIds.length;
 }
 
+/** Deletes a playlist of the signed-in account (YouTube refuses for ones you don't own). */
+export async function deleteAccountPlaylist(playlistId) {
+  if (!cookie) throw new Error(tr('Inicia sesión con Google para crear playlists en tu cuenta.'));
+  const c = await client();
+  await c.playlist.delete(playlistId.replace(/^VL/, ''));
+  return true;
+}
+
 export async function library() {
   if (!cookie) throw new Error(tr('Inicia sesión con tu cuenta de Google para ver tu biblioteca.'));
   const [playlists, albums, artists] = await Promise.all([
