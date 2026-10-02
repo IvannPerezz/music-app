@@ -1160,3 +1160,34 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 .fs-set h3 { margin-bottom: 4px; }
 @keyframes fade-in { from { opacity: 0; } }
 @keyframes zoom-out-in { from { opacity: 0; transform: scale(1.12); } }
+
+/* ---------------------------------------------------------------- drop-downs
+   Customizable <select> (Chromium's base-select): the list opens as a Mica pop-up like the app's
+   menus instead of the plain Windows one, with a chevron, highlighted options and a check on the
+   chosen one. Applies to every .select in the app. */
+.select, .select::picker(select) { appearance: base-select; }
+.select { display: inline-flex; align-items: center; gap: 8px; padding: 0 10px 0 12px; cursor: pointer; transition: background .15s, border-color .15s; }
+.select:hover { background: rgba(255,255,255,.11); }
+.select::picker-icon { content: ""; width: 9px; height: 9px; margin-left: auto; flex: none;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; opacity: .7;
+  transform: translateY(-2px) rotate(45deg); transition: transform .2s ease; }
+.select:open::picker-icon { transform: translateY(2px) rotate(225deg); }
+.select::picker(select) {
+  margin-block: 6px; padding: 5px; min-width: anchor-size(width); max-height: min(360px, 60vh); overflow-y: auto;
+  border-radius: 12px; border: 1px solid rgba(255,255,255,.11); color: var(--text);
+  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  opacity: 1; transform: none;
+  transition: opacity .16s ease, transform .2s cubic-bezier(.2,.8,.2,1), overlay .2s allow-discrete, display .2s allow-discrete;
+}
+@starting-style { .select:open::picker(select) { opacity: 0; transform: translateY(-6px) scale(.98); } }
+.select:not(:open)::picker(select) { opacity: 0; transform: translateY(-6px) scale(.98); }
+.select option { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 10px; border-radius: 8px; background: none; font-size: 13.5px; cursor: pointer; }
+.select option:hover, .select option:focus-visible { background: rgba(255,255,255,.1); outline: none; }
+.select option:checked { color: var(--accent); font-weight: 600; }
+.select option::checkmark { content: ""; order: -1; width: 5px; height: 10px; margin: 0 3px 2px 2px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+.select option:not(:checked)::checkmark { visibility: hidden; }
+.select::picker(select)::-webkit-scrollbar { width: 10px; }
+.select::picker(select)::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }

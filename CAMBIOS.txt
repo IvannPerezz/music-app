@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.17.1
+------------------------------------------------------------
+- Los desplegables de toda la app (calidad, idioma, país, presets del ecualizador, el
+  cambio de preset del visualizador...) ya no usan la lista gris de Windows: se abren
+  como un panel de cristal Mica con esquinas redondeadas, igual que los menús de
+  BitChord, con una pequeña animación, la opción elegida marcada con ✓ en el color de
+  acento y una flecha que gira al abrirse.
+
+------------------------------------------------------------
 v0.6.17
 ------------------------------------------------------------
 - Idiomas: BitChord se puede usar en inglés. En Ajustes > General hay un ajuste nuevo,
