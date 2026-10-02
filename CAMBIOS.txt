@@ -15,6 +15,18 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.29
+------------------------------------------------------------
+- Recomendaciones de Inicio: el menú de cada canción (⋮ o click derecho) tiene "No me
+  interesa" y "No recomendar a este artista". Se le dice a YouTube Music, igual que en la
+  app oficial, así que te recomendará menos eso o a ese artista. La canción desaparece de
+  la página con una animación (y con "No recomendar a este artista", todas las suyas).
+  Los álbumes y playlists recomendados lo tienen en su click derecho. Necesita la sesión
+  iniciada.
+- Los menús de los tres puntos tienen ahora animación al cerrarse.
+- La etiqueta "Automix" sale un poco más separada de la barra de reproducción.
+
+------------------------------------------------------------
 v0.6.28
 ------------------------------------------------------------
 - Al cerrar BitChord y volver a abrirlo, la canción que sonaba queda preparada en el

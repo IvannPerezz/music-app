@@ -195,6 +195,12 @@ await win.evaluate(async () => { const sb = (await window.bc.settingsGet()).data
 await win.click('#nav-library'); await win.waitForTimeout(900); await shot('06-library');
 await win.click('.brand img'); await win.waitForTimeout(700);
 if (!(await win.isVisible('#home-greet'))) errors.push('El logo no lleva a Inicio');
+// Home recommendation → ⋮ → "No me interesa": the song disappears from the page.
+const quick = win.locator('.section', { hasText: 'Selección rápida' }).locator('.row >> nth=1');
+const qid = await quick.getAttribute('data-id');
+await quick.click({ button: 'right' }); await win.waitForTimeout(300);
+await win.locator('#menu button', { hasText: 'No me interesa' }).click(); await win.waitForTimeout(600);
+if (await win.locator(`.section:has-text("Selección rápida") .row[data-id="${qid}"]`).count()) errors.push('«No me interesa» no quita la canción');
 await win.click('#nav-library'); await win.waitForTimeout(900);
 // Inside a playlist: search by artist, sort by title, hide the album column.
 await win.locator('.card.playlist >> nth=0').click(); await win.waitForTimeout(900);

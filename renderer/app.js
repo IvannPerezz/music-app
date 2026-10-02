@@ -226,7 +226,7 @@ export const refreshView = () => { scrollMemo.set(nav.index, $('#content').scrol
 export function trackRow(t, i, list, opts = {}) {
   const dl = isDownloaded(t.id);
   const el = h(`
-    <div class="row${opts.compact ? ' compact' : ''}${opts.details && t.file ? ' tall' : ''}${opts.details && state.settings.localInfo?.album === false ? ' no-album' : ''}" data-id="${esc(t.id)}">
+    <div class="row${opts.compact ? ' compact' : ''}${opts.details && t.file ? ' tall' : ''}${opts.details && state.settings.localInfo?.album === false ? ' no-album' : ''}" data-id="${esc(t.id)}" data-aid="${esc((t.artists || [])[0]?.id || '')}">
       <div class="thumb">${opts.numbered ? `<span class="num">${i + 1}</span>` : t.thumb ? `<img loading="lazy" src="${esc(art(t.thumb))}" alt="">` : `<span class="num">${icon('disc')}</span>`}<span class="ov">${icon('play')}</span></div>
       <div style="min-width:0">
         <div class="ttl ellipsis">${esc(t.title)}${t.isVideo ? ` <span class="badge">${tr('Vídeo')}</span>` : ''}</div>
@@ -278,7 +278,7 @@ export function fileDetails(t) {
 export function card(item) {
   if (item.kind === 'playlist' && state.ytCovers[item.id]) item = { ...item, thumb: state.ytCovers[item.id] };
   const el = h(`
-    <div class="card ${item.kind}">
+    <div class="card ${item.kind}" data-id="${esc(item.id)}">
       <div class="art">${item.thumb ? `<img loading="lazy" src="${esc(art(item.thumb))}" alt="">` : ''}<span class="hover-play">${icon('play')}</span></div>
       <div class="t ellipsis">${esc(item.title)}</div>
       <div class="s">${esc(item.subtitle || (item.kind === 'track' ? artistNames(item) : ''))}</div>
@@ -298,6 +298,16 @@ export function card(item) {
     go({ name: item.kind, id: item.id });
   });
   if (item.kind === 'track') el.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(item, { x: e.clientX, y: e.clientY }); });
+  else if (item.feedback && state.account) el.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    openMenu([
+      { header: item.title },
+      { icon: 'open', label: tr('Abrir'), action: () => go({ name: item.kind, id: item.id }) },
+      null,
+      ...(item.feedback.item ? [{ icon: 'remove', label: tr('No me interesa'), action: () => notInterested(item, 'item') }] : []),
+      ...(item.feedback.artist ? [{ icon: 'person', label: tr('No recomendar a este artista'), action: () => notInterested(item, 'artist') }] : []),
+    ], { x: e.clientX, y: e.clientY });
+  });
   return el;
 }
 
@@ -788,6 +798,7 @@ export function openMenu(items, anchor) {
     return openFsPanel(anchor.id, FS_MENUS[anchor.id], list);
   }
   const m = $('#menu');
+  clearTimeout(closeMenu.t); m.classList.remove('closing');
   m.innerHTML = '';
   fillMenu(m, items, (it) => { closeMenu(); it.action(); });
   m.hidden = false;
@@ -803,7 +814,14 @@ export function openMenu(items, anchor) {
   m.style.left = x + 'px';
   m.style.top = y + 'px';
 }
-export function closeMenu() { $('#menu').hidden = true; $('#lyrics-source')?.classList.remove('open'); }
+export function closeMenu() {
+  const m = $('#menu');
+  $('#lyrics-source')?.classList.remove('open');
+  if (m.hidden || m.classList.contains('closing')) return;
+  // Shrink and fade out before hiding.
+  m.classList.add('closing');
+  closeMenu.t = setTimeout(() => { m.hidden = true; m.classList.remove('closing'); }, 140);
+}
 document.addEventListener('mousedown', (e) => { if (!e.target.closest('#menu')) closeMenu(); });
 window.addEventListener('blur', closeMenu);
 
@@ -823,9 +841,30 @@ function trackMenu(t, anchor, opts = {}) {
     ...(t.artists || []).filter((a) => a.id).slice(0, 2).map((a) => ({ icon: 'person', label: tr('Ir a {name}', { name: a.name }), action: () => go({ name: 'artist', id: a.id }) })),
     ...(t.album?.id ? [{ icon: 'album', label: tr('Ir al álbum'), action: () => go({ name: 'album', id: t.album.id }) }] : []),
     ...(t.local ? [] : [{ icon: 'open', label: tr('Abrir en YouTube Music'), action: () => bc.openExternal(`https://music.youtube.com/watch?v=${t.id}`) }]),
+    ...(t.feedback && state.account ? [null,
+      ...(t.feedback.item ? [{ icon: 'remove', label: tr('No me interesa'), action: () => notInterested(t, 'item') }] : []),
+      ...(t.feedback.artist ? [{ icon: 'person', label: tr('No recomendar a este artista'), action: () => notInterested(t, 'artist') }] : []),
+    ] : []),
     ...(opts.queueIndex != null ? [null, { icon: 'remove', label: tr('Quitar de la cola'), action: () => player.removeAt(opts.queueIndex) }] : []),
     ...(opts.playlistId ? [null, { icon: 'remove', label: tr('Quitar de esta playlist'), action: async () => { await api('playlistRemoveAt', opts.playlistId, opts.playlistIndex); refreshView(); } }] : []),
   ], anchor);
+}
+
+/** Tells YouTube Music to recommend less of this (or of its artist) and removes it from the page. */
+async function notInterested(item, what) {
+  try { await api('ytFeedback', item.feedback[what]); }
+  catch (e) { return toast(e.message, true); }
+  const artist = (item.artists || [])[0]?.name;
+  toast(what === 'artist' && artist ? tr('YouTube Music te recomendará menos a {name}', { name: artist }) : tr('Vale, YouTube Music te recomendará menos cosas así'));
+  // Fold the row/card away (and, for "no artist", every other one of that artist on the page).
+  const ids = new Set([item.id]);
+  if (what === 'artist') for (const el of $$('#content [data-id]')) if (el.dataset.aid && el.dataset.aid === (item.artists || [])[0]?.id) ids.add(el.dataset.id);
+  for (const el of $$('#content [data-id]')) {
+    if (!ids.has(el.dataset.id)) continue;
+    el.style.height = el.offsetHeight + 'px';
+    el.classList.add('dismissed');
+    setTimeout(() => el.remove(), 320);
+  }
 }
 
 /** Any image the browser can decode (JPG, PNG, WebP, GIF, AVIF…) → centre-cropped square JPEG bytes. */

@@ -1,6 +1,11 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "No me interesa": "Not interested",
+  "No recomendar a este artista": "Don't recommend this artist",
+  "YouTube Music te recomendará menos a {name}": "YouTube Music will recommend {name} less",
+  "Vale, YouTube Music te recomendará menos cosas así": "OK, YouTube Music will recommend fewer things like this",
+  "Inicia sesión con Google para que YouTube Music tenga en cuenta tus gustos.": "Sign in with Google so YouTube Music takes your taste into account.",
   "Ir a Inicio": "Go to Home",
   "Borrar de las búsquedas recientes": "Remove from recent searches",
   "Búsquedas recientes": "Recent searches",

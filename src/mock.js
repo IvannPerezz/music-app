@@ -20,7 +20,7 @@ const card = (kind, i) => ({ kind, id: (kind === 'album' ? 'MPREmock' : kind ===
 export const configure = () => {};
 export const client = async () => ({});
 export const home = async () => [
-  { title: 'Selección rápida', layout: 'list', items: Array.from({ length: 8 }, (_, i) => track(i)) },
+  { title: 'Selección rápida', layout: 'list', items: Array.from({ length: 8 }, (_, i) => ({ ...track(i), feedback: { item: 'fbitem' + i, artist: 'fbartist' + i } })) },
   { title: 'Álbumes para ti', layout: 'cards', items: Array.from({ length: 8 }, (_, i) => card('album', i)) },
   { title: 'Mixes', layout: 'cards', items: Array.from({ length: 6 }, (_, i) => card('playlist', i)) },
   { title: 'Artistas', layout: 'cards', items: Array.from({ length: 5 }, (_, i) => card('artist', i)) },
@@ -123,4 +123,5 @@ export const accountPlaylists = async () => Array.from({ length: 4 }, (_, i) => 
 export const addToAccountPlaylist = async (id, ids) => ids.length;
 // The first account playlist behaves like a special list YouTube won't delete.
 export const renameAccountPlaylist = async () => true;
+export const sendFeedback = async () => true;
 export const deleteAccountPlaylist = async (id) => { if (id === 'PLmock0') throw new Error('Request to https://www.youtube.com/youtubei/v1/playlist/delete failed with status code 400'); return true; };

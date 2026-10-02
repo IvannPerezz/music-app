@@ -142,8 +142,23 @@ function parseDuration(text) {
   return parts.reduce((acc, n) => acc * 60 + n, 0);
 }
 
+/** "No me interesa" / "No recomendar artista" tokens from an item's menu (home recommendations). */
+function feedbackOf(node) {
+  const items = node?.menu?.items || node?.menu?.contents || [];
+  const fb = items.filter((m) => m?.endpoint?.payload?.feedbackToken);
+  if (!fb.length) return undefined;
+  const isArtist = (m) => /artist/i.test(txt(m.text));
+  const artist = fb.find(isArtist), item = fb.find((m) => !isArtist(m));
+  return { item: item?.endpoint.payload.feedbackToken, artist: artist?.endpoint.payload.feedbackToken };
+}
+const withFeedback = (out, node) => { if (out) { const f = feedbackOf(node); if (f) out.feedback = f; } return out; };
+
 /** Normalises any YT Music list/card/queue item into {kind, ...}. Returns null for things we can't show. */
 export function norm(node, fallback = {}) {
+  if (node && (node.type === 'MusicResponsiveListItem' || node.type === 'MusicTwoRowItem')) return withFeedback(normItem(node, fallback), node);
+  return normItem(node, fallback);
+}
+function normItem(node, fallback = {}) {
   if (!node) return null;
   const type = node.type;
 
@@ -720,6 +735,16 @@ export async function renameAccountPlaylist(playlistId, name) {
   const c = await client();
   const res = await c.actions.execute('/browse/edit_playlist', { playlistId: playlistId.replace(/^VL/, ''), actions: [{ action: 'ACTION_SET_PLAYLIST_NAME', playlistName: name.slice(0, 150) }] });
   if (res?.success === false) throw new Error(tr('YouTube no ha dejado cambiar el nombre de esta playlist (puede que no sea tuya).'));
+  return true;
+}
+
+/** Tells YouTube Music you're not interested in a recommendation (or in its artist). */
+export async function sendFeedback(token) {
+  if (!cookie) throw new Error(tr('Inicia sesión con Google para que YouTube Music tenga en cuenta tus gustos.'));
+  const c = await client();
+  // The tokens come from YouTube Music, so the request has to go as the YouTube Music client
+  // (as the default web client YouTube answers 400).
+  await c.actions.execute('/feedback', { feedbackTokens: [token], isFeedbackTokenUnencrypted: false, shouldMerge: false, client: 'YTMUSIC' });
   return true;
 }
 
