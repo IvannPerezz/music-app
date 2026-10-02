@@ -1434,3 +1434,11 @@ body.route-settings #sb-resize { display: none; }
 .modal.theme-editor { background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint); }
 .modal .text { background: rgba(0,0,0,.22); }
 .theme-editor textarea.text { background: rgba(0,0,0,.35); }
+
+/* Song lists and playlist headers: secondary text brighter than --muted, which got lost over
+   the animated background (same fix as the player bar's artists). */
+.row .sub, .row .alb, .row .dur { color: color-mix(in srgb, var(--text) 68%, transparent); }
+.row .sub .link:hover, .row .alb .link:hover { color: var(--text); }
+.list-head { color: color-mix(in srgb, var(--text) 62%, transparent); }
+.detail-head .muted, .detail-head .desc { color: color-mix(in srgb, var(--text) 70%, transparent); }
+.detail-head .kind { color: color-mix(in srgb, var(--text) 66%, transparent); }
