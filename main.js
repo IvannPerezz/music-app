@@ -108,8 +108,9 @@ function createWindow() {
     title: 'BitChord',
     icon: path.join(__dirname, 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     titleBarStyle: 'hidden',
-    // Native buttons only with 'windows' window buttons (the macOS-style ones are drawn by the app).
-    titleBarOverlay: settings.get('windowButtons') === 'windows' ? { color: '#00000000', symbolColor: '#f2f2f7', height: 44 } : { color: '#00000000', symbolColor: '#00000000', height: 1 },
+    // Native buttons only with 'windows' window buttons; the macOS-style ones are drawn by the app
+    // and then the window has no native buttons at all (even a hidden overlay lit up on hover).
+    titleBarOverlay: settings.get('windowButtons') === 'windows' ? { color: '#00000000', symbolColor: '#f2f2f7', height: 44 } : false,
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -127,7 +128,7 @@ function createWindow() {
   // the overlay while full screen and bring it back afterwards.
   // Native Windows buttons only in 'windows' mode and out of full screen; with macOS-style buttons
   // the app draws its own (renderer) and the overlay is squashed out of the way.
-  const overlay = (on) => { on = on && settings.get('windowButtons') === 'windows'; try { win.setTitleBarOverlay({ color: '#00000000', symbolColor: on ? '#f2f2f7' : '#00000000', height: on ? 44 : 1 }); } catch {} };
+  const overlay = (on) => { if (settings.get('windowButtons') !== 'windows') return; try { win.setTitleBarOverlay({ color: '#00000000', symbolColor: on ? '#f2f2f7' : '#00000000', height: on ? 44 : 1 }); } catch {} };
   win.applyWindowButtons = () => overlay(!win.isFullScreen());
   win.on('maximize', () => send('maximized', true));
   win.on('unmaximize', () => send('maximized', false));
@@ -226,7 +227,8 @@ app.whenReady().then(async () => {
     if ('language' in patch || 'region' in patch) applyYtConfig();
     if ('uiLanguage' in patch) { tray?.refresh?.(); updateThumbar(); }
     if ('closeToTray' in patch && patch.closeToTray) createTray();
-    if ('windowButtons' in patch) win?.applyWindowButtons?.();
+    // The native buttons can only be added or removed when the window is created: restart.
+    if ('windowButtons' in patch && patch.windowButtons !== before.windowButtons) setTimeout(() => { quitting = true; app.relaunch(); app.exit(0); }, 400);
     if ('localFolders' in patch && JSON.stringify(before.localFolders) !== JSON.stringify(patch.localFolders)) { local.pruneFolderMeta(patch.localFolders || []); rescanLocal(); }
     if ('localFolders' in patch || 'localWatch' in patch) applyLocalWatch();
     return next;
