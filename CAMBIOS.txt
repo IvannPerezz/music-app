@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.23.2
+------------------------------------------------------------
+- La barra de desplazamiento de la página principal (a la derecha del contenido, junto a
+  la cola) ya no se ve. Se sigue pudiendo desplazar igual con la rueda del ratón o el
+  teclado.
+
+------------------------------------------------------------
 v0.6.23.1
 ------------------------------------------------------------
 - Arreglado: al abrir BitChord, las playlists desplegadas de la barra lateral salían como

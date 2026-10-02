@@ -1374,3 +1374,7 @@ body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition:
 /* Biblioteca -> Playlists: drag to reorder. */
 .cards.wrap .card[draggable="true"] { cursor: grab; }
 .cards.wrap .card.dragging { opacity: .35; transform: scale(.96); transition: opacity .15s, transform .15s; }
+
+/* Main page: no visible scrollbar (it still scrolls with the wheel, the keyboard or by dragging). */
+#content { scrollbar-width: none; }
+#content::-webkit-scrollbar { display: none; }
