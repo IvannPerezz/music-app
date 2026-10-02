@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.30.8
+------------------------------------------------------------
+- Ajustes: nuevo orden de los apartados. Después de la cuenta de Google van Importar, Tema
+  y Personalización; el resto sigue como estaba (Reproducción, Fuentes, Ecualizador,
+  Letras, Descargas, Música local, Integraciones, General y Acerca de).
+
+------------------------------------------------------------
 v0.6.30.7
 ------------------------------------------------------------
 - Vista de portada y letra: se ha quitado el corazón que había junto al título de la

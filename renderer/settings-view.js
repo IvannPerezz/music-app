@@ -7,8 +7,9 @@ import { tr, LANGUAGES, uiLang, syncUiLang } from './i18n.js';
 
 const QUALITY = [['low', tr('Baja (~64 kbps)')], ['normal', tr('Normal (~96 kbps)')], ['high', tr('Alta (~160 kbps)')], ['max', tr('Máxima disponible')]];
 const SECTIONS = [
-  ['account', tr('Cuenta')], ['playback', tr('Reproducción')], ['sources', tr('Fuentes')], ['eq', tr('Ecualizador')], ['lyrics', tr('Letras')], ['downloads', tr('Descargas')],
-  ['local', tr('Música local')], ['import', tr('Importar')], ['integrations', tr('Integraciones')], ['theme', tr('Tema')], ['sidebar', tr('Personalización')], ['general', tr('General')], ['about', tr('Acerca de')],
+  ['account', tr('Cuenta')], ['import', tr('Importar')], ['theme', tr('Tema')], ['sidebar', tr('Personalización')],
+  ['playback', tr('Reproducción')], ['sources', tr('Fuentes')], ['eq', tr('Ecualizador')], ['lyrics', tr('Letras')], ['downloads', tr('Descargas')],
+  ['local', tr('Música local')], ['integrations', tr('Integraciones')], ['general', tr('General')], ['about', tr('Acerca de')],
 ];
 
 function row(label, desc, control) {
@@ -605,7 +606,7 @@ export async function settingsView(route) {
   };
   setTimeout(() => { $('#content').addEventListener('scroll', spy, { passive: true }); spy(); }, 50);
   chips.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && chips.scrollWidth > chips.clientWidth) { chips.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
-  root.append(account(), playback(), sourcesCard(), equalizer(), lyrics(), downloads(), localMusic(), importCard(), integrations(), themeCard(), sidebarCard(), general(), await about());
+  root.append(account(), importCard(), themeCard(), sidebarCard(), playback(), sourcesCard(), equalizer(), lyrics(), downloads(), localMusic(), integrations(), general(), await about());
   root.addEventListener('click', (e) => { const a = e.target.closest('a[data-url]'); if (a) { e.preventDefault(); bc.openExternal(a.dataset.url); } });
   if (route.section) setTimeout(() => root.querySelector('#set-' + route.section)?.scrollIntoView({ block: 'start' }), 30);
   return outer;
