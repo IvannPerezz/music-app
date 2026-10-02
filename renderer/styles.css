@@ -1404,3 +1404,5 @@ body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition:
 .list-head button.on[data-dir="desc"]::after { transform: translateY(1px) rotate(225deg); }
 .tracks.cols .row { grid-template-columns: var(--cols); }
 .tracks.cols.no-thumb .row .thumb, .tracks.cols.no-album .row .alb, .tracks.cols.no-dur .row .dur, .tracks.cols.no-artists .row .sub { display: none; }
+.list-search input::placeholder { color: color-mix(in srgb, var(--text) 66%, transparent); }
+.list-search svg { color: color-mix(in srgb, var(--text) 78%, transparent); }
