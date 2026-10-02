@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.22.2
+------------------------------------------------------------
+- Los avisos que salen abajo ("Playlist eliminada", "Añadida a favoritos"...) son ahora de
+  cristal Mica, como los menús, y entran con una pequeña animación.
+
+------------------------------------------------------------
 v0.6.22.1
 ------------------------------------------------------------
 - Arreglado: al eliminar una playlist de tu cuenta de YouTube Music salía el error

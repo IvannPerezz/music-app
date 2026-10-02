@@ -1360,3 +1360,13 @@ body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition:
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
   animation: zoom-out-in .28s cubic-bezier(.2,.8,.2,1); }
+
+/* Notices (toasts): Mica glass like the menus, rising in from below. */
+#toast {
+  background: linear-gradient(140deg, rgba(255,255,255,.09), rgba(255,255,255,.02) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 16px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.07);
+}
+#toast:not([hidden]) { animation: toast-in .28s cubic-bezier(.2,.8,.2,1) backwards; }
+@keyframes toast-in { from { opacity: 0; transform: translateX(-50%) translateY(10px) scale(.97); } }
+#toast.error { border-left: 3px solid var(--accent); }
