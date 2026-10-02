@@ -149,7 +149,7 @@ async function fillPlaylistsFold(inner) {
   ]);
   const items = [
     ...(state.account ? [{ liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
-    ...yt.map((p) => ({ title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
+    ...yt.filter((p) => !isHiddenPlaylist(p.id)).map((p) => ({ title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
     ...mine.map((p) => ({ title: p.name, thumb: p.cover || p.thumbs?.[0], route: { name: 'localplaylist', id: p.id } })),
   ];
   const key = JSON.stringify(items.map((x) => [x.title, x.thumb]));
@@ -631,7 +631,25 @@ export async function deletePlaylist(p, { leave = false } = {}) {
     renderSidebar();
     if (leave) go({ name: 'library', tab: 'playlists' }, { replace: true }); else refreshView();
     return true;
-  } catch (e) { toast(e.message, true); return false; }
+  } catch (e) {
+    if (!yt) { toast(e.message, true); return false; }
+    // YouTube refuses to delete its own special lists ("Episodios para más tarde"…) and playlists
+    // saved from other people: explain it and offer to hide it in BitChord instead.
+    const hide = await confirmDialog(tr('No se puede eliminar'),
+      tr('YouTube Music no deja eliminar «{name}»: es una lista especial de tu cuenta (como «Me gusta» o «Episodios para más tarde») o una playlist de otra persona que tienes guardada. Puedes ocultarla en BitChord: dejará de aparecer en tus playlists y en la barra lateral, pero seguirá en tu cuenta. Podrás volver a mostrarla en Ajustes → Personalización.', { name: p.title }),
+      { ok: tr('Ocultar') });
+    if (!hide) return false;
+    await hidePlaylist(p);
+    if (leave) go({ name: 'library', tab: 'playlists' }, { replace: true }); else refreshView();
+    return false;
+  }
+}
+/** YouTube Music playlists hidden in BitChord (they stay in the account). */
+export const isHiddenPlaylist = (id) => (state.settings.hiddenPlaylists || []).some((x) => x.id === id);
+export async function hidePlaylist(p) {
+  await saveSettings({ hiddenPlaylists: [...(state.settings.hiddenPlaylists || []).filter((x) => x.id !== p.id), { id: p.id, title: p.title }] });
+  renderSidebar();
+  toast(tr('«{name}» oculta en BitChord', { name: p.title }));
 }
 
 // ------------------------------------------------------------------ menus

@@ -416,6 +416,24 @@ function themeCard() {
   );
 }
 
+/** Playlists hidden in BitChord (ones YouTube won't delete), with a button to show each again. */
+function hiddenPlaylistsBlock() {
+  const box = h('<div></div>');
+  const draw = () => {
+    box.replaceChildren();
+    const list = state.settings.hiddenPlaylists || [];
+    if (!list.length) return;
+    box.append(h(`<h3 class="set-sub">${tr('Playlists ocultas')}</h3>`), h(`<div class="set-note">${tr('Playlists de tu cuenta de YouTube Music que has ocultado en BitChord. Siguen en tu cuenta.')}</div>`));
+    for (const p of list) {
+      const b = btn(tr('Mostrar'), 'ghost');
+      b.onclick = async () => { await saveSettings({ hiddenPlaylists: (state.settings.hiddenPlaylists || []).filter((x) => x.id !== p.id) }); import('./app.js').then((m) => m.renderSidebar()); draw(); };
+      box.append(row(esc(p.title), '', b));
+    }
+  };
+  draw();
+  return box;
+}
+
 function sidebarCard() {
   const list = h('<div class="prov-list"></div>');
   const draw = () => {
@@ -509,6 +527,7 @@ function sidebarCard() {
     row(tr('Intensidad del tinte'), tr('Más alto = más color del tema y menos transparencia.'), range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
     row(tr('Desenfoque del cristal'), tr('Cuánto se difumina lo que hay detrás. 0 = cristal transparente.'), range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
     row(tr('Saturación'), tr('Lo vivos que se ven los colores a través del cristal.'), range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
+    hiddenPlaylistsBlock(),
     h(`<h3 class="set-sub">${tr('Pantalla principal')}</h3>`),
     h(`<div class="set-note">${tr('Marca los apartados que quieres ver en Inicio. También puedes ocultar uno directamente desde Inicio con el botón «Ocultar» que aparece al pasar el ratón por su título. Si YouTube Music añade apartados nuevos, aparecerán aquí en cuanto salgan en tu Inicio.')}</div>`),
     homeGrid,

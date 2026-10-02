@@ -50,6 +50,7 @@ export const DEFAULTS = {
   // Playback behaviour
   autoplayRadio: true,
   resumeOnStart: true,
+  hiddenPlaylists: [], // [{ id, title }] YouTube Music playlists hidden in BitChord (ones YouTube won't delete)
   windowButtons: 'mac', // 'mac' (red/yellow/green, drawn by the app, on the left) | 'windows' (native)
   closeToTray: false,
   // Integrations

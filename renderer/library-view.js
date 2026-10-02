@@ -1,6 +1,6 @@
 // Library: favourites, downloads, local files, history and the YouTube Music account library.
 import { bc, $, icon, esc, fmt, api, toast, h, state, art, likes, history, askText } from './core.js';
-import { trackRow, section, card, player, go, refreshView, currentRoute, sizeLabel, playlistMenu } from './app.js';
+import { trackRow, section, card, player, go, refreshView, currentRoute, sizeLabel, playlistMenu, isHiddenPlaylist } from './app.js';
 import { tr } from './i18n.js';
 
 const TABS = [
@@ -157,7 +157,7 @@ async function playlistsTab() {
   if (state.account) {
     const liked = h(`<div class="card playlist"><div class="art liked">${icon('heartFill')}</div><div class="t">${tr('Me gusta')}</div><div class="s">${tr('Canciones que te gustan en YouTube Music')}</div></div>`);
     liked.onclick = () => go({ name: 'playlist', id: 'LM' });
-    const ytCards = ytLists.map((p) => {
+    const ytCards = ytLists.filter((p) => !isHiddenPlaylist(p.id)).map((p) => {
       const c = card(p);
       c.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: p.id, title: p.title }, { x: e.clientX, y: e.clientY }); });
       return c;
@@ -234,7 +234,7 @@ async function accountTab() {
   const top = h(`<section class="section"><h2>${tr('Playlists')}</h2></section>`);
   const cards = h('<div class="cards wrap"></div>');
   cards.append(liked);
-  const box = section({ title: '', layout: 'cards', items: lib.playlists }, { wrap: true });
+  const box = section({ title: '', layout: 'cards', items: lib.playlists.filter((p) => !isHiddenPlaylist(p.id)) }, { wrap: true });
   box.querySelectorAll('.card').forEach((c) => cards.append(c));
   top.append(cards);
   root.append(top);

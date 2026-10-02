@@ -184,6 +184,15 @@ await shot('06c-sidebar-playlists');
 await win.click('.card.playlist >> nth=1', { button: 'right' }); await win.waitForTimeout(300);
 if (!(await win.evaluate(() => !document.querySelector('#menu').hidden && document.querySelector('#menu').textContent.includes('Eliminar playlist')))) errors.push('Falta el menú de la playlist con click derecho');
 await win.keyboard.press('Escape'); await win.waitForTimeout(200);
+// A playlist YouTube won't delete: explanation + "Ocultar" hides it from Biblioteca.
+const before = await win.locator('.card.playlist').count();
+await win.click('.card.playlist >> nth=1', { button: 'right' }); await win.waitForTimeout(300);
+await win.locator('#menu button', { hasText: 'Eliminar playlist' }).click(); await win.waitForTimeout(300);
+await win.click('.modal [data-a=ok]'); await win.waitForTimeout(600);
+if (!(await win.evaluate(() => document.querySelector('.modal h3')?.textContent === 'No se puede eliminar'))) errors.push('Falta el aviso de playlist que no se puede eliminar');
+await shot('06d-cannot-delete');
+await win.click('.modal [data-a=ok]'); await win.waitForTimeout(900);
+if ((await win.locator('.card.playlist').count()) !== before - 1) errors.push('La playlist no se ha ocultado');
 await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(400);
 await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('07-settings');
 // Custom CSS theme: "+" tile → editor → save; then back to the original BitChord theme.

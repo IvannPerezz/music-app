@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.22.3
+------------------------------------------------------------
+- Si YouTube Music no deja eliminar una playlist (las listas especiales como "Episodios
+  para más tarde", o las de otra persona que tienes guardadas), en vez de un error técnico
+  sale un cuadro que explica por qué y ofrece ocultarla en BitChord. Oculta, deja de salir
+  en tus playlists y en la barra lateral, pero sigue en tu cuenta.
+- Las playlists ocultas aparecen en Ajustes > Personalización > "Playlists ocultas", con
+  un botón para volver a mostrarlas.
+
+------------------------------------------------------------
 v0.6.22.2
 ------------------------------------------------------------
 - Los avisos que salen abajo ("Playlist eliminada", "Añadida a favoritos"...) son ahora de
