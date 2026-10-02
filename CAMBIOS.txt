@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.30.15
+------------------------------------------------------------
+- Cola (y las listas compactas de Inicio): los títulos y artistas aprovechan todo el ancho
+  y se cortan mucho más tarde. Antes se reservaba a la derecha el hueco del corazón y de
+  los tres puntos aunque no se vieran; ahora esos botones solo ocupan sitio al pasar el
+  ratón (el corazón de una favorita sigue visible).
+
+------------------------------------------------------------
 v0.6.30.14
 ------------------------------------------------------------
 - Arreglado: en algunas canciones la letra se quedaba en la última frase desde el
