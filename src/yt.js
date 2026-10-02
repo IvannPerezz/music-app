@@ -718,7 +718,10 @@ export async function addToAccountPlaylist(playlistId, videoIds) {
 export async function deleteAccountPlaylist(playlistId) {
   if (!cookie) throw new Error(tr('Inicia sesión con Google para crear playlists en tu cuenta.'));
   const c = await client();
-  await c.playlist.delete(playlistId.replace(/^VL/, ''));
+  // youtubei.js' playlist.delete() builds an endpoint without an API URL ("Expected an api_url");
+  // call the InnerTube endpoint directly, the same way playlists are created.
+  const res = await c.actions.execute('/playlist/delete', { playlistId: playlistId.replace(/^VL/, '') });
+  if (res?.success === false) throw new Error(tr('YouTube no ha dejado eliminar esta playlist (puede que no sea tuya).'));
   return true;
 }
 

@@ -1,6 +1,7 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "YouTube no ha dejado eliminar esta playlist (puede que no sea tuya).": "YouTube didn't allow deleting this playlist (it may not be yours).",
   "Eliminar playlist": "Delete playlist",
   "Playlist eliminada": "Playlist deleted",
   "¿Eliminar «{name}» de tu cuenta de YouTube Music? Desaparecerá también de la app oficial. Las canciones no se borran.": "Delete “{name}” from your YouTube Music account? It will also disappear from the official app. The songs aren't deleted.",
