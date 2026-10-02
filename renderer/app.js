@@ -1595,11 +1595,11 @@ function slideArt(img, src, dir = 1) {
       { transform: `${base}translate(${dir * -2}%, -1%) rotate(${dir * -1.5}deg) scale(1.02)`, zIndex: 3, offset: .86 },
       { transform: `${base}translate(0, 0) rotate(0deg) scale(1)`, zIndex: 3, boxShadow: shadow, offset: 1 },
     ], { duration: D, easing: 'cubic-bezier(.45,.05,.35,1)' });
-    img.animate([
+    const sink = img.animate([
       { filter: 'brightness(1)', transform: base || 'none', offset: 0 },
       { filter: 'brightness(1)', transform: `${base}translateX(${dir * -6}%) rotate(${dir * -2}deg)`, offset: .45 },
       { filter: 'brightness(.6)', transform: `${base}scale(.95)`, offset: 1 },
-    ], { duration: D, easing: 'ease-in-out' });
+    ], { duration: D, easing: 'ease-in-out', fill: 'forwards' }); // stays sunk until it's swapped
     // The cover can move or resize meanwhile (e.g. the lyrics hide for a song without them and
     // the cover grows and re-centres): keep the card glued to it every frame.
     const follow = () => {
@@ -1608,7 +1608,13 @@ function slideArt(img, src, dir = 1) {
       requestAnimationFrame(follow);
     };
     requestAnimationFrame(follow);
-    a.onfinish = () => { img.src = src; img.style.position = img.style.zIndex = ''; requestAnimationFrame(() => next.remove()); };
+    // Swap the real cover only once the new image is decoded, and only then drop the card and
+    // undo the sinking: otherwise the old cover flashed for a moment at the end.
+    a.onfinish = async () => {
+      img.src = src;
+      try { await img.decode(); } catch {}
+      requestAnimationFrame(() => { sink.cancel(); img.style.position = img.style.zIndex = ''; next.remove(); });
+    };
   };
   if (next.complete) go(); else { next.onload = go; next.onerror = () => { img.src = src; next.remove(); }; }
 }
