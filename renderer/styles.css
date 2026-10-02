@@ -1293,12 +1293,20 @@ body.mac-buttons .settings-btn { margin-right: 8px; }
 #sidebar #nav-items::-webkit-scrollbar { display: none; }
 .nav-fold { margin-left: auto; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 6px; opacity: .7; transition: background .15s, opacity .15s; }
 .nav-fold:hover { background: rgba(255,255,255,.1); opacity: 1; }
-.nav-fold svg { width: 18px; height: 18px; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+.nav-fold svg { width: 18px; height: 18px; transition: transform .5s cubic-bezier(.32,.72,0,1); }
 .nav-fold.open svg { transform: rotate(180deg); }
-.sb-pl-grid { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .32s cubic-bezier(.2,.8,.2,1); flex: none; }
+/* Unfolding: the height grows smoothly (grid rows 0fr → 1fr, padding too) while the covers fade
+   and drop into place one after another. */
+.sb-pl-grid { display: grid; grid-template-rows: 0fr; flex: none; transition: grid-template-rows .5s cubic-bezier(.32,.72,0,1); }
 .sb-pl-grid.open { grid-template-rows: 1fr; }
-.sb-pl-inner { overflow: hidden; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 8px; padding: 0 4px; }
+.sb-pl-inner { overflow: hidden; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 8px; padding: 0 4px;
+  transition: padding .5s cubic-bezier(.32,.72,0,1); }
 .sb-pl-grid.open .sb-pl-inner { padding: 6px 4px 10px; }
+.sb-pl-grid .sb-pl { opacity: 0; transform: translateY(-8px) scale(.94);
+  transition: opacity .22s ease, transform .3s cubic-bezier(.32,.72,0,1), background .15s; }
+.sb-pl-grid.open .sb-pl { opacity: 1; transform: none;
+  transition: opacity .35s ease calc(var(--i, 0) * 30ms + 60ms), transform .45s cubic-bezier(.32,.72,0,1) calc(var(--i, 0) * 30ms + 60ms), background .15s; }
+@media (prefers-reduced-motion: reduce) { .sb-pl-grid, .sb-pl-inner, .sb-pl-grid .sb-pl { transition: none; } }
 .sb-pl { display: flex; flex-direction: column; gap: 5px; min-width: 0; text-align: left; border-radius: 10px; padding: 4px; transition: background .15s; }
 .sb-pl:hover { background: rgba(255,255,255,.07); }
 .sb-pl-art { aspect-ratio: 1; border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: rgba(255,255,255,.07); box-shadow: 0 4px 12px rgba(0,0,0,.3); }

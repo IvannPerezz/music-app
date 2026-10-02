@@ -126,10 +126,21 @@ function addPlaylistsFold(item, box) {
     store.set('sbPlaylistsOpen', now);
     grid.classList.toggle('open', now); arrow.classList.toggle('open', now);
     arrow.title = tr(now ? 'Ocultar tus playlists' : 'Mostrar tus playlists');
-    if (now) fillPlaylistsFold(grid.firstElementChild);
-    setTimeout(moveNavPill, 320); // items below moved
+    if (now) fillPlaylistsFold(grid.firstElementChild); // refresh (it's already filled, see below)
+    followNavPill(560); // the items below move with the fold: keep the highlight on its item
   };
-  if (open) fillPlaylistsFold(grid.firstElementChild);
+  // Filled even while folded, so opening it animates the real height instead of jumping when
+  // the list arrives.
+  fillPlaylistsFold(grid.firstElementChild);
+}
+/** Keeps the sidebar highlight glued to its item while something above it changes height. */
+function followNavPill(ms) {
+  const pill = $('#nav-items .nav-pill');
+  if (!pill) return;
+  pill.classList.add('no-anim');
+  const end = performance.now() + ms;
+  const step = () => { moveNavPill(); if (performance.now() < end) requestAnimationFrame(step); else pill.classList.remove('no-anim'); };
+  requestAnimationFrame(step);
 }
 async function fillPlaylistsFold(inner) {
   const [mine, yt] = await Promise.all([
@@ -141,12 +152,16 @@ async function fillPlaylistsFold(inner) {
     ...yt.map((p) => ({ title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
     ...mine.map((p) => ({ title: p.name, thumb: p.cover || p.thumbs?.[0], route: { name: 'localplaylist', id: p.id } })),
   ];
+  const key = JSON.stringify(items.map((x) => [x.title, x.thumb]));
+  if (inner.dataset.key === key) return; // nothing changed: don't redraw (no flicker)
+  inner.dataset.key = key;
   inner.replaceChildren();
   if (!items.length) { inner.append(h(`<div class="sb-pl-empty">${tr('Aún no tienes playlists')}</div>`)); return; }
-  for (const it of items) {
+  for (const [n, it] of items.entries()) {
     const el = h(`<button class="sb-pl" title="${esc(it.title)}">
       <span class="sb-pl-art${it.liked ? ' liked' : ''}">${it.liked ? icon('heartFill') : it.thumb ? `<img loading="lazy" src="${esc(art(it.thumb))}" alt="">` : icon('queue')}</span>
       <span class="sb-pl-t">${esc(it.title)}</span></button>`);
+    el.style.setProperty('--i', Math.min(n, 12)); // staggered entrance
     el.onclick = () => go(it.route);
     inner.append(el);
   }

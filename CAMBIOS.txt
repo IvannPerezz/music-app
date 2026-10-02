@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.21.1
+------------------------------------------------------------
+- Barra lateral: el despliegue de las playlists es más fluido. Las playlists se cargan de
+  antemano, así que el hueco se abre de una vez sin saltos; las portadas aparecen una
+  tras otra con un pequeño fundido, y el resaltado de la página actual acompaña a su
+  opción mientras se mueve.
+
+------------------------------------------------------------
 v0.6.21
 ------------------------------------------------------------
 - Barra lateral: el acceso "Playlists" tiene una flecha que despliega tus playlists justo
