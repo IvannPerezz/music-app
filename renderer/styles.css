@@ -170,10 +170,10 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .tracks { display: flex; flex-direction: column; }
 .tracks.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); column-gap: 16px; }
 .row {
-  display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, .8fr) 56px 34px; align-items: center; gap: 12px;
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, .8fr) 56px 72px; align-items: center; gap: 12px;
   height: 56px; padding: 0 8px; border-radius: 8px; cursor: default;
 }
-.tracks.grid .row, .row.compact { grid-template-columns: 44px minmax(0, 1fr) 34px; }
+.tracks.grid .row, .row.compact { grid-template-columns: 44px minmax(0, 1fr) 72px; }
 .tracks.grid .row .alb, .tracks.grid .row .dur, .row.compact .alb, .row.compact .dur { display: none; }
 .row:hover { background: rgba(255,255,255,.06); }
 .row.playing .ttl { color: var(--accent); }
@@ -526,7 +526,7 @@ body.sb-hover .brand, body.sb-collapsed .brand { width: 112px; padding-right: 8p
 .chip-i { font-size: 10.5px; font-weight: 600; letter-spacing: .2px; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,.08); color: var(--muted); white-space: nowrap; }
 .chip-i.hi { background: var(--accent-soft); color: var(--accent); }
 .file-path { font-size: 11px; color: rgba(255,255,255,.35); margin-top: 3px; }
-.row.no-album { grid-template-columns: 44px minmax(0, 1fr) 56px 34px; }
+.row.no-album { grid-template-columns: 44px minmax(0, 1fr) 56px 72px; }
 .row.no-album .alb { display: none; }
 
 /* personalización */
@@ -1406,3 +1406,31 @@ body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition:
 .tracks.cols.no-thumb .row .thumb, .tracks.cols.no-album .row .alb, .tracks.cols.no-dur .row .dur, .tracks.cols.no-artists .row .sub { display: none; }
 .list-search input::placeholder { color: color-mix(in srgb, var(--text) 66%, transparent); }
 .list-search svg { color: color-mix(in srgb, var(--text) 78%, transparent); }
+
+/* ---------------------------------------------------------------- song rows: heart */
+.row-acts { display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
+.row .like-btn { opacity: 0; color: var(--muted); }
+.row:hover .like-btn, .row .like-btn.on { opacity: 1; }
+.row .like-btn.on { color: var(--accent); }
+.row .like-btn:hover { color: var(--text); }
+.row .like-btn svg { width: 19px; height: 19px; }
+
+/* ---------------------------------------------------------------- settings
+   Opened from the account pop-over (the gear left the title bar); while it's open both side
+   panels get out of the way. */
+.settings-btn { display: none !important; }
+body:not(.mac-buttons) .account-btn { margin-right: 146px; }
+body.mac-buttons .account-btn { margin-right: 8px; }
+.acct-item .hint { margin-left: auto; font-size: 11px; color: var(--muted); font-weight: 500; }
+body.route-settings:not(.np-open) #sidebar { width: 0; padding-left: 0; padding-right: 0; margin-left: 0; margin-right: 0; border-width: 0; opacity: 0; pointer-events: none; }
+body.route-settings #sb-resize { display: none; }
+
+/* ---------------------------------------------------------------- every dialog with Mica */
+.modal { background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  animation: zoom-out-in .28s cubic-bezier(.2,.8,.2,1); }
+.modal-back { animation: fade-in .2s ease; }
+.modal.theme-editor { background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint); }
+.modal .text { background: rgba(0,0,0,.22); }
+.theme-editor textarea.text { background: rgba(0,0,0,.35); }

@@ -22,6 +22,7 @@ win.on('pageerror', (e) => errors.push(e.message));
 win.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 await win.setViewportSize({ width: 1400, height: 860 });
 await win.waitForTimeout(1500);
+const openSettings = async () => { await win.click('#account-btn'); await win.waitForTimeout(250); await win.locator('#acct-pop .acct-item', { hasText: /Ajustes|Settings/ }).click(); };
 const shot = (n) => win.screenshot({ path: path.join(shots, `${n}.png`) });
 
 await shot('01-home');
@@ -227,7 +228,8 @@ await win.click('.card.playlist >> nth=0', { button: 'right' }); await win.waitF
 await win.locator('#menu button', { hasText: 'Ocultar en BitChord' }).click(); await win.waitForTimeout(900);
 if (await win.evaluate(() => [...document.querySelectorAll('.card.playlist .t')].some((t) => t.textContent === 'Me gusta'))) errors.push('«Me gusta» no se ha ocultado');
 await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(400);
-await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('07-settings');
+await openSettings(); await win.waitForTimeout(900); await shot('07-settings');
+if (await win.evaluate(() => document.querySelector('#sidebar').offsetWidth > 10)) errors.push('La barra lateral no se oculta en Ajustes');
 // Custom CSS theme: "+" tile → editor → save; then back to the original BitChord theme.
 await win.click('.theme-add'); await win.waitForTimeout(300);
 await win.fill('.theme-editor textarea', ':root { --bg: #102030; --surface: #18304a; --accent: #3d9bff; --mica-rgb: 20, 40, 70; }');
@@ -247,20 +249,23 @@ if (off.join() !== 'true,true,false') errors.push('Los interruptores de Mica no 
 await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('10-mica-off');
 
 // Interface language: switch to English (the window reloads) and check a few texts.
-await win.click('#settings-btn'); await win.waitForTimeout(600);
+await openSettings(); await win.waitForTimeout(600);
 await win.locator('#set-general select').first().selectOption('en');
 await win.waitForTimeout(2500);
 await win.waitForSelector('#nav-items .nav-item');
 const en = await win.evaluate(() => ({
   nav: [...document.querySelectorAll('#nav-items .nav-label')].map((e) => e.textContent).join(','),
-  settings: document.querySelector('#settings-btn').title,
+  settings: document.querySelector('#account-btn').title,
   search: document.querySelector('#search').placeholder,
   lang: document.documentElement.lang,
 }));
-if (!en.nav.includes('Home') || en.settings !== 'Settings (Ctrl+,)' || en.lang !== 'en') errors.push('Interfaz en inglés: ' + JSON.stringify(en));
+if (!en.nav.includes('Home') || !/Google|Prueba/.test(en.settings) || en.lang !== 'en') errors.push('Interfaz en inglés: ' + JSON.stringify(en));
 await shot('11-english-home');
-await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('12-english-settings');
-await win.click('.row >> nth=0'); await win.waitForTimeout(800);
+await openSettings(); await win.waitForTimeout(900); await shot('12-english-settings');
+// Leaving settings brings the sidebar and the queue back.
+await win.click('#back'); await win.waitForTimeout(900);
+if (await win.evaluate(() => document.querySelector('#sidebar').offsetWidth < 100 || document.querySelector('#queue').hidden)) errors.push('Al salir de Ajustes no vuelven la barra lateral y la cola');
+await win.click('#content .row >> nth=0'); await win.waitForTimeout(800);
 await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('13-english-now-playing');
 await app.close();
 fs.rmSync(userData, { recursive: true, force: true });

@@ -122,4 +122,5 @@ export const createAccountPlaylist = async (title, ids, { onProgress = () => {} 
 export const accountPlaylists = async () => Array.from({ length: 4 }, (_, i) => card('playlist', i));
 export const addToAccountPlaylist = async (id, ids) => ids.length;
 // The first account playlist behaves like a special list YouTube won't delete.
+export const renameAccountPlaylist = async () => true;
 export const deleteAccountPlaylist = async (id) => { if (id === 'PLmock0') throw new Error('Request to https://www.youtube.com/youtubei/v1/playlist/delete failed with status code 400'); return true; };

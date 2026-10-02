@@ -32,6 +32,10 @@ export async function render(restoreScroll = false, animate = true) {
   $('#forward').disabled = nav.index >= nav.stack.length - 1;
   markNav();
   document.body.classList.toggle('route-settings', route.name === 'settings');
+  // Settings get the whole width: the queue hides (and comes back when leaving), the sidebar
+  // folds away by CSS.
+  if (route.name === 'settings' && !$('#queue').hidden && !$('#queue').classList.contains('closing')) { toggleQueue(false, { remember: false }); queueHiddenBySettings = true; }
+  else if (route.name !== 'settings' && queueHiddenBySettings) { queueHiddenBySettings = false; toggleQueue(true, { remember: false }); }
   if (route.name === 'search') $('#search').value = route.q || '';
 
   const content = $('#content');
@@ -230,13 +234,17 @@ export function trackRow(t, i, list, opts = {}) {
       </div>
       <div class="alb ellipsis">${t.album?.name ? (t.album.id ? `<span class="link" data-album="${esc(t.album.id)}">${esc(t.album.name)}</span>` : esc(t.album.name)) : ''}</div>
       <div class="dur">${t.duration ? fmt(t.duration) : ''}</div>
-      <button class="icon-btn more" title="${tr('Más opciones')}">${icon('more')}</button>
+      <div class="row-acts">
+        <button class="icon-btn like-btn${likes.has(t.id) ? ' on' : ''}" data-like="${esc(t.id)}" title="${tr(likes.has(t.id) ? 'Quitar de favoritos' : 'Añadir a favoritos')}">${icon(likes.has(t.id) ? 'heartFill' : 'heart')}</button>
+        <button class="icon-btn more" title="${tr('Más opciones')}">${icon('more')}</button>
+      </div>
     </div>`);
   el.addEventListener('click', (e) => {
     const a = e.target.closest('[data-artist]');
     if (a) return go({ name: 'artist', id: a.dataset.artist });
     const al = e.target.closest('[data-album]');
     if (al) return go({ name: 'album', id: al.dataset.album });
+    if (e.target.closest('.like-btn')) return toggleLike(t);
     if (e.target.closest('.more')) return trackMenu(t, e.target.closest('.more'), opts);
     if (opts.onClick) return opts.onClick(t, i);
     if (opts.radio && !t.local) player.playRadio(t);
@@ -439,6 +447,15 @@ const views = {
       onRemove: async () => { await api('ytCoverRemove', route.id); const m = { ...state.ytCovers }; delete m[route.id]; state.ytCovers = m; },
     });
     if (state.account && route.id !== 'LM') {
+      // Rename in the account: the new name shows in the official apps too.
+      const ren = h(`<button class="btn ghost">${icon('edit')}${tr('Renombrar')}</button>`);
+      ren.onclick = async () => {
+        const n = await askText(tr('Renombrar playlist'), { value: d.title, ok: tr('Guardar') });
+        if (!n || n === d.title) return;
+        try { await api('ytPlaylistRename', route.id, n); toast(tr('Nombre cambiado también en tu cuenta de YouTube Music')); refreshView(); renderSidebar(); }
+        catch (e) { toast(e.message, true); }
+      };
+      view.querySelector('[data-a=queue]').after(ren);
       const del = h(`<button class="btn ghost">${icon('trash')}${tr('Eliminar playlist')}</button>`);
       del.onclick = () => deletePlaylist({ kind: 'playlist', id: route.id, title: d.title }, { leave: true });
       view.querySelector('.actions').append(del);
@@ -623,7 +640,7 @@ function trackList(d, rowOpts, onShown) {
     const cols = { num: false, thumb: true, artists: true, album: true, duration: true, ...(state.settings.trackCols || {}) };
     const numbered = cols.num || d.kind === 'album';
     const first = numbered || cols.thumb;
-    const tmpl = [first && '44px', 'minmax(0, 1fr)', cols.album && 'minmax(0, .8fr)', cols.duration && '56px', '34px'].filter(Boolean).join(' ');
+    const tmpl = [first && '44px', 'minmax(0, 1fr)', cols.album && 'minmax(0, .8fr)', cols.duration && '56px', '72px'].filter(Boolean).join(' ');
     for (const x of [box, lhead]) x.style.setProperty('--cols', tmpl);
     box.className = `tracks cols${first ? '' : ' no-thumb'}${cols.album ? '' : ' no-album'}${cols.duration ? '' : ' no-dur'}${cols.artists ? '' : ' no-artists'}`;
     lhead.className = `list-head${first ? '' : ' no-thumb'}${cols.album ? '' : ' no-album'}${cols.duration ? '' : ' no-dur'}`;
@@ -692,7 +709,12 @@ export function playlistMenu(p, anchor) {
     null,
     { icon: 'open', label: tr('Abrir'), action: () => go({ name: p.kind, id: p.id }) },
     ...(yt ? [{ icon: 'open', label: tr('Abrir en YouTube Music'), action: () => bc.openExternal(`https://music.youtube.com/playlist?list=${p.id.replace(/^VL/, '')}`) }] : []),
-    ...(!yt ? [{ icon: 'edit', label: tr('Renombrar'), action: async () => { const n = await askText(tr('Renombrar playlist'), { value: p.title, ok: tr('Guardar') }); if (n) { await api('playlistRename', p.id, n); refreshView(); renderSidebar(); } } }] : []),
+    ...(yt && p.id === 'LM' ? [] : [{ icon: 'edit', label: tr('Renombrar'), action: async () => {
+      const n = await askText(tr('Renombrar playlist'), { value: p.title, ok: tr('Guardar') });
+      if (!n || n === p.title) return;
+      try { await api(yt ? 'ytPlaylistRename' : 'playlistRename', p.id, n); if (yt) toast(tr('Nombre cambiado también en tu cuenta de YouTube Music')); refreshView(); renderSidebar(); }
+      catch (e) { toast(e.message, true); }
+    } }]),
     null,
     // Hiding works for any YouTube Music playlist, "Me gusta" included (it can't be deleted).
     ...(yt ? [{ icon: 'remove', label: tr('Ocultar en BitChord'), action: async () => { await hidePlaylist(p); refreshView(); } }] : []),
@@ -866,6 +888,12 @@ export async function toggleLike(t) {
   if (state.account && !t.local) api('rate', t.id, now ? 'like' : 'none').catch((e) => console.warn('rate', e));
 }
 function updateLikeButtons() {
+  // Hearts on the song rows (any list on screen).
+  for (const b of $$('.like-btn[data-like]')) {
+    const on = likes.has(b.dataset.like);
+    b.classList.toggle('on', on); b.innerHTML = icon(on ? 'heartFill' : 'heart');
+    b.title = tr(on ? 'Quitar de favoritos' : 'Añadir a favoritos');
+  }
   const t = player.current;
   const on = t && likes.has(t.id);
   for (const b of [$('#like'), $('#np-like'), $('#fs-like')]) { b.innerHTML = icon(on ? 'heartFill' : 'heart'); b.classList.toggle('on', !!on); }
@@ -1888,6 +1916,12 @@ document.addEventListener('mousedown', (e) => {
 });
 
 // ---- account pop-over (profile button, top right)
+/** "Ajustes" lives in the account pop-over (Ctrl+, still opens it). */
+function settingsItem() {
+  const b = h(`<button class="acct-item">${icon('settings')}<span>${tr('Ajustes')}</span><small class="hint">Ctrl+,</small></button>`);
+  b.onclick = () => { toggleAccountPop(false); go({ name: 'settings' }); };
+  return b;
+}
 function toggleAccountPop(force) {
   const pop = $('#acct-pop');
   const show = force != null ? force : pop.hidden;
@@ -1903,7 +1937,7 @@ function toggleAccountPop(force) {
       try { await api('logout'); await refreshAccount(); toast(tr('Sesión cerrada')); toggleAccountPop(false); refreshView(); }
       catch (e) { toast(e.message, true); out.disabled = false; }
     };
-    pop.append(h('<div class="acct-sep"></div>'), out);
+    pop.append(h('<div class="acct-sep"></div>'), settingsItem(), out);
   } else {
     pop.append(h(`<div class="acct-head"><span class="acct-ph">${icon('account')}</span><div><b>${tr('Sin sesión')}</b><div class="muted small">${tr('Inicia sesión para ver tus playlists y recomendaciones')}</div></div></div>`));
     const login = h(`<button class="acct-item">${icon('account')}<span>${tr('Iniciar sesión con Google')}</span></button>`);
@@ -1912,7 +1946,7 @@ function toggleAccountPop(force) {
       try { const r = await api('login'); if (r !== null) { await refreshAccount(); toast(tr('Sesión iniciada')); refreshView(); } }
       catch (e) { toast(e.message, true); }
     };
-    pop.append(h('<div class="acct-sep"></div>'), login);
+    pop.append(h('<div class="acct-sep"></div>'), settingsItem(), login);
   }
   const r = $('#account-btn').getBoundingClientRect();
   pop.style.right = Math.max(8, innerWidth - r.right - 6) + 'px';
@@ -1999,6 +2033,7 @@ function renderQueue() {
   if (cur && !renderQueue.scrolled) { box.scrollTop = cur.offsetTop - box.offsetTop - (box.clientHeight - cur.offsetHeight) / 2; renderQueue.scrolled = true; }
 }
 let queueCloseTimer = null;
+let queueHiddenBySettings = false;
 let queueAutoHidden = false; // tucked away by the cover/lyrics view, to come back when it closes
 function toggleQueue(force, { remember = true } = {}) {
   if (remember) queueAutoHidden = false; // the user decided: don't bring it back on our own

@@ -15,6 +15,23 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.26
+------------------------------------------------------------
+- Ajustes se abre ahora desde el cuadro de tu cuenta (la foto de arriba a la derecha),
+  encima de "Cerrar sesión". Ctrl+, sigue funcionando. El engranaje de la barra superior
+  desaparece.
+- Al entrar en Ajustes se esconden la barra lateral y la cola para que ocupe todo el
+  ancho; al salir vuelven.
+- Playlists de YouTube Music: botón "Renombrar" (después de "A la cola") y también en su
+  menú del click derecho. El nombre nuevo se guarda en tu cuenta de Google, así que cambia
+  también en la app oficial.
+- Corazón en cada canción de las listas (a la derecha, al pasar el ratón; si ya es
+  favorita se queda visible en el color de acento). Al pulsarlo la canción se guarda en
+  tus favoritos y, con la sesión iniciada, en "Me gusta" de YouTube Music.
+- Todos los cuadros de diálogo (nueva playlist, renombrar, el editor de temas...) son
+  ahora de cristal Mica, como los de confirmación.
+
+------------------------------------------------------------
 v0.6.25.1
 ------------------------------------------------------------
 - El texto "Buscar en esta lista..." y la lupa del buscador de las playlists se ven más

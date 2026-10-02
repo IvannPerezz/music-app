@@ -714,6 +714,15 @@ export async function addToAccountPlaylist(playlistId, videoIds) {
   return videoIds.length;
 }
 
+/** Renames a playlist of the signed-in account (it changes in the official apps too). */
+export async function renameAccountPlaylist(playlistId, name) {
+  if (!cookie) throw new Error(tr('Inicia sesión con Google para crear playlists en tu cuenta.'));
+  const c = await client();
+  const res = await c.actions.execute('/browse/edit_playlist', { playlistId: playlistId.replace(/^VL/, ''), actions: [{ action: 'ACTION_SET_PLAYLIST_NAME', playlistName: name.slice(0, 150) }] });
+  if (res?.success === false) throw new Error(tr('YouTube no ha dejado cambiar el nombre de esta playlist (puede que no sea tuya).'));
+  return true;
+}
+
 /** Deletes a playlist of the signed-in account (YouTube refuses for ones you don't own). */
 export async function deleteAccountPlaylist(playlistId) {
   if (!cookie) throw new Error(tr('Inicia sesión con Google para crear playlists en tu cuenta.'));
