@@ -1669,7 +1669,11 @@ async function updateStats() {
     an?.bpm && Math.round(an.bpm) + ' BPM',
     s?.client,
   ].filter(Boolean);
-  $('#np-stats').textContent = parts.join(' · ');
+  // Fade/slide the line in (its space is always reserved, so the cover never moves).
+  const st = $('#np-stats'), text = parts.join(' · ');
+  if (st.textContent === text) return;
+  st.textContent = text;
+  st.classList.remove('in'); void st.offsetWidth; st.classList.add('in');
 }
 
 function markPlaying() {

@@ -1513,3 +1513,9 @@ body.route-settings #sb-resize { display: none; }
 #ambient, .np-amb, .np-bg { transition: opacity .35s ease; }
 body.bg-swap #ambient, body.bg-swap .np-amb, body.bg-swap .np-bg { opacity: 0 !important; transition: opacity .2s ease; }
 body.bg-swap .amb-layer i, body.ambient-cover.bg-swap .amb-layer i { transition: none; }
+
+/* Cover and lyrics view: the technical line under the song (codec, kbps…) always keeps its
+   space, so the cover stays put when it appears; the text slides in. */
+#np-stats { min-height: 1.45em; line-height: 1.45em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#np-stats.in { animation: stats-in .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes stats-in { from { opacity: 0; transform: translateY(6px); } }
