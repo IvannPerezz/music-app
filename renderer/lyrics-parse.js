@@ -268,5 +268,13 @@ export function parseResult(res) {
   if (!out) return null;
   if (!Array.isArray(out)) return out.plain ? { synced: false, lines: [], plain: out.plain } : null;
   if (!out.some((l) => l.text)) return null;
+  // Some providers send "synced" lyrics whose lines all have the same time (usually 0): they'd
+  // all count as already sung and the view would sit on the last line. Treat them as plain
+  // text, so a properly synced source is looked for instead.
+  const sung = out.filter((l) => l.text);
+  const distinct = new Set(sung.map((l) => Math.round(l.time * 10))).size;
+  if (sung.length > 2 && distinct < Math.max(2, sung.length * 0.25)) {
+    return { synced: false, lines: [], plain: sung.map((l) => l.text).join('\n') };
+  }
   return { synced: true, lines: out, word: out.some((l) => l.words?.length) };
 }

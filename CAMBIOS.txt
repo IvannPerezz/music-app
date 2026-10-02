@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.30.14
+------------------------------------------------------------
+- Arreglado: en algunas canciones la letra se quedaba en la última frase desde el
+  principio y no avanzaba. Algún proveedor (LyricsPlus) manda letras "sincronizadas" con
+  todas las líneas en el segundo 0. Ahora BitChord lo detecta, busca una letra bien
+  sincronizada en los demás proveedores y, si no la hay, muestra el texto sin sincronizar.
+
+------------------------------------------------------------
 v0.6.30.13
 ------------------------------------------------------------
 - La animación de baraja de cartas vuelve a ser como antes (más separación, inclinación y
