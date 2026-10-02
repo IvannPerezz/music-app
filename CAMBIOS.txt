@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.24
+------------------------------------------------------------
+- La cola sale abierta por defecto.
+- Al entrar en la vista de portada y letra o en pantalla completa (con los botones de abajo
+  a la derecha, pulsando la portada de abajo a la izquierda o con su tecla), la cola se
+  esconde sola para dejar todo el espacio; puedes sacarla con su botón si la necesitas.
+  Al volver a la pantalla principal, la cola vuelve a aparecer sola.
+
+------------------------------------------------------------
 v0.6.23.2
 ------------------------------------------------------------
 - La barra de desplazamiento de la página principal (a la derecha del contenido, junto a

@@ -1597,6 +1597,9 @@ function openNowPlaying() {
   if (!player.current) return toast(tr('No hay nada sonando'));
   const np = $('#nowplaying');
   clearTimeout(npCloseTimer); np.classList.remove('closing');
+  // Cover and lyrics (and full screen) get the whole window: the queue tucks itself away until
+  // its button brings it back, and comes back by itself when this view closes.
+  if (np.hidden && !$('#queue').hidden && !$('#queue').classList.contains('closing')) { toggleQueue(false, { remember: false }); queueAutoHidden = true; }
   np.hidden = false;
   document.body.classList.add('np-open');
   $('#btn-lyrics').classList.add('on');
@@ -1623,6 +1626,7 @@ function closeNowPlaying() {
   np.classList.add('closing');
   npCloseTimer = setTimeout(() => { np.hidden = true; np.classList.remove('closing'); document.body.classList.remove('np-open'); unmountVisualizer(); }, 230);
   if (fsPanelKind === 'vis') closeFsPanel();
+  if (queueAutoHidden) { queueAutoHidden = false; toggleQueue(true, { remember: false }); }
 }
 const npOpen = () => !$('#nowplaying').hidden && !$('#nowplaying').classList.contains('closing');
 
@@ -1923,7 +1927,9 @@ function renderQueue() {
   if (cur && !renderQueue.scrolled) { box.scrollTop = cur.offsetTop - box.offsetTop - (box.clientHeight - cur.offsetHeight) / 2; renderQueue.scrolled = true; }
 }
 let queueCloseTimer = null;
-function toggleQueue(force) {
+let queueAutoHidden = false; // tucked away by the cover/lyrics view, to come back when it closes
+function toggleQueue(force, { remember = true } = {}) {
+  if (remember) queueAutoHidden = false; // the user decided: don't bring it back on our own
   const q = $('#queue');
   const isOpen = !q.hidden && !q.classList.contains('closing');
   const open = force != null ? !!force : !isOpen;
@@ -1936,7 +1942,7 @@ function toggleQueue(force) {
   $('#nav-queue')?.classList.toggle('active', open);
   renderQueue.scrolled = false;
   renderQueue();
-  store.set('queueOpen', open);
+  if (remember) store.set('queueOpen', open);
 }
 
 // ------------------------------------------------------------------ search box
@@ -2181,7 +2187,7 @@ async function init() {
     updateNowPlaying();
     loadLyrics(player.current);
   }
-  if (store.get('queueOpen', false)) toggleQueue(true);
+  if (store.get('queueOpen', true)) toggleQueue(true); // open by default
   go({ name: 'home' });
   // Chromium needs a user gesture before audio can start; resume the context on the first interaction.
   const unlock = () => { engine.resume(); document.removeEventListener('pointerdown', unlock); document.removeEventListener('keydown', unlock); };

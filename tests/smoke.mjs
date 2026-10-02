@@ -28,7 +28,14 @@ await shot('01-home');
 if (!(await win.isVisible('#titlebar .traffic'))) errors.push('Faltan los botones de ventana estilo macOS');
 if (!/, Prueba$/.test(await win.textContent('#home-greet'))) errors.push('El saludo no lleva el nombre de la cuenta: ' + await win.textContent('#home-greet'));
 await win.click('.row >> nth=0'); await win.waitForTimeout(1200);
+// The queue is open by default, hides when the cover/lyrics view opens and comes back after.
+const qOpen = () => win.evaluate(() => !document.querySelector('#queue').hidden && !document.querySelector('#queue').classList.contains('closing'));
+if (!(await qOpen())) errors.push('La cola no está abierta por defecto');
 await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('02-now-playing');
+if (await qOpen()) errors.push('La cola no se esconde al abrir portada y letra');
+await win.click('#np-close'); await win.waitForTimeout(500);
+if (!(await qOpen())) errors.push('La cola no vuelve al salir de portada y letra');
+await win.click('#btn-lyrics'); await win.waitForTimeout(900);
 // Animated background: shown in the full-screen view and only moving while a song plays.
 const amb = () => win.evaluate(() => ({ np: getComputedStyle(document.querySelector('.np-amb')).display, paused: document.body.classList.contains('ambient-paused') }));
 let a = await amb();
