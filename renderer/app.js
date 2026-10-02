@@ -1581,8 +1581,18 @@ function slideArt(img, src, dir = 1) {
   Object.assign(next.style, { left: img.offsetLeft + 'px', top: img.offsetTop + 'px', width: img.offsetWidth + 'px', height: img.offsetHeight + 'px', borderRadius: cs.borderRadius, boxShadow: cs.boxShadow, transform: cs.transform === 'none' ? '' : cs.transform });
   next.src = src;
   host.append(next);
+  // Dealt like a playing card: it flies in tilted and lifted (bigger shadow), overshoots a
+  // little, straightens and lands on top; the old cover sinks a bit under it.
+  const base = cs.transform === 'none' ? '' : cs.transform + ' ';
+  const shadow = cs.boxShadow && cs.boxShadow !== 'none' ? cs.boxShadow : '0 10px 30px rgba(0,0,0,.4)';
   const go = () => {
-    const a = next.animate([{ transform: `translateX(${dir * 28}%) scale(.96)`, opacity: 0 }, { transform: cs.transform === 'none' ? 'none' : cs.transform, opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.32,.72,0,1)' });
+    const a = next.animate([
+      { transform: `${base}translate(${dir * 115}%, -10%) rotate(${dir * 14}deg) scale(1.06)`, opacity: 0, boxShadow: '0 40px 80px rgba(0,0,0,.6)', offset: 0 },
+      { opacity: 1, offset: .25 },
+      { transform: `${base}translate(${dir * -3}%, -1%) rotate(${dir * -2.5}deg) scale(1.03)`, boxShadow: '0 30px 70px rgba(0,0,0,.55)', offset: .72 },
+      { transform: `${base}translate(0, 0) rotate(0deg) scale(1)`, opacity: 1, boxShadow: shadow, offset: 1 },
+    ], { duration: 620, easing: 'cubic-bezier(.25,.8,.35,1)' });
+    img.animate([{ filter: 'brightness(1)', transform: base || 'none' }, { filter: 'brightness(.6)', transform: `${base}scale(.95)` }], { duration: 620, easing: 'ease-in-out' });
     a.onfinish = () => { img.src = src; requestAnimationFrame(() => next.remove()); };
   };
   if (next.complete) go(); else { next.onload = go; next.onerror = () => { img.src = src; next.remove(); }; }
