@@ -2060,9 +2060,18 @@ function settingsItem() {
 }
 function toggleAccountPop(force) {
   const pop = $('#acct-pop');
-  const show = force != null ? force : pop.hidden;
+  const closing = pop.classList.contains('closing');
+  const show = force != null ? force : pop.hidden || closing;
   $('#account-btn').classList.toggle('on', show);
-  if (!show) { pop.hidden = true; return; }
+  clearTimeout(toggleAccountPop.t);
+  if (!show) {
+    // Shrink back towards the profile button before hiding.
+    if (pop.hidden || closing) return;
+    pop.classList.add('closing');
+    toggleAccountPop.t = setTimeout(() => { pop.hidden = true; pop.classList.remove('closing'); }, 170);
+    return;
+  }
+  pop.classList.remove('closing');
   const a = state.account;
   pop.innerHTML = '';
   if (a) {

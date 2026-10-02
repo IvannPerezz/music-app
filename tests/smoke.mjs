@@ -22,7 +22,7 @@ win.on('pageerror', (e) => errors.push(e.message));
 win.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 await win.setViewportSize({ width: 1400, height: 860 });
 await win.waitForTimeout(1500);
-const openSettings = async () => { await win.click('#account-btn'); await win.waitForTimeout(250); await win.locator('#acct-pop .acct-item', { hasText: /Ajustes|Settings/ }).click(); };
+const openSettings = async () => { await win.waitForTimeout(250); await win.click('#account-btn'); await win.waitForTimeout(250); await win.locator('#acct-pop .acct-item', { hasText: /Ajustes|Settings/ }).click(); };
 const shot = (n) => win.screenshot({ path: path.join(shots, `${n}.png`) });
 
 await shot('01-home');

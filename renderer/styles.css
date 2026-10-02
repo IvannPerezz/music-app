@@ -1525,3 +1525,7 @@ body.bg-swap .amb-layer i, body.ambient-cover.bg-swap .amb-layer i { transition:
 
 /* Cover and lyrics view: no heart next to the title (it's in the player bar). */
 #np-like { display: none !important; }
+
+/* Account pop-over: shrinks back towards the profile picture when it closes. */
+#acct-pop.closing { animation: acct-out .17s cubic-bezier(.4,0,1,1) forwards; pointer-events: none; }
+@keyframes acct-out { to { opacity: 0; transform: translateY(-6px) scale(.95); } }
