@@ -729,6 +729,13 @@ export async function addToAccountPlaylist(playlistId, videoIds) {
   return videoIds.length;
 }
 
+export async function removeFromAccountPlaylist(playlistId, videoIds) {
+  if (!cookie) throw new Error(tr('Inicia sesión con Google para añadir canciones a tus playlists de YouTube Music.'));
+  const c = await client();
+  await c.playlist.removeVideos(playlistId.replace(/^VL/, ''), videoIds);
+  return videoIds.length;
+}
+
 /** Renames a playlist of the signed-in account (it changes in the official apps too). */
 export async function renameAccountPlaylist(playlistId, name) {
   if (!cookie) throw new Error(tr('Inicia sesión con Google para crear playlists en tu cuenta.'));

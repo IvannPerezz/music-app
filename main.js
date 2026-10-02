@@ -48,6 +48,7 @@ const potoken = MOCK ? null : await import('./src/potoken.js');
 const webdav = await import('./src/sources/webdav.js');
 const playlists = await import('./src/playlists.js');
 const spotify = await import('./src/spotify-import.js');
+const spotifySync = await import('./src/spotify-sync.js');
 const sources = await import('./src/sources/index.js');
 
 nativeTheme.themeSource = 'dark';
@@ -190,6 +191,7 @@ app.whenReady().then(async () => {
   local.init(userData);
   webdav.init(userData);
   playlists.init(userData);
+  spotifySync.init(userData, { yt, playlists, openExternal: (u) => shell.openExternal(u), notify: (st) => send('spotify-sync', st) });
   const { port } = await startProxy({ userData });
   proxyPort = port;
   console.log('media server on port', port);
@@ -308,6 +310,16 @@ app.whenReady().then(async () => {
   handle('spotify-match', (lists) => spotify.match(lists, (q) => yt.searchSongs(q), (p) => send('import-progress', { phase: 'match', ...p })));
   handle('spotify-cancel', () => spotify.cancel());
   handle('song-search', (q) => yt.searchSongs(q));
+  // Spotify account link (playlists kept up to date)
+  handle('spotify-status', () => spotifySync.status());
+  handle('spotify-connect', (clientId) => spotifySync.connect(clientId));
+  handle('spotify-connect-cancel', () => spotifySync.cancelConnect());
+  handle('spotify-disconnect', () => spotifySync.disconnect());
+  handle('spotify-playlists', () => spotifySync.playlists());
+  handle('spotify-link', (id, name, dest) => spotifySync.link(id, name, dest));
+  handle('spotify-unlink', (id) => spotifySync.unlink(id));
+  handle('spotify-sync', (id, opts) => spotifySync.sync(id, opts));
+  handle('spotify-auto', (on) => spotifySync.setAuto(on));
   handle('spotify-create', async (items) => {
     const out = [];
     for (const [n, it] of items.entries()) {

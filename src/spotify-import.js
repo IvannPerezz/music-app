@@ -108,6 +108,8 @@ async function matchOne(src, search) {
 let running = null;
 
 /** Matches every track of the chosen playlists. onProgress({done,total}). Returns results per playlist key. */
+export const matchTrack = matchOne;
+
 export async function match(playlists, search, onProgress = () => {}) {
   if (running) throw new Error(tr('Ya hay una importación en curso'));
   const jobs = [];

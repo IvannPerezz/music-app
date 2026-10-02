@@ -69,6 +69,17 @@ export function addTracks(id, tracks) {
   return add.length;
 }
 
+export const exists = (id) => lists.some((x) => x.id === id);
+
+/** Replaces all the songs (playlists kept in sync with Spotify). */
+export function setTracks(id, tracks) {
+  const p = lists.find((x) => x.id === id);
+  if (!p) throw new Error(tr('Esa playlist ya no existe'));
+  p.tracks = tracks.map(clean);
+  p.updated = Date.now();
+  save();
+}
+
 export function removeAt(id, index) {
   const p = lists.find((x) => x.id === id);
   if (!p) return;

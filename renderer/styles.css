@@ -1537,3 +1537,24 @@ body.bg-swapping .amb-layer i, body.bg-swapping .np-bg { transition: none !impor
 .row.compact .row-acts .icon-btn { display: none; }
 .row.compact:hover .row-acts .icon-btn, .row.compact .row-acts .like-btn.on { display: inline-grid; }
 #queue-list .row { padding-right: 4px; }
+
+/* Import → Spotify account link */
+.sp-uri { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; flex-wrap: wrap; }
+.sp-uri code { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.07); font-size: 13px; user-select: all; }
+.sp-connect { display: flex; align-items: center; gap: 10px; margin: 16px 0 14px; flex-wrap: wrap; }
+.sp-connect input { flex: 1; min-width: 260px; font-family: ui-monospace, Consolas, monospace; }
+.sp-wait { display: inline-flex; align-items: center; gap: 6px; }
+.sp-wait svg, .sp-link p.muted svg { width: 16px; height: 16px; animation: spin 1s linear infinite; vertical-align: -3px; }
+.sp-head { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
+.sp-who { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 220px; }
+.sp-who > svg { width: 28px; height: 28px; padding: 5px; border-radius: 50%; background: #1db954; color: #000; flex: none; }
+.sp-auto { display: flex; align-items: center; gap: 10px; width: 100%; cursor: pointer; font-size: 13.5px; }
+.sp-busy { width: 100%; }
+.sp-busy .progress.big { margin: 2px 0 6px; }
+.sp-title { margin: 22px 0 10px; font-size: 16px; }
+.sp-row { cursor: default; }
+.sp-row.linked { box-shadow: inset 3px 0 0 #1db954; }
+.sp-img { width: 44px; height: 44px; border-radius: 6px; overflow: hidden; flex: none; display: grid; place-items: center; background: rgba(255,255,255,.06); color: var(--muted); }
+.sp-img img { width: 100%; height: 100%; object-fit: cover; }
+.sp-img svg { width: 22px; height: 22px; }
+.sp-err { color: #ff6961; }

@@ -15,6 +15,19 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.32
+------------------------------------------------------------
+- Nuevo: vincula tu cuenta de Spotify para que tus playlists se mantengan al día solas.
+  Está en Importar de Spotify > "Cuenta de Spotify (se actualiza sola)", junto a la
+  importación del .zip. Allí tienes paso a paso cómo crear tu app de desarrollador de
+  Spotify (gratis, se hace una vez), con el enlace al panel y la dirección para copiar.
+- Eliges qué playlists sincronizar (también tus "Canciones que te gustan") y si van a tu
+  YouTube Music o solo a BitChord. Si añades o quitas canciones en Spotify, la copia
+  cambia igual: al abrir BitChord, cada 6 horas (se puede apagar) o con "Actualizar".
+  Solo se buscan en YouTube Music las canciones nuevas, y BitChord nunca cambia nada en
+  tu Spotify (el permiso es solo de lectura).
+
+------------------------------------------------------------
 v0.6.31.1
 ------------------------------------------------------------
 - Vuelve el logotipo anterior de BitChord.

@@ -2,6 +2,7 @@
 import { bc, icon, esc, fmt, api, toast, h, state, art, askText } from './core.js';
 import { go, player, openMenu, refreshView, currentRoute } from './app.js';
 import { tr } from './i18n.js';
+import { spotifyLinkView } from './spotify-link.js';
 
 // The wizard survives navigating away (matching a big library takes a while).
 const W = { step: 'pick', file: null, lists: [], sel: {}, dest: {}, results: null, choice: {}, progress: null, created: null, filter: 'all', open: {} };
@@ -260,6 +261,15 @@ function doneStep(root) {
 export async function importView() {
   const root = h('<div class="import"></div>');
   root.append(h(`<h1 class="page-title">${tr('Importar de Spotify')}</h1>`));
+  // Two ways: the one-off .zip export, or linking the account so playlists stay up to date.
+  const tabs = h('<div class="chips"></div>');
+  [['zip', tr('Archivo .zip de datos')], ['link', tr('Cuenta de Spotify (se actualiza sola)')]].forEach(([k, l]) => {
+    const c = h(`<button class="chip${(W.tab || 'zip') === k ? ' active' : ''}" data-tab="${k}">${l}</button>`);
+    c.onclick = () => { W.tab = k; refreshView(); };
+    tabs.append(c);
+  });
+  root.append(tabs);
+  if (W.tab === 'link') { root.append(spotifyLinkView()); return root; }
   root.append(steps());
   if (W.step === 'pick') pickStep(root);
   else if (W.step === 'select') selectStep(root);
