@@ -31,6 +31,7 @@ export async function render(restoreScroll = false, animate = true) {
   $('#back').disabled = nav.index <= 0;
   $('#forward').disabled = nav.index >= nav.stack.length - 1;
   markNav();
+  document.body.classList.toggle('route-settings', route.name === 'settings');
   if (route.name === 'search') $('#search').value = route.q || '';
 
   const content = $('#content');

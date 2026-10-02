@@ -1214,3 +1214,8 @@ body.no-mica-player #player .icon-btn:active:not(.on) { background: rgba(255,255
 
 /* Ajustes > Música local: path box and buttons centred, with room before the next setting. */
 .local-actions { justify-content: center; margin: 4px 0 18px; }
+
+/* Settings: the title bar gets the same blur as the settings header below it, so the frosted
+   strip reaches the top of the window instead of stopping under the title bar. */
+#titlebar { transition: -webkit-backdrop-filter .3s, backdrop-filter .3s; }
+body.route-settings:not(.np-open) #titlebar { -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
