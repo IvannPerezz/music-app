@@ -1483,3 +1483,16 @@ body.route-settings #sb-resize { display: none; }
 /* Only the logo and the name are clickable; the rest of that space still drags the window. */
 .brand img, .brand span { -webkit-app-region: no-drag; cursor: pointer; transition: opacity .15s; }
 .brand img:hover, .brand img:hover + span, .brand span:hover { opacity: .8; }
+
+/* Equalizer pop-up: shrinks back towards its button when closed. */
+#eq-pop.closing { animation: pop-out .18s cubic-bezier(.4,0,1,1) forwards; pointer-events: none; }
+@keyframes pop-out { to { opacity: 0; transform: translateY(8px) scale(.94); } }
+
+/* Automix badge: Mica glass tinted with the cover's colour (the dynamic accent). */
+#mix-badge {
+  background: linear-gradient(140deg, rgba(255,255,255,.22), rgba(255,255,255,.04)), color-mix(in srgb, var(--accent) 62%, transparent);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, rgba(255,255,255,.35));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 35%, rgba(0,0,0,.4)), inset 0 1px 0 rgba(255,255,255,.25);
+  text-shadow: 0 1px 2px rgba(0,0,0,.25);
+}

@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.28
+------------------------------------------------------------
+- Al cerrar BitChord y volver a abrirlo, la canción que sonaba queda preparada en el
+  minuto en el que estaba (en pausa): al darle a reproducir sigue desde ahí. La barra de
+  progreso ya lo muestra al abrir.
+- La ventana del ecualizador (la que se abre desde la barra de reproducción) tiene ahora
+  animación al cerrarse: se encoge hacia su botón mientras se desvanece.
+- La etiqueta "Automix" que aparece al mezclar dos canciones es ahora de cristal Mica,
+  teñida con el color de la portada que está sonando.
+
+------------------------------------------------------------
 v0.6.27.3
 ------------------------------------------------------------
 - Al pulsar el logo de BitChord (arriba a la izquierda) vas a Inicio.

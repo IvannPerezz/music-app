@@ -1098,6 +1098,14 @@ export const player = {
   },
 };
 
+// Where the song was when BitChord closed, to carry on from there next time.
+function savePosition() {
+  const t = player.current;
+  if (t && engine.currentTime > 0) store.set('resumeAt', { id: t.id, at: Math.floor(engine.currentTime), playing: !engine.paused });
+}
+setInterval(savePosition, 5000);
+addEventListener('beforeunload', savePosition);
+
 function persistQueue() {
   const start = Math.max(0, player.index - 20);
   store.set('queue', { queue: player.queue.slice(start, player.index + 200).map(({ _k, ...t }) => t), index: player.index - start, from: player.from || null });
@@ -1907,7 +1915,13 @@ function toggleEq(force) {
     pop.append(h(`<div class="eq-pop-head"><b>${tr('Ecualizador')}</b></div>`));
     pop.append(eqPanel({ compact: true }));
   }
-  pop.hidden = !show;
+  clearTimeout(toggleEq.t);
+  if (show) { pop.classList.remove('closing'); pop.hidden = false; }
+  else if (!pop.hidden && !pop.classList.contains('closing')) {
+    // Shrink back towards its button before hiding.
+    pop.classList.add('closing');
+    toggleEq.t = setTimeout(() => { pop.hidden = true; pop.classList.remove('closing'); }, 180);
+  }
   $('#btn-eq').classList.toggle('on', show);
   $('#fs-eq').classList.toggle('on', show);
 }
@@ -2367,6 +2381,14 @@ async function init() {
     player.extendWith = true;
     updateNowPlaying();
     loadLyrics(player.current);
+    // Carry on from the minute it was at: load it paused at that point (play starts from there).
+    const at = store.get('resumeAt', null);
+    if (at && at.id === player.current?.id && at.at > 2) {
+      player.load(player.index, { autoplay: false, at: at.at });
+      const d = player.current.duration || 0;
+      $('#t-cur').textContent = fmt(at.at);
+      if (d) { $('#seek .fill').style.width = $('#seek .knob').style.left = (at.at / d) * 100 + '%'; }
+    }
   }
   if (store.get('queueOpen', true)) toggleQueue(true); // open by default
   go({ name: 'home' });

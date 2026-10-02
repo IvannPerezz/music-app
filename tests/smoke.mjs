@@ -166,7 +166,9 @@ const dock = await win.evaluate(() => ({ content: document.querySelector('#conte
 if (dock.content > dock.queue + 1) errors.push('La cola tapa el contenido: ' + JSON.stringify(dock));
 await win.click('#btn-queue'); await win.waitForTimeout(400);
 await win.click('#btn-eq'); await win.waitForTimeout(400); await shot('04-eq');
-await win.click('#btn-eq'); await win.waitForTimeout(300);
+await win.click('#btn-eq'); await win.waitForTimeout(60);
+if (!(await win.evaluate(() => document.querySelector('#eq-pop').classList.contains('closing')))) errors.push('El ecualizador no hace la animación de cierre');
+await win.waitForTimeout(300);
 await win.click('#account-btn'); await win.waitForTimeout(400); await shot('05-account');
 await win.mouse.click(700, 400); await win.waitForTimeout(200);
 // "Buscar" in the sidebar: the search box moves to the middle and grows; it goes back after searching.
