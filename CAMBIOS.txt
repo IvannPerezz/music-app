@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.19.4
+------------------------------------------------------------
+- Barra lateral: al pasar el ratón por una opción ya no aparece un recuadro alrededor;
+  solo se iluminan su icono y su texto. Así se aprecia mejor cómo se desliza el
+  resaltado al cambiar de página.
+
+------------------------------------------------------------
 v0.6.19.3
 ------------------------------------------------------------
 - Arreglado: con "Playlists" anclado en la barra lateral, al pulsar "Biblioteca" el

@@ -1249,3 +1249,11 @@ body.mac-buttons .settings-btn { margin-right: 8px; }
 #nav-items .nav-item.active:not([data-group="player"]) { background: none; }
 #nav-items .nav-item.active:not([data-group="player"]):hover { background: rgba(255,255,255,.05); }
 #nav-items .nav-item .ico { transition: color .25s ease; }
+
+/* Sidebar hover: no box around the item under the mouse (it got in the way of the sliding
+   highlight), just its icon and text lighting up. */
+#sidebar #nav-items .nav-item:hover { background: none; color: var(--text); }
+#sidebar #nav-items .nav-item.active[data-group="player"]:hover { background: rgba(255,255,255,.08); }
+#nav-items .nav-item .ico { transition: color .25s ease, transform .2s ease; }
+#nav-items .nav-item:hover .ico { transform: scale(1.08); }
+#nav-items .nav-item:hover:not(.active) .ico { color: color-mix(in srgb, var(--accent) 55%, var(--text)); }
