@@ -173,6 +173,11 @@ await win.click('#nav-library'); await win.waitForTimeout(900); await shot('06-l
 const lit = await win.evaluate(() => [...document.querySelectorAll('#nav-items .nav-item.active')].map((b) => b.id).join(','));
 if (!(await win.$('#nav-lib-playlists'))) errors.push('No se pudo anclar Playlists para la prueba');
 if (lit !== 'nav-library') errors.push('Al pulsar Biblioteca se resalta: ' + lit);
+// "Playlists" unfolds the playlists as a grid of covers.
+await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(700);
+if (!(await win.evaluate(() => document.querySelector('.sb-pl-grid.open') && document.querySelector('#nav-home').offsetHeight >= 36))) errors.push('El desplegable de playlists de la barra lateral no se abre bien');
+await shot('06c-sidebar-playlists');
+await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(400);
 await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('07-settings');
 // Custom CSS theme: "+" tile → editor → save; then back to the original BitChord theme.
 await win.click('.theme-add'); await win.waitForTimeout(300);

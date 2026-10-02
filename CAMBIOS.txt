@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.21
+------------------------------------------------------------
+- Barra lateral: el acceso "Playlists" tiene una flecha que despliega tus playlists justo
+  debajo, en una cuadrícula de dos columnas con su portada y su nombre (Me gusta, las de
+  tu cuenta de YouTube Music y las de BitChord). Al pulsar una se abre. Se queda abierto o
+  cerrado como lo dejes, y si la lista es larga la barra lateral se desplaza.
+- (Solo aparece si tienes "Playlists" anclado en la barra lateral; con la ventana
+  estrecha se oculta.)
+
+------------------------------------------------------------
 v0.6.20.2
 ------------------------------------------------------------
 - Búsqueda: el "¿Querías decir...?" aparece ahora encima de los tipos de contenido (Todo,

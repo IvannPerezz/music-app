@@ -84,6 +84,7 @@ export function renderSidebar() {
     const b = h(`<button class="nav-item" id="nav-${id.replace(':', '-')}" data-nav="${id}" data-group="${it.group}"><span class="ico">${icon(it.icon)}</span><span class="nav-label">${esc(it.label)}</span></button>`);
     b.onclick = () => (it.action ? it.action() : go({ ...it.route }));
     box.append(b);
+    if (id === 'lib:playlists') addPlaylistsFold(b, box);
   }
   markNav();
   $('#nav-queue')?.classList.toggle('active', !$('#queue').hidden);
@@ -110,6 +111,45 @@ function markNav() {
   $$('.nav-item[data-route]').forEach((b) => b.classList.toggle('active', b.dataset.route === route.name));
   moveNavPill();
   $('#settings-btn')?.classList.toggle('active', route.name === 'settings');
+}
+
+/** "Playlists" in the sidebar: an arrow that unfolds your playlists as a grid of covers. */
+function addPlaylistsFold(item, box) {
+  const open = store.get('sbPlaylistsOpen', false);
+  const arrow = h(`<span class="nav-fold${open ? ' open' : ''}" role="button" title="${tr(open ? 'Ocultar tus playlists' : 'Mostrar tus playlists')}">${icon('chevron')}</span>`);
+  item.append(arrow);
+  const grid = h(`<div class="sb-pl-grid${open ? ' open' : ''}"><div class="sb-pl-inner"></div></div>`);
+  item.after(grid);
+  arrow.onclick = (e) => {
+    e.stopPropagation();
+    const now = !grid.classList.contains('open');
+    store.set('sbPlaylistsOpen', now);
+    grid.classList.toggle('open', now); arrow.classList.toggle('open', now);
+    arrow.title = tr(now ? 'Ocultar tus playlists' : 'Mostrar tus playlists');
+    if (now) fillPlaylistsFold(grid.firstElementChild);
+    setTimeout(moveNavPill, 320); // items below moved
+  };
+  if (open) fillPlaylistsFold(grid.firstElementChild);
+}
+async function fillPlaylistsFold(inner) {
+  const [mine, yt] = await Promise.all([
+    api('playlistsList').catch(() => []),
+    state.account ? api('accountPlaylists').catch(() => []) : [],
+  ]);
+  const items = [
+    ...(state.account ? [{ liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
+    ...yt.map((p) => ({ title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
+    ...mine.map((p) => ({ title: p.name, thumb: p.cover || p.thumbs?.[0], route: { name: 'localplaylist', id: p.id } })),
+  ];
+  inner.replaceChildren();
+  if (!items.length) { inner.append(h(`<div class="sb-pl-empty">${tr('Aún no tienes playlists')}</div>`)); return; }
+  for (const it of items) {
+    const el = h(`<button class="sb-pl" title="${esc(it.title)}">
+      <span class="sb-pl-art${it.liked ? ' liked' : ''}">${it.liked ? icon('heartFill') : it.thumb ? `<img loading="lazy" src="${esc(art(it.thumb))}" alt="">` : icon('queue')}</span>
+      <span class="sb-pl-t">${esc(it.title)}</span></button>`);
+    el.onclick = () => go(it.route);
+    inner.append(el);
+  }
 }
 
 /** Slides the sidebar highlight to the page's item (first time / after a redraw: no animation). */
