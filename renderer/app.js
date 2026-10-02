@@ -1791,10 +1791,8 @@ function toggleEq(force) {
   if (isFs() || fsPanelKind === 'eq') {
     const show = force != null ? force : fsPanelKind !== 'eq';
     if (show) {
-      const body = h('<div></div>');
-      const more = h(`<button class="text-btn" style="margin:4px 6px 12px">${tr('Más en Ajustes')}</button>`);
-      more.onclick = () => { closeFsPanel(); setFullscreen(false); go({ name: 'settings', section: 'eq' }); };
-      body.append(eqPanel({ compact: true }), more);
+      const body = h('<div style="padding-bottom:8px"></div>');
+      body.append(eqPanel({ compact: true }));
       openFsPanel('eq', tr('Ecualizador'), body);
     } else if (fsPanelKind === 'eq') closeFsPanel();
     return;
@@ -1802,9 +1800,8 @@ function toggleEq(force) {
   const pop = $('#eq-pop');
   const show = force != null ? force : pop.hidden;
   if (show && !pop.firstChild) {
-    pop.append(h(`<div class="eq-pop-head"><b>${tr('Ecualizador')}</b><button class="text-btn" data-a="more">${tr('Más en Ajustes')}</button></div>`));
+    pop.append(h(`<div class="eq-pop-head"><b>${tr('Ecualizador')}</b></div>`));
     pop.append(eqPanel({ compact: true }));
-    pop.querySelector('[data-a=more]').onclick = () => { toggleEq(false); go({ name: 'settings', section: 'eq' }); };
   }
   pop.hidden = !show;
   $('#btn-eq').classList.toggle('on', show);

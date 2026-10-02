@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.24.2
+------------------------------------------------------------
+- Ecualizador: se ha quitado el enlace "Más en Ajustes" del panel de pantalla completa y
+  de la ventana del ecualizador de la barra de reproducción.
+
+------------------------------------------------------------
 v0.6.24.1
 ------------------------------------------------------------
 - Los avisos de abajo ("Quitada de favoritos"...) aparecen con un zoom hacia dentro y se
