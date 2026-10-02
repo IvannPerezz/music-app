@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.33
+------------------------------------------------------------
+- Nuevo en Ajustes: "Copia de la configuración". Exporta a un archivo .bitchord todo lo
+  que has personalizado (ajustes, temas, Mica y fondo, barra lateral, ecualizador, letras,
+  visualizador, tus playlists de BitChord con sus portadas, portadas de playlists y
+  carpetas, playlists ocultas y su orden, favoritos, búsquedas recientes y las playlists
+  vinculadas con Spotify). En otro PC, Importar ese archivo lo deja todo igual y
+  BitChord se reinicia. Las sesiones (Google, Last.fm, ListenBrainz y el permiso de
+  Spotify) no van en el archivo: hay que volver a iniciarlas.
+
+------------------------------------------------------------
 v0.6.32.2
 ------------------------------------------------------------
 - Las playlists sincronizadas con Spotify traen también su portada (la que subiste tú

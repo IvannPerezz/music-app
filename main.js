@@ -49,6 +49,7 @@ const webdav = await import('./src/sources/webdav.js');
 const playlists = await import('./src/playlists.js');
 const spotify = await import('./src/spotify-import.js');
 const spotifySync = await import('./src/spotify-sync.js');
+const backup = await import('./src/backup.js');
 const sources = await import('./src/sources/index.js');
 
 nativeTheme.themeSource = 'dark';
@@ -310,6 +311,39 @@ app.whenReady().then(async () => {
   handle('spotify-match', (lists) => spotify.match(lists, (q) => yt.searchSongs(q), (p) => send('import-progress', { phase: 'match', ...p })));
   handle('spotify-cancel', () => spotify.cancel());
   handle('song-search', (q) => yt.searchSongs(q));
+  // Configuration backup (Ajustes → Copia de la configuración)
+  let pendingBackup = null;
+  handle('config-export', async (localStore) => {
+    const day = new Date().toISOString().slice(0, 10);
+    let file = process.env.BITCHORD_TEST_EXPORT;
+    if (!file) {
+      const r = await dialog.showSaveDialog(win, { title: tr('Guardar la configuración de BitChord'), defaultPath: path.join(app.getPath('desktop'), `BitChord-configuracion-${day}.bitchord`), filters: [{ name: tr('Configuración de BitChord'), extensions: ['bitchord'] }] });
+      if (r.canceled || !r.filePath) return null;
+      file = r.filePath;
+    }
+    const { data, manifest } = backup.build(userData, settings, localStore, VERSION);
+    fs.writeFileSync(file, data);
+    console.log('[backup] configuración guardada en', file);
+    return { file, manifest };
+  });
+  handle('config-open', async () => {
+    let file = process.env.BITCHORD_TEST_EXPORT;
+    if (!file) {
+      const r = await dialog.showOpenDialog(win, { title: tr('Importar la configuración de BitChord'), properties: ['openFile'], filters: [{ name: tr('Configuración de BitChord'), extensions: ['bitchord'] }] });
+      if (r.canceled) return null;
+      file = r.filePaths[0];
+    }
+    pendingBackup = backup.read(file);
+    return pendingBackup.manifest;
+  });
+  handle('config-apply', () => {
+    if (!pendingBackup) throw new Error(tr('Elige antes el archivo de configuración.'));
+    const local = backup.apply(userData, settings, pendingBackup);
+    pendingBackup = null;
+    console.log('[backup] configuración importada');
+    return local;
+  });
+  handle('app-relaunch', () => { setTimeout(() => { quitting = true; app.relaunch(); app.exit(0); }, 150); return true; });
   // Spotify account link (playlists kept up to date)
   handle('spotify-status', () => spotifySync.status());
   handle('spotify-connect', (clientId) => spotifySync.connect(clientId));

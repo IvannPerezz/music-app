@@ -14,7 +14,7 @@ const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'bitchord-test-'));
 const app = await _electron.launch({
   executablePath: createRequire(import.meta.url)('electron'),
   args: [root],
-  env: { ...process.env, BITCHORD_MOCK: '1', BITCHORD_MOCK_ACCOUNT: '1', BITCHORD_USERDATA: userData },
+  env: { ...process.env, BITCHORD_MOCK: '1', BITCHORD_MOCK_ACCOUNT: '1', BITCHORD_USERDATA: userData, BITCHORD_TEST_EXPORT: path.join(userData, 'prueba.bitchord') },
 });
 const win = await app.firstWindow();
 const errors = [];
@@ -213,6 +213,11 @@ if (!(await win.isVisible('.sp-busy'))) errors.push('No sale la barra de progres
 await shot('06d0-spotify-progress');
 await win.waitForFunction(() => /[1-9] canciones/.test(document.querySelector('.sp-row.linked')?.textContent || '') && document.querySelectorAll('.sp-row.linked').length === 2 && !document.querySelector('.sp-busy'), null, { timeout: 15000 }).catch(() => errors.push('La playlist de Spotify no se sincroniza'));
 await shot('06d-spotify-linked');
+// Settings → backup: export, then read it back (without applying: that restarts the app).
+{
+  const r = await win.evaluate(async () => { const e = await window.bc.configExport({ 'bc.volume': '0.5', 'bc.queue': '[]' }); const o = await window.bc.configOpen(); return { e, o }; });
+  if (!r.e.ok || !r.o.ok || r.o.data.app !== 'BitChord' || !r.o.data.spotifyLinks || !r.o.data.covers) errors.push('Copia de configuración: ' + JSON.stringify(r).slice(0, 300));
+}
 if (!(await win.evaluate(async () => (await window.bc.playlistsList()).data.some((p) => p.origin === 'spotify' && p.cover)))) errors.push('La playlist de Spotify no trae su portada');
 await win.click('.brand img'); await win.waitForTimeout(700);
 if (!(await win.isVisible('#home-greet'))) errors.push('El logo no lleva a Inicio');

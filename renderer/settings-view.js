@@ -3,13 +3,13 @@ import { bc, $, $$, icon, esc, api, toast, h, state, saveSettings, art, store, c
 import { eqPanel } from './eq-panel.js';
 import { refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent, applyTheme, setThemeCss } from './app.js';
 import { colorPicker } from './color-picker.js';
-import { tr, LANGUAGES, uiLang, syncUiLang } from './i18n.js';
+import { tr, LANGUAGES, uiLang, syncUiLang, locale } from './i18n.js';
 
 const QUALITY = [['low', tr('Baja (~64 kbps)')], ['normal', tr('Normal (~96 kbps)')], ['high', tr('Alta (~160 kbps)')], ['max', tr('Máxima disponible')]];
 const SECTIONS = [
   ['account', tr('Cuenta')], ['import', tr('Importar')], ['theme', tr('Tema')], ['sidebar', tr('Personalización')],
   ['playback', tr('Reproducción')], ['sources', tr('Fuentes')], ['eq', tr('Ecualizador')], ['lyrics', tr('Letras')], ['downloads', tr('Descargas')],
-  ['local', tr('Música local')], ['integrations', tr('Integraciones')], ['general', tr('General')], ['about', tr('Acerca de')],
+  ['local', tr('Música local')], ['integrations', tr('Integraciones')], ['general', tr('General')], ['backup', tr('Copia')], ['about', tr('Acerca de')],
 ];
 
 function row(label, desc, control) {
@@ -575,6 +575,45 @@ function general() {
   );
 }
 
+// Everything customised, in one file to take to another PC.
+function backupCard() {
+  const localStore = () => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith('bc.')) o[k] = localStorage.getItem(k); } return o; };
+  const exp = btn(tr('Exportar…'), 'primary', 'download');
+  exp.onclick = async () => {
+    try {
+      const r = await api('configExport', localStore());
+      if (r) toast(tr('Configuración guardada en {file}', { file: r.file.split(/[\\/]/).pop() }));
+    } catch (e) { toast(e.message, true); }
+  };
+  const imp = btn(tr('Importar…'), 'ghost', 'importIcon');
+  imp.onclick = async () => {
+    let m;
+    try { m = await api('configOpen'); } catch (e) { return toast(e.message, true); }
+    if (!m) return;
+    const what = [
+      tr('ajustes, temas y personalización'),
+      m.playlists ? tr('{n} playlists de BitChord', { n: m.playlists }) : null,
+      m.covers ? tr('{n} portadas', { n: m.covers }) : null,
+      m.spotifyLinks ? tr('{n} playlists vinculadas con Spotify', { n: m.spotifyLinks }) : null,
+    ].filter(Boolean).join(', ');
+    const when = new Date(m.created).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' });
+    if (!(await confirmDialog(tr('Importar configuración'), tr('Copia del {when} (BitChord {version}) con {what}. Sustituirá la configuración de este equipo y BitChord se reiniciará.', { when, version: m.version, what }), { ok: tr('Importar y reiniciar') }))) return;
+    try {
+      const local = await api('configApply');
+      for (const [k, v] of Object.entries(local)) localStorage.setItem(k, v);
+      toast(tr('Configuración importada. Reiniciando…'));
+      setTimeout(() => api('appRelaunch'), 600);
+    } catch (e) { toast(e.message, true); }
+  };
+  const box = h('<span class="btn-row"></span>');
+  box.append(exp, imp);
+  return card('backup', tr('Copia de la configuración'), 'folder',
+    h(`<div class="set-note">${icon('info')} <span>${tr('Guarda en un archivo <b>.bitchord</b> todo lo que has personalizado: ajustes, tema y temas propios, efecto Mica y fondo, barra lateral, ecualizador, letras, visualizador, tus playlists de BitChord y sus portadas, portadas de playlists y carpetas, playlists ocultas y su orden, favoritos, búsquedas recientes y las playlists vinculadas con Spotify. Llévalo a otro PC (USB, nube, correo…) e impórtalo allí.')}</span></div>`),
+    row(tr('Exportar o importar'), tr('Al importar, se sustituye la configuración de este equipo y BitChord se reinicia.'), box),
+    h(`<div class="set-note">${tr('No se incluyen las sesiones (Google, Last.fm, ListenBrainz ni el permiso de Spotify): por seguridad van cifradas solo para este equipo, así que en el otro tendrás que volver a iniciarlas. Tampoco las canciones descargadas ni la música local, que son archivos.')}</div>`),
+  );
+}
+
 async function about() {
   const i = await bc.appInfo();
   const log = btn(tr('Abrir registro'), 'ghost', 'folder');
@@ -618,7 +657,7 @@ export async function settingsView(route) {
   };
   setTimeout(() => { $('#content').addEventListener('scroll', spy, { passive: true }); spy(); }, 50);
   chips.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && chips.scrollWidth > chips.clientWidth) { chips.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
-  root.append(account(), importCard(), themeCard(), sidebarCard(), playback(), sourcesCard(), equalizer(), lyrics(), downloads(), localMusic(), integrations(), general(), await about());
+  root.append(account(), importCard(), themeCard(), sidebarCard(), playback(), sourcesCard(), equalizer(), lyrics(), downloads(), localMusic(), integrations(), general(), backupCard(), await about());
   root.addEventListener('click', (e) => { const a = e.target.closest('a[data-url]'); if (a) { e.preventDefault(); bc.openExternal(a.dataset.url); } });
   if (route.section) setTimeout(() => root.querySelector('#set-' + route.section)?.scrollIntoView({ block: 'start' }), 30);
   return outer;

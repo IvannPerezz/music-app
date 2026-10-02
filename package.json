@@ -1,6 +1,6 @@
 {
   "name": "bitchord-desktop",
-  "version": "0.6.32.2",
+  "version": "0.6.33",
   "description": "BitChord para Windows — cliente de YouTube Music (port de escritorio de BitChord)",
   "main": "loader.js",
   "scripts": {
