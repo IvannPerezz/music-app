@@ -1367,8 +1367,12 @@ body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition:
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.12); box-shadow: 0 16px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.07);
 }
-#toast:not([hidden]) { animation: toast-in .28s cubic-bezier(.2,.8,.2,1) backwards; }
-@keyframes toast-in { from { opacity: 0; transform: translateX(-50%) translateY(10px) scale(.97); } }
+/* Zoom in when it appears, zoom out when it goes. */
+#toast { animation: none; }
+#toast.in { animation: toast-zoom-in .32s cubic-bezier(.2,1.1,.3,1) backwards; }
+#toast.out { animation: toast-zoom-out .22s cubic-bezier(.5,0,.75,0) forwards; }
+@keyframes toast-zoom-in { from { opacity: 0; transform: translateX(-50%) scale(.8); } }
+@keyframes toast-zoom-out { to { opacity: 0; transform: translateX(-50%) scale(.85); } }
 #toast.error { border-left: 3px solid var(--accent); }
 
 /* Biblioteca -> Playlists: drag to reorder. */

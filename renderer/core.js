@@ -24,14 +24,20 @@ export async function api(name, ...args) {
   return r.data;
 }
 
-let toastTimer;
+let toastTimer, toastOutTimer;
+/** Notice at the bottom: zooms in, and zooms out again before disappearing. */
 export function toast(msg, error = false) {
   const t = $('#toast');
+  clearTimeout(toastTimer); clearTimeout(toastOutTimer);
   t.textContent = msg;
   t.className = error ? 'error' : '';
   t.hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (t.hidden = true), error ? 6000 : 2600);
+  void t.offsetWidth; // restart the zoom-in if a notice was already showing
+  t.classList.add('in');
+  toastTimer = setTimeout(() => {
+    t.classList.replace('in', 'out');
+    toastOutTimer = setTimeout(() => { t.hidden = true; t.classList.remove('out'); }, 220);
+  }, error ? 6000 : 2600);
 }
 
 export function h(html) {
