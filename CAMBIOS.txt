@@ -15,6 +15,22 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.18
+------------------------------------------------------------
+- El menú para cambiar la fuente de la letra lleva ahora abajo el tamaño del texto y el
+  desfase. Se ven los cambios en la letra al momento, mientras mueves el control, sin
+  tener que ir a Ajustes.
+- Click derecho en la portada de la barra de reproducción (abajo a la izquierda): abre el
+  mismo menú que las canciones de las listas (reproducir a continuación, añadir a la
+  cola, radio, favoritos, playlist, descargar, ir al artista o al álbum...).
+- Barra de reproducción: favorito, aleatorio y repetir, cuando están activados, se marcan
+  con un círculo de cristal Mica. El resto de botones (anterior, siguiente, los de la
+  derecha...) muestran ese mismo cristal solo mientras los pulsas. Si desactivas la Mica
+  de "Controles de reproducción" en Personalización, se ven sin cristal.
+- Ajustes: el apartado "Fuentes de música" se llama ahora "Fuentes de música online" y
+  ya no incluye la entrada de "Carpetas de red (SMB)", que se gestionan en Música local.
+
+------------------------------------------------------------
 v0.6.17.1
 ------------------------------------------------------------
 - Los desplegables de toda la app (calidad, idioma, país, presets del ecualizador, el

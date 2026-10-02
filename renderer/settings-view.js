@@ -70,7 +70,7 @@ function playback() {
 }
 
 function sourcesCard() {
-  const el = card('sources', tr('Fuentes de música'), 'library',
+  const el = card('sources', tr('Fuentes de música online'), 'library',
     h(`<div class="set-note">${tr('Como en la app de Android, BitChord puede sacar el audio de varios sitios. YouTube Music es siempre la fuente principal (catálogo completo, radio, recomendaciones); el resto se usan cuando están activadas.')}</div>`),
     row(tr('YouTube Music'), tr('Catálogo completo · Opus hasta ~160 kbps. Siempre activa.'), h(`<span class="badge">${tr('Principal')}</span>`)),
     row(tr('JioSaavn'), tr('Si una canción tiene una coincidencia segura en JioSaavn (mismo título, artista y duración), suena desde allí en AAC de hasta 320 kbps. JioSaavn solo da servicio en algunos países: si no encuentra nada, se usa YouTube Music.'), toggle('sourceJioSaavn')),
@@ -106,7 +106,6 @@ function sourcesCard() {
   const rescan = btn(tr('Volver a escanear'), 'ghost', 'refresh');
   rescan.onclick = async () => { toast(tr('Escaneando servidores…')); const n = (await api('webdavRescan')).length; toast(tr('{n} canciones en tus servidores', { n })); drawServers(); };
   el.append(row(tr('Servidores WebDAV'), tr('Tu música en un NAS o en la nube. Se entiende la estructura "Artista/Álbum/01 - Título" y las carátulas cover.jpg / folder.jpg. Aparece en Biblioteca → En red.'), rescan), list, form);
-  el.append(row(tr('Carpetas de red (SMB)'), tr('En Windows, añade la carpeta compartida como una carpeta más en "Música local" (por ejemplo \\\\NAS\\Música).'), h(`<span class="badge">${tr('En Música local')}</span>`)));
   el.append(h(`<div class="set-note">${tr('Las fuentes "Hi‑Res" por módulos de la app móvil (plugins que extraen FLAC de servicios de pago como Tidal, Qobuz o Apple Music) no están incluidas.')}</div>`));
   return el;
 }

@@ -456,6 +456,7 @@ function fillMenu(m, items, pick) {
   items.forEach((it) => {
     if (!it) return m.append(document.createElement('hr'));
     if (it.header) return m.append(h(`<div class="menu-head">${esc(it.header)}</div>`));
+    if (it.el) return m.append(it.el); // custom content (sliders…)
     const b = h(`<button${it.checked ? ' class="checked"' : ''}>${icon(it.icon || (it.checked ? 'check' : ''))}<span class="ellipsis">${esc(it.label)}</span>${it.hint ? `<span class="hint">${esc(it.hint)}</span>` : ''}</button>`);
     b.onclick = () => pick(it);
     m.append(b);
@@ -1525,7 +1526,32 @@ function lyricsSourceMenu(anchor) {
     ...providerMeta.map((p) => ({ label: p.label, hint: p.word ? tr('palabra a palabra') : '', checked: cur?.forced === p.id, action: () => loadLyrics(t, p.id) })),
     null,
     { icon: 'settings', label: tr('Ordenar proveedores…'), action: () => go({ name: 'settings', section: 'lyrics' }) },
+    null,
+    { el: lyricsSliders() },
   ], anchor);
+}
+
+/** Text size and offset of the lyrics, adjustable right from the lyrics-source menu (live). */
+function lyricsSliders() {
+  const st = state.settings;
+  const el = h(`<div class="menu-sliders">
+    <label><span>${tr('Tamaño del texto')}</span><input type="range" min="20" max="48" step="1" data-k="lyricsFontSize"><b></b></label>
+    <label><span>${tr('Desfase')}</span><input type="range" min="-2000" max="2000" step="50" data-k="lyricsOffsetMs"><b></b></label>
+  </div>`);
+  const show = { lyricsFontSize: (v) => `${v} px`, lyricsOffsetMs: (v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)} s` };
+  el.querySelectorAll('input').forEach((input) => {
+    const k = input.dataset.k, out = input.nextElementSibling;
+    input.value = st[k] ?? (k === 'lyricsFontSize' ? 30 : 0);
+    out.textContent = show[k](+input.value);
+    input.oninput = () => {
+      out.textContent = show[k](+input.value);
+      state.settings = { ...state.settings, [k]: +input.value }; // live: the lyrics follow while dragging
+      if (k === 'lyricsFontSize') $('#lyrics').style.setProperty('--lyr-size', input.value + 'px');
+      else syncLyrics(true);
+    };
+    input.onchange = () => saveSettings({ [k]: +input.value });
+  });
+  return el;
 }
 
 // ------------------------------------------------------------------ "more" menu (sleep timer, speed…)
@@ -1786,6 +1812,7 @@ function initButtons() {
   $('#queue-clear').onclick = () => player.clearUpcoming();
   $('#btn-lyrics').onclick = () => (npOpen() ? closeNowPlaying() : openNowPlaying());
   $('#p-art').onclick = () => (npOpen() ? closeNowPlaying() : openNowPlaying());
+  $('#p-art').addEventListener('contextmenu', (e) => { e.preventDefault(); if (player.current) trackMenu(player.current, { x: e.clientX, y: e.clientY }); });
   // Chevron drawn as a rounded stroke (same look as the mobile app's "minimise player" arrow).
   $('#np-close').innerHTML = '<svg viewBox="0 0 24 24"><path d="M5.5 9l6.5 6.5L18.5 9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   $('#np-close').onclick = closeNowPlaying;

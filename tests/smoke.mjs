@@ -138,7 +138,19 @@ if (await win.$('#np-vis')) errors.push('El visualizador no se quita al apagarlo
 await win.keyboard.press('Escape'); await win.waitForTimeout(1200);
 fsx = { ...(await fsState()), window: await winFs() };
 if (fsx.fs || fsx.inside || fsx.window || !(await win.$('#player .p-center'))) errors.push('Al salir de pantalla completa: ' + JSON.stringify(fsx));
+// Lyrics-source menu with the size/offset sliders; right-click on the bar's artwork → song menu.
+await win.click('#lyrics-source'); await win.waitForTimeout(400);
+const sliders = await win.evaluate(() => document.querySelectorAll('#menu .menu-sliders input').length);
+if (sliders !== 2) errors.push('Faltan los controles de la letra en su menú: ' + sliders);
+await win.locator('#menu [data-k=lyricsFontSize]').fill('40'); await win.waitForTimeout(200);
+if (!(await win.evaluate(() => getComputedStyle(document.querySelector('#lyrics')).getPropertyValue('--lyr-size').trim() === '40px'))) errors.push('El tamaño de la letra no cambia en directo');
+await shot('02a-lyrics-menu');
+await win.keyboard.press('Escape'); await win.waitForTimeout(200);
 await win.click('#np-close'); await win.waitForTimeout(500);
+await win.click('#p-art', { button: 'right' }); await win.waitForTimeout(300);
+if (!(await win.evaluate(() => !document.querySelector('#menu').hidden && document.querySelector('#menu').textContent.includes('Reproducir a continuación')))) errors.push('Click derecho en la portada no abre el menú de la canción');
+await shot('02z-art-menu');
+await win.keyboard.press('Escape'); await win.waitForTimeout(200);
 await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('03-queue');
 await win.click('#btn-queue'); await win.waitForTimeout(400);
 await win.click('#btn-eq'); await win.waitForTimeout(400); await shot('04-eq');

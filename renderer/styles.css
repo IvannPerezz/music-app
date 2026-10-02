@@ -1191,3 +1191,23 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 .select option:not(:checked)::checkmark { visibility: hidden; }
 .select::picker(select)::-webkit-scrollbar { width: 10px; }
 .select::picker(select)::-webkit-scrollbar-thumb { background: rgba(255,255,255,.16); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+
+/* Sliders inside the lyrics-source menu (text size, offset). */
+.menu-sliders { display: flex; flex-direction: column; gap: 8px; padding: 6px 10px 8px; min-width: 260px; }
+.menu-sliders label { display: grid; grid-template-columns: 1fr 120px 58px; align-items: center; gap: 10px; font-size: 13px; }
+.menu-sliders input { width: 100%; accent-color: var(--accent); }
+.menu-sliders b { font-weight: 500; font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Player bar: favourite, shuffle and repeat, when on, sit on a small Mica disc; the one-shot
+   buttons (previous, next, the ones on the right) flash the same glass only while pressed.
+   Follows the "Controles de reproducción" Mica switch. */
+#player #like.on, #player #shuffle.on, #player #repeat.on,
+#player .icon-btn:active:not(.on) {
+  background: linear-gradient(140deg, rgba(255,255,255,.14), rgba(255,255,255,.04)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,.2);
+}
+#player .icon-btn:active:not(.on) { transform: scale(.94); }
+#player .icon-btn { transition: background .15s, opacity .15s, color .15s, transform .12s; }
+body.no-mica-player #player #like.on, body.no-mica-player #player #shuffle.on, body.no-mica-player #player #repeat.on,
+body.no-mica-player #player .icon-btn:active:not(.on) { background: rgba(255,255,255,.1); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
