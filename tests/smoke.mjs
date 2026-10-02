@@ -213,6 +213,7 @@ if (!(await win.isVisible('.sp-busy'))) errors.push('No sale la barra de progres
 await shot('06d0-spotify-progress');
 await win.waitForFunction(() => /[1-9] canciones/.test(document.querySelector('.sp-row.linked')?.textContent || '') && document.querySelectorAll('.sp-row.linked').length === 2 && !document.querySelector('.sp-busy'), null, { timeout: 15000 }).catch(() => errors.push('La playlist de Spotify no se sincroniza'));
 await shot('06d-spotify-linked');
+if (!(await win.evaluate(async () => (await window.bc.playlistsList()).data.some((p) => p.origin === 'spotify' && p.cover)))) errors.push('La playlist de Spotify no trae su portada');
 await win.click('.brand img'); await win.waitForTimeout(700);
 if (!(await win.isVisible('#home-greet'))) errors.push('El logo no lleva a Inicio');
 // Home recommendation → ⋮ → "No me interesa": the song disappears from the page.

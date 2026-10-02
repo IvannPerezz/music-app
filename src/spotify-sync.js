@@ -5,7 +5,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { safeStorage } from 'electron';
+import { safeStorage, nativeImage } from 'electron';
 import { tr } from './i18n.js';
 import { matchTrack } from './spotify-import.js';
 
@@ -175,10 +175,31 @@ async function tracksOf(id) {
   return rest();
 }
 
+/** Version of the playlist (changes when its songs change) and its cover. */
 async function snapshotOf(id) {
-  if (MOCK) return 'mock' + mockTracks(id).length;
-  if (id === LIKED) { const j = await get('/me/tracks?limit=1'); return `${j.total}:${j.items?.[0]?.added_at || ''}`; }
-  return (await get(`/playlists/${id}?fields=snapshot_id`)).snapshot_id;
+  if (MOCK) return { snap: 'mock' + mockTracks(id).length, image: id === LIKED ? '' : 'mock:' + id };
+  if (id === LIKED) { const j = await get('/me/tracks?limit=1'); return { snap: `${j.total}:${j.items?.[0]?.added_at || ''}`, image: '' }; }
+  const j = await get(`/playlists/${id}?fields=snapshot_id,images`);
+  // The biggest image Spotify has (its own collage, or the one you uploaded).
+  const img = (j.images || []).slice().sort((a, b) => (b.width || 0) - (a.width || 0))[0];
+  return { snap: j.snapshot_id, image: img?.url || '' };
+}
+
+/** Puts the Spotify cover on the copy (BitChord playlist, or the local cover of a YT Music one). */
+async function updateCover(l, image) {
+  if (!image || !l.target || l.cover === image) return;
+  try {
+    let bytes;
+    if (MOCK) bytes = nativeImage.createFromBitmap(Buffer.alloc(64 * 64 * 4, 0x9a), { width: 64, height: 64 }).toPNG();
+    else {
+      const r = await fetch(image);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      bytes = Buffer.from(await r.arrayBuffer());
+    }
+    if (l.dest === 'local') deps.playlists.setCover(l.target, bytes, nativeImage);
+    else deps.playlists.setYtCover(l.target, bytes, nativeImage);
+    l.cover = image;
+  } catch (e) { console.error('[spotify] portada de', l.name, e?.message || e); }
 }
 
 // ---------------------------------------------------------------- links
@@ -187,7 +208,7 @@ export function link(id, name, dest) {
   if (!cfg.token) throw new Error(tr('Vincula tu cuenta de Spotify primero.'));
   let l = cfg.links.find((x) => x.id === id);
   if (!l) cfg.links.push(l = { id, name, dest, target: null, snapshot: null, matches: {}, added: [], count: 0, missing: 0, lastSync: 0 });
-  else { l.name = name; if (l.dest !== dest) Object.assign(l, { dest, target: null, snapshot: null, added: [] }); }
+  else { l.name = name; if (l.dest !== dest) Object.assign(l, { dest, target: null, snapshot: null, added: [], cover: null }); }
   save(); notify();
   return status();
 }
@@ -228,10 +249,12 @@ export async function sync(id = null, { force = false } = {}) {
 }
 
 async function syncOne(l, force) {
+  if (force) l.cover = null;
   const { yt, playlists: local } = deps;
-  const snap = await snapshotOf(l.id);
+  const { snap, image } = await snapshotOf(l.id);
   const targetOk = l.target && (l.dest === 'yt' || local.exists(l.target));
-  if (!force && targetOk && snap === l.snapshot) { l.lastSync = Date.now(); return; }
+  if (!targetOk) l.cover = null; // a new copy needs the cover again
+  if (!force && targetOk && snap === l.snapshot) { await updateCover(l, image); l.lastSync = Date.now(); return; }
 
   const src = await tracksOf(l.id);
   busy.count = src.length;
@@ -273,6 +296,7 @@ async function syncOne(l, force) {
       l.added = want;
     }
   }
+  await updateCover(l, image);
   l.snapshot = snap;
   l.count = tracks.length;
   l.missing = src.length - src.filter((t) => l.matches[t.sid]).length;
