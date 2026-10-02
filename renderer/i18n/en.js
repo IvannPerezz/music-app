@@ -1,6 +1,7 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Ocultar en BitChord": "Hide in BitChord",
   "No se puede eliminar": "Can't delete it",
   "YouTube Music no deja eliminar «{name}»: es una lista especial de tu cuenta (como «Me gusta» o «Episodios para más tarde») o una playlist de otra persona que tienes guardada. Puedes ocultarla en BitChord: dejará de aparecer en tus playlists y en la barra lateral, pero seguirá en tu cuenta. Podrás volver a mostrarla en Ajustes → Personalización.": "YouTube Music doesn't allow deleting “{name}”: it's a special list of your account (like “Liked” or “Episodes for later”) or someone else's playlist you've saved. You can hide it in BitChord: it will no longer show up in your playlists or in the sidebar, but it stays in your account. You can show it again in Settings → Customization.",
   "Ocultar": "Hide",

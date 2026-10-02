@@ -148,7 +148,7 @@ async function fillPlaylistsFold(inner) {
     state.account ? api('accountPlaylists').catch(() => []) : [],
   ]);
   const items = [
-    ...(state.account ? [{ liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
+    ...(state.account && !isHiddenPlaylist('LM') ? [{ liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
     ...yt.filter((p) => !isHiddenPlaylist(p.id)).map((p) => ({ title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
     ...mine.map((p) => ({ title: p.name, thumb: p.cover || p.thumbs?.[0], route: { name: 'localplaylist', id: p.id } })),
   ];
@@ -616,7 +616,10 @@ export function playlistMenu(p, anchor) {
     { icon: 'open', label: tr('Abrir'), action: () => go({ name: p.kind, id: p.id }) },
     ...(yt ? [{ icon: 'open', label: tr('Abrir en YouTube Music'), action: () => bc.openExternal(`https://music.youtube.com/playlist?list=${p.id.replace(/^VL/, '')}`) }] : []),
     ...(!yt ? [{ icon: 'edit', label: tr('Renombrar'), action: async () => { const n = await askText(tr('Renombrar playlist'), { value: p.title, ok: tr('Guardar') }); if (n) { await api('playlistRename', p.id, n); refreshView(); renderSidebar(); } } }] : []),
-    ...(yt && p.id === 'LM' ? [] : [null, { icon: 'trash', label: tr('Eliminar playlist'), action: () => deletePlaylist(p) }]),
+    null,
+    // Hiding works for any YouTube Music playlist, "Me gusta" included (it can't be deleted).
+    ...(yt ? [{ icon: 'remove', label: tr('Ocultar en BitChord'), action: async () => { await hidePlaylist(p); refreshView(); } }] : []),
+    ...(yt && p.id === 'LM' ? [] : [{ icon: 'trash', label: tr('Eliminar playlist'), action: () => deletePlaylist(p) }]),
   ], anchor);
 }
 /** Deletes a whole playlist after a confirmation (YouTube Music ones from the account too). */

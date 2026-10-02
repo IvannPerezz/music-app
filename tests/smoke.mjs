@@ -193,6 +193,10 @@ if (!(await win.evaluate(() => document.querySelector('.modal h3')?.textContent 
 await shot('06d-cannot-delete');
 await win.click('.modal [data-a=ok]'); await win.waitForTimeout(900);
 if ((await win.locator('.card.playlist').count()) !== before - 1) errors.push('La playlist no se ha ocultado');
+// "Me gusta" can be hidden too, from its right-click menu.
+await win.click('.card.playlist >> nth=0', { button: 'right' }); await win.waitForTimeout(300);
+await win.locator('#menu button', { hasText: 'Ocultar en BitChord' }).click(); await win.waitForTimeout(900);
+if (await win.evaluate(() => [...document.querySelectorAll('.card.playlist .t')].some((t) => t.textContent === 'Me gusta'))) errors.push('«Me gusta» no se ha ocultado');
 await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(400);
 await win.click('#settings-btn'); await win.waitForTimeout(900); await shot('07-settings');
 // Custom CSS theme: "+" tile → editor → save; then back to the original BitChord theme.

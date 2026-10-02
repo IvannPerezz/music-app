@@ -163,7 +163,7 @@ async function playlistsTab() {
       return c;
     });
     liked.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: 'LM', title: tr('Me gusta') }, { x: e.clientX, y: e.clientY }); });
-    grid(tr('Tus playlists de YouTube Music'), [liked, ...ytCards]);
+    grid(tr('Tus playlists de YouTube Music'), [...(isHiddenPlaylist('LM') ? [] : [liked]), ...ytCards]);
   }
   if (lists.length) {
     grid(state.account ? tr('Solo en BitChord') : '', lists.map((p) => {
@@ -233,7 +233,8 @@ async function accountTab() {
   const lib = await api('library');
   const top = h(`<section class="section"><h2>${tr('Playlists')}</h2></section>`);
   const cards = h('<div class="cards wrap"></div>');
-  cards.append(liked);
+  if (!isHiddenPlaylist('LM')) cards.append(liked);
+  liked.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: 'LM', title: tr('Me gusta') }, { x: e.clientX, y: e.clientY }); });
   const box = section({ title: '', layout: 'cards', items: lib.playlists.filter((p) => !isHiddenPlaylist(p.id)) }, { wrap: true });
   box.querySelectorAll('.card').forEach((c) => cards.append(c));
   top.append(cards);

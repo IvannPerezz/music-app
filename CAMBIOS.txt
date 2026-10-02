@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.22.4
+------------------------------------------------------------
+- El menú del click derecho de las playlists de YouTube Music tiene ahora "Ocultar en
+  BitChord", también en "Me gusta" (que no se puede eliminar). Oculta, deja de salir en
+  tus playlists y en la barra lateral; se vuelve a mostrar en Ajustes > Personalización >
+  "Playlists ocultas". Tus favoritos de BitChord (Biblioteca > Favoritos) no cambian.
+
+------------------------------------------------------------
 v0.6.22.3
 ------------------------------------------------------------
 - Si YouTube Music no deja eliminar una playlist (las listas especiales como "Episodios
