@@ -10,7 +10,7 @@ import { tr } from './i18n.js';
 const SKIP_SETTINGS = ['windowBounds', 'listenbrainzToken', 'lastfmSession', 'lastfmUser', 'lastfmSecret', 'lastfmApiKey'];
 // localStorage (bc.*) keys that are playback state rather than customisation.
 const SKIP_LOCAL = ['queue', 'resumeAt', 'history', 'homeSeen'];
-const FILES = ['playlists.json', 'local-folders.json', 'yt-playlist-covers.json'];
+const FILES = ['local-folders.json', 'yt-playlist-covers.json'];
 const COVERS = 'playlist-covers';
 
 const readJson = (p, d = null) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return d; } };
@@ -32,8 +32,7 @@ export function build(userData, settings, localStore, version) {
     files[`${COVERS}/${f}`] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
     covers++;
   }
-  const playlists = (readJson(path.join(userData, 'playlists.json'), []) || []).length;
-  const manifest = { app: 'BitChord', format: 1, version, created: Date.now(), playlists, covers, themes: (s.customThemes || []).length, spotifyLinks: (sp?.links || []).length };
+  const manifest = { app: 'BitChord', format: 1, version, created: Date.now(), covers, themes: (s.customThemes || []).length, spotifyLinks: (sp?.links || []).length };
   files['manifest.json'] = strToU8(JSON.stringify(manifest));
   return { data: zipSync(files, { level: 6 }), manifest };
 }

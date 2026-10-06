@@ -3,7 +3,7 @@ import { bc, icon, esc, api, toast, h, state, confirmDialog } from './core.js';
 import { go } from './app.js';
 import { tr } from './i18n.js';
 
-const S = { status: null, lists: null, loading: false, connecting: false, dest: {}, clientId: '', sel: new Set() };
+const S = { status: null, lists: null, loading: false, connecting: false, clientId: '', sel: new Set() };
 let mount = null;
 
 bc.on('spotify-sync', (st) => { S.status = st; paint(); });
@@ -23,7 +23,7 @@ function ago(ms) {
 function guide(st) {
   const el = h(`<div class="imp-card sp-guide">
     <h2>${tr('Vincula tu cuenta de Spotify')}</h2>
-    <p class="muted">${tr('Elige qué playlists de Spotify quieres tener en BitChord: se copian a tu YouTube Music (o solo a BitChord) y <b>se mantienen al día solas</b>. Si añades o quitas canciones en Spotify, aquí también cambian: al abrir BitChord, cada 6 horas o cuando pulses «Actualizar».')}</p>
+    <p class="muted">${tr('Elige qué playlists de Spotify quieres tener en BitChord: se copian a tu YouTube Music y <b>se mantienen al día solas</b>. Si añades o quitas canciones en Spotify, aquí también cambian: al abrir BitChord, cada 6 horas o cuando pulses «Actualizar».')}</p>
     <p class="muted">${tr('Para eso Spotify pide que crees una «app de desarrollador» gratuita a tu nombre (BitChord no tiene una propia). Son cinco minutos y solo se hace una vez:')}</p>
     <ol class="imp-help">
       <li>${tr('Abre el <a href="#" data-url="{url}">panel de desarrollador de Spotify</a> e inicia sesión con tu cuenta de Spotify. Si es la primera vez, acepta las condiciones de desarrollador.', { url: DASH })}</li>
@@ -62,17 +62,6 @@ function guide(st) {
   return el;
 }
 
-function destSwitch(id) {
-  S.dest[id] ||= state.account ? 'yt' : 'local';
-  const el = h(`<div class="seg"><button data-v="yt">${icon('library')}${tr('Mi YT Music')}</button><button data-v="local">${icon('computer')}${tr('Solo BitChord')}</button></div>`);
-  el.querySelectorAll('button').forEach((b) => {
-    if (b.dataset.v === 'yt' && !state.account) { b.disabled = true; b.title = tr('Inicia sesión con Google para crear playlists en tu cuenta'); }
-    b.classList.toggle('on', S.dest[id] === b.dataset.v);
-    b.onclick = () => { S.dest[id] = b.dataset.v; paint(); };
-  });
-  return el;
-}
-
 async function doSync(id, opts) {
   try { S.status = await api('spotifySync', id, opts); }
   catch (e) { toast(e.message, true); }
@@ -90,7 +79,7 @@ function row(p, st) {
     ? (busy ? tr('Actualizando… {done} de {total}', { done: busy.done, total: busy.count || '…' })
       : l.error ? `<span class="sp-err">${esc(l.error)}</span>`
       : !l.lastSync ? tr('Pendiente de la primera actualización')
-      : `${tr('{n} canciones', { n: l.count })}${l.missing ? ' · ' + tr('{n} no encontradas en YouTube Music', { n: l.missing }) : ''} · ${tr(l.dest === 'yt' ? 'en tu YT Music' : 'en BitChord')} · ${tr('actualizada {when}', { when: ago(l.lastSync) })}`)
+      : `${tr('{n} canciones', { n: l.count })}${l.missing ? ' · ' + tr('{n} no encontradas en YouTube Music', { n: l.missing }) : ''} · ${tr('en tu YT Music')} · ${tr('actualizada {when}', { when: ago(l.lastSync) })}`)
     : `${tr('{n} canciones', { n: p.count })}${p.mine || p.liked ? '' : ' · ' + tr('de {owner}', { owner: esc(p.owner) })}`;
   const el = h(`<${l ? 'div' : 'label'} class="imp-pl sp-row${l ? ' linked' : ''}${!l && !S.sel.has(p.id) ? ' off' : ''}">
     ${l ? '' : `<input type="checkbox"${S.sel.has(p.id) ? ' checked' : ''}${st.busy ? ' disabled' : ''}>`}
@@ -100,7 +89,7 @@ function row(p, st) {
   if (l) {
     if (l.target && l.lastSync) {
       const open = h(`<button class="btn ghost small">${icon('play')}${tr('Abrir')}</button>`);
-      open.onclick = () => go(l.dest === 'yt' ? { name: 'playlist', id: l.target } : { name: 'localplaylist', id: l.target });
+      open.onclick = () => go({ name: 'playlist', id: l.target });
       el.append(open);
     }
     const up = h(`<button class="icon-btn" title="${tr('Actualizar ahora')}"${st.busy ? ' disabled' : ''}>${icon('refresh')}</button>`);
@@ -113,9 +102,6 @@ function row(p, st) {
     el.append(up, un);
   } else {
     el.querySelector('input').onchange = (e) => { if (e.target.checked) S.sel.add(p.id); else S.sel.delete(p.id); paint(); };
-    const sw = destSwitch(p.id);
-    sw.addEventListener('click', (e) => e.preventDefault()); // don't toggle the tick
-    el.append(sw);
   }
   return el;
 }
@@ -147,7 +133,7 @@ function connected(st) {
   }
   root.append(head);
 
-  if (!state.account) root.append(h(`<div class="set-note">${icon('info')} <span>${tr('Para crearlas en tu cuenta de YouTube Music (y verlas en la app oficial) inicia sesión con Google en Ajustes → Cuenta. Mientras tanto solo puedes guardarlas en BitChord.')}</span></div>`));
+  if (!state.account) root.append(h(`<div class="set-note">${icon('info')} <span>${tr('Las copias se crean en tu cuenta de YouTube Music: inicia sesión con Google en Ajustes → Cuenta para sincronizar.')}</span></div>`));
   root.append(h(`<h3 class="sp-title">${tr('Tus playlists de Spotify')}</h3>`));
   const list = h('<div class="imp-lists"></div>');
   const linked = new Set(st.links.map((l) => l.id));
@@ -175,7 +161,7 @@ function connected(st) {
     toggle.disabled = !!st.busy || !free.length;
     toggle.onclick = () => { const on = !free.every((p) => S.sel.has(p.id)); free.forEach((p) => (on ? S.sel.add(p.id) : S.sel.delete(p.id))); paint(); };
     const go1 = h(`<button class="btn primary">${icon('refresh')}${n ? tr('Sincronizar {n} playlists', { n }) : tr('Sincronizar')}</button>`);
-    go1.disabled = !n || !!st.busy;
+    go1.disabled = !n || !!st.busy || !state.account;
     go1.onclick = () => syncSelected();
     bar.append(go1, toggle);
     root.append(bar);
@@ -186,7 +172,7 @@ function connected(st) {
 async function syncSelected() {
   const chosen = S.lists.filter((p) => S.sel.has(p.id));
   if (!chosen.length) return;
-  try { for (const p of chosen) S.status = await api('spotifyLink', p.id, p.name, S.dest[p.id]); }
+  try { for (const p of chosen) S.status = await api('spotifyLink', p.id, p.name); }
   catch (e) { return toast(e.message, true); }
   S.sel.clear();
   paint();

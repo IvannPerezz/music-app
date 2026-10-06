@@ -127,22 +127,17 @@ async function playlistsTab() {
   const bar = h('<div class="actions" style="margin:0 0 18px"></div>');
   const create = h(`<button class="btn primary">${icon('add')}${tr('Nueva playlist')}</button>`);
   create.onclick = async () => {
-    if (state.account) {
-      const n = await askText(tr('Nueva playlist de YouTube Music'), { placeholder: tr('Nombre de la playlist'), ok: tr('Crear') });
-      if (!n) return;
-      try { const id = await api('ytPlaylistCreate', n, []); toast(tr('Playlist «{name}» creada en YouTube Music', { name: n })); go({ name: 'playlist', id }); }
-      catch (e) { toast(e.message, true); }
-      return;
-    }
-    const n = await askText(tr('Nueva playlist'), { placeholder: tr('Nombre de la playlist'), ok: tr('Crear') });
-    if (n) { const id = await api('playlistCreate', n, []); go({ name: 'localplaylist', id }); }
+    if (!state.account) return toast(tr('Inicia sesión con Google para crear playlists en tu cuenta.'), true);
+    const n = await askText(tr('Nueva playlist de YouTube Music'), { placeholder: tr('Nombre de la playlist'), ok: tr('Crear') });
+    if (!n) return;
+    try { const id = await api('ytPlaylistCreate', n, []); toast(tr('Playlist «{name}» creada en YouTube Music', { name: n })); renderSidebar(); go({ name: 'playlist', id }); }
+    catch (e) { toast(e.message, true); }
   };
-  const imp = h(`<button class="btn ghost">${icon('importIcon')}${tr('Importar de Spotify')}</button>`);
+  const imp = h(`<button class="btn spotify">${icon('importIcon')}${tr('Importar de Spotify')}</button>`);
   imp.onclick = () => go({ name: 'spotify-import' });
   bar.append(create, imp);
   root.append(bar);
-  const [lists, fl, ytLists] = await Promise.all([
-    api('playlistsList'),
+  const [fl, ytLists] = await Promise.all([
     api('localFolders'),
     state.account ? api('accountPlaylists').catch(() => []) : Promise.resolve([]),
   ]);
@@ -168,20 +163,8 @@ async function playlistsTab() {
     liked.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: 'LM', title: tr('Me gusta') }, { x: e.clientX, y: e.clientY }); });
     grid(tr('Tus playlists de YouTube Music'), sortByPlaylistOrder([...(isHiddenPlaylist('LM') ? [] : [liked]), ...ytCards], (c) => c.dataset.key), '', true);
   }
-  if (lists.length) {
-    grid(state.account ? tr('Solo en BitChord') : '', sortByPlaylistOrder(lists.map((p) => {
-      const c = h(`<div class="card playlist"><div class="art">${coverHtml(p, 'queue')}<span class="hover-play">${icon('play')}</span></div><div class="t ellipsis">${esc(p.name)}</div><div class="s">${tr('{n} canciones', { n: p.count })}${p.origin === 'spotify' ? ' · ' + tr('de Spotify') : ''}</div></div>`);
-      c.onclick = async (e) => {
-        if (e.target.closest('.hover-play')) { const d = await api('playlistGet', p.id); if (d.tracks.length) player.playList(d.tracks, 0, { from: { kind: 'Playlist', name: p.name } }); return; }
-        go({ name: 'localplaylist', id: p.id });
-      };
-      c.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'localplaylist', id: p.id, title: p.name }, { x: e.clientX, y: e.clientY }); });
-      c.dataset.key = 'bc:' + p.id;
-      return c;
-    }), (c) => c.dataset.key), state.account ? 'margin-top:28px' : '', true);
-  }
-  if (!state.account && !lists.length) {
-    root.append(h(`<div class="empty">${icon('queue')}<div><b>${tr('Aún no tienes playlists')}</b></div><div class="muted">${tr('Inicia sesión con Google para ver tus playlists de YouTube Music, crea una aquí, añade canciones desde el menú ⋮ de cualquier canción o importa tus playlists de Spotify.')}</div></div>`));
+  if (!state.account) {
+    root.append(h(`<div class="empty">${icon('queue')}<div><b>${tr('Tus playlists están en YouTube Music')}</b></div><div class="muted">${tr('Inicia sesión con Google para ver tus playlists, crear nuevas, añadirles canciones desde el menú ⋮ de cualquier canción o importar las de Spotify.')}</div></div>`));
   }
   if (fl.length) grid(tr('Carpetas de este equipo'), fl.map((f) => folderCard(f)), 'margin-top:28px');
   return root;

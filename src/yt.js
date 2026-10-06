@@ -745,6 +745,13 @@ export async function renameAccountPlaylist(playlistId, name) {
   return true;
 }
 
+export async function describeAccountPlaylist(playlistId, description) {
+  if (!cookie) throw new Error(tr('Inicia sesión con Google para crear playlists en tu cuenta.'));
+  const c = await client();
+  await c.actions.execute('/browse/edit_playlist', { playlistId: playlistId.replace(/^VL/, ''), actions: [{ action: 'ACTION_SET_PLAYLIST_DESCRIPTION', playlistDescription: description.slice(0, 5000) }] });
+  return true;
+}
+
 /** Tells YouTube Music you're not interested in a recommendation (or in its artist). */
 export async function sendFeedback(token) {
   if (!cookie) throw new Error(tr('Inicia sesión con Google para que YouTube Music tenga en cuenta tus gustos.'));

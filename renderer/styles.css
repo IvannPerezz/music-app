@@ -85,10 +85,12 @@ svg { width: 20px; height: 20px; fill: currentColor; display: block; }
 }
 #search:focus { background: rgba(255,255,255,.1); border-color: var(--accent); }
 #search::placeholder { color: color-mix(in srgb, var(--text) 66%, transparent); }
+/* Search suggestions: the same Mica glass as the menus and panels. */
 #suggest {
-  position: absolute; top: 38px; left: 0; right: 0; margin: 0; padding: 6px; list-style: none;
-  background: rgba(36,36,40,.96); backdrop-filter: blur(20px); border-radius: 10px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.06);
+  position: absolute; top: 38px; left: 0; right: 0; margin: 0; padding: 6px; list-style: none; border-radius: 12px;
+  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
 }
 #suggest li { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; gap: 10px; align-items: center; }
 #suggest li svg { width: 16px; height: 16px; color: var(--muted); }
@@ -291,6 +293,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .play-btn:hover { transform: scale(1.06); }
 .play-btn svg { width: 24px; height: 24px; }
 .play-btn.loading svg { animation: spin 1s linear infinite; }
+.btn.busy svg { animation: spin 1s linear infinite; }
 .p-seek { width: 100%; display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .p-seek span { width: 40px; text-align: center; }
 .p-right { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
@@ -432,10 +435,10 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .set-card h2 + .set-row, .set-note + .set-row { border-top: 0; }
 .set-text { flex: 1; min-width: 0; }
 .set-label { font-weight: 600; }
-.set-desc { color: var(--muted); font-size: 12.5px; margin-top: 2px; line-height: 1.45; }
+.set-desc { color: color-mix(in srgb, var(--text) 72%, transparent); font-size: 12.5px; margin-top: 2px; line-height: 1.45; }
 .set-desc a, .set-note a { color: var(--accent); }
 .set-ctl { flex: none; display: flex; align-items: center; gap: 10px; max-width: 55%; }
-.set-note { color: var(--muted); font-size: 13px; line-height: 1.5; padding: 4px 0 10px; }
+.set-note { color: color-mix(in srgb, var(--text) 72%, transparent); font-size: 13px; line-height: 1.5; padding: 4px 0 10px; }
 .set-note.keys { padding-top: 12px; }
 .switch { position: relative; width: 42px; height: 24px; flex: none; cursor: pointer; }
 .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
@@ -531,11 +534,18 @@ body.sb-hover .brand, body.sb-collapsed .brand { width: 112px; padding-right: 8p
 
 /* personalización */
 .set-sub { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 18px 0 6px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.06); }
+/* Groups inside a section (Personalización): a clear heading with its icon on an accent chip, and
+   more room and a stronger line between groups. */
+.set-sub { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; text-transform: none; letter-spacing: -.1px;
+  color: var(--text); margin: 26px 0 8px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); }
+.set-sub-ic { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px;
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
+.set-sub-ic svg { width: 17px; height: 17px; }
 .set-card h2 + .set-sub { border-top: 0; padding-top: 0; margin-top: 4px; }
 .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; padding: 4px 0 8px; }
 .info-opt { display: flex; align-items: flex-start; gap: 10px; padding: 9px 10px; border-radius: 10px; background: rgba(255,255,255,.04); cursor: pointer; }
 .info-opt input { accent-color: var(--accent); width: 16px; height: 16px; margin-top: 2px; }
-.info-opt small { display: block; color: var(--muted); font-size: 11.5px; font-weight: 400; }
+.info-opt small { display: block; color: color-mix(in srgb, var(--text) 72%, transparent); font-size: 11.5px; font-weight: 400; }
 
 /* ================================================================ v0.5: playlists + Spotify import */
 .modal-back { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.5); display: grid; place-items: center; animation: rise .15s ease; }
@@ -939,10 +949,7 @@ body.fs #nowplaying .np-corner { bottom: 22px; }
 body.fs #queue { top: 10px; bottom: 10px; }
 #np-fs-slot:empty { display: none; }
 #np-fs-slot { margin-top: 18px; }
-#np-fs-slot .p-center { width: 100%; gap: 6px; }
-#np-fs-slot .p-controls { width: 100%; justify-content: center; gap: 18px; }
-#np-fs-slot .p-seek { color: rgba(255,255,255,.75); }
-#np-fs-slot .p-seek span { width: 44px; }
+#np-fs-slot .p-center { width: 100%; }
 #np-fs-slot #fs-queue.on { color: var(--accent); }
 #fs-vol { position: absolute; left: 30px; top: 50%; transform: translateY(-50%); z-index: 3;
   display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -982,15 +989,16 @@ body.fs.fs-vol-show #fs-vol { transform: translate(0, -50%); opacity: 1; }
 @media (max-width: 1100px) { :root { --queue-w: 300px; } }
 /* Same timing as the queue: eases out while it slides in, eases in while it slides out. */
 .np-corner { transition: right .3s cubic-bezier(.5,0,.75,0); }
-body.fs.queue-open #nowplaying .np-corner { right: calc(var(--queue-w) + 36px); transition: right .3s cubic-bezier(.2,.8,.2,1); }
+body.fs.queue-open:not(.queue-under) #nowplaying .np-corner { right: calc(var(--queue-w) + 36px); transition: right .3s cubic-bezier(.2,.8,.2,1); }
 body.fs.panel-open #nowplaying .np-corner { right: calc(var(--fs-panel-w, var(--queue-w)) + 36px); transition: right .3s cubic-bezier(.2,.8,.2,1); }
 .np-lyr-toggle.on { color: var(--accent); opacity: 1; }
 
-/* Full screen: title, artists and stats centred under the artwork (the heart stays on the right). */
-body.fs .np-title-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; }
-body.fs .np-title-row > div { grid-column: 2; text-align: center; }
-body.fs #np-like { grid-column: 3; }
-body.fs #np-stats { text-align: center; }
+/* Title, artists and stats centred under the artwork (the heart stays on the right), also with
+   the visualizer and in full screen. */
+.np-title-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; }
+.np-title-row > div { grid-column: 2; text-align: center; }
+#np-like { grid-column: 3; }
+#np-stats { text-align: center; }
 
 /* Full screen: buttons switched off in its settings. */
 body.fs.fs-hide-queue #fs-queue, body.fs.fs-hide-eq #fs-eq, body.fs.fs-hide-more #fs-more,
@@ -1020,22 +1028,17 @@ body.fs-set-open #nowplaying > .np-bg { filter: blur(80px) saturate(1.6) brightn
 
 /* Full screen, player block (like the reference): big centred title, artists, album · year;
    then heart + shuffle | previous, play, next | repeat + more, and the progress bar. */
-body.fs #np-like, body.fs #np-stats { display: none; }
+/* The album isn't shown: the details of what's playing (format, bitrate…) stay instead. */
+body.fs #np-like, #np-album { display: none; }
 body.fs .np-title-row { display: block; }
 body.fs #np-title { font-size: 30px; font-weight: 800; letter-spacing: -.4px; }
 body.fs #np-artist { font-size: 18px; color: rgba(255,255,255,.82); margin-top: 4px; }
 body.fs #np-album { font-size: 16px; color: rgba(255,255,255,.6); margin-top: 2px; }
 #np-album:empty { display: none; }
-#np-fs-slot .p-controls { display: grid; gap: 6px; align-items: center; justify-items: center;
-  grid-template-columns: 36px 36px minmax(8px, 1fr) 36px 44px 36px minmax(8px, 1fr) 36px 36px; }
-#np-fs-slot #fs-like { grid-column: 1; } #np-fs-slot #shuffle { grid-column: 2; }
-#np-fs-slot #prev { grid-column: 4; } #np-fs-slot #play { grid-column: 5; } #np-fs-slot #next { grid-column: 6; }
-#np-fs-slot #repeat { grid-column: 8; } #np-fs-slot #fs-more { grid-column: 9; }
-#np-fs-slot .play-btn { background: none; color: #fff; width: 44px; height: 44px; }
-#np-fs-slot .play-btn svg { width: 34px; height: 34px; }
-#np-fs-slot #prev svg, #np-fs-slot #next svg { width: 26px; height: 26px; }
-#np-fs-slot #shuffle.on, #np-fs-slot #repeat.on { background: var(--accent); color: #fff; border-radius: 8px; position: relative; }
-#np-fs-slot #shuffle.on::after, #np-fs-slot #repeat.on::after { content: ""; position: absolute; bottom: 3px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: #fff; }
+/* The controls look exactly as in the player bar (they are the same ones, moved here); only the
+   full-screen heart and "more" are added, at both ends so the rest stays centred. */
+#np-fs-slot .p-controls { width: 100%; }
+#np-fs-slot #fs-like { margin-right: auto; } #np-fs-slot #fs-more { margin-left: auto; }
 #fs-like.on { color: var(--accent); }
 body.fs.fs-hide-like #fs-like { display: none; }
 
@@ -1075,17 +1078,41 @@ body.fs.fs-hide-like #fs-like { display: none; }
 /* Full screen: favourite, shuffle and repeat, when switched on, sit on a small Mica disc with
    the icon in the accent colour (the "Botones de pantalla completa" Mica switch covers them;
    without Mica they go back to the solid accent square). */
-#np-fs-slot #fs-like.on, #np-fs-slot #shuffle.on, #np-fs-slot #repeat.on {
-  color: var(--accent); border-radius: 50%; position: relative;
+#np-fs-slot #fs-like.on {
+  color: var(--accent); border-radius: 50%;
   background: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.03)), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,.22);
 }
-#np-fs-slot #shuffle.on::after, #np-fs-slot #repeat.on::after { background: var(--accent); }
-body.no-mica-lyrics #np-fs-slot #shuffle.on, body.no-mica-lyrics #np-fs-slot #repeat.on {
-  background: var(--accent); color: #fff; border-radius: 8px; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-body.no-mica-lyrics #np-fs-slot #shuffle.on::after, body.no-mica-lyrics #np-fs-slot #repeat.on::after { background: #fff; }
 body.no-mica-lyrics #np-fs-slot #fs-like.on { background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+/* Animated cover: a video laid over the big artwork; app.js keeps it on the artwork's box. */
+#np-canvas { position: absolute; z-index: 1; pointer-events: none; object-fit: cover; opacity: 0; background: transparent; }
+
+/* An open queue lies under the cover and lyrics view (like the left sidebar) until its button
+   brings it up over it (app.js, setQueueUnder). */
+body.np-open.queue-under #queue { z-index: 3; }
+
+/* ---------------------------------------------------------------- performance mode
+   (body.perf, app.js applyPerf): solid panels instead of Mica glass, no moving or blurred
+   backgrounds, no lyrics blur, and instant animations. */
+body.perf { --mica-tint: var(--chrome-solid); --mica-filter: none; }
+body.perf *, body.perf *::before, body.perf *::after {
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important; transition-delay: 0s !important;
+}
+body.perf #ambient, body.perf .np-amb, body.perf .np-bg { display: none !important; }
+body.perf #lyrics .line { filter: none !important; }
+/* Title bar button: a Mica glass disc; green while the mode is on. no-drag: the title bar drags
+   the window, and without it Windows took the click as the start of a drag. */
+#btn-perf { -webkit-app-region: no-drag; width: 34px; height: 34px; border-radius: 50%; margin-right: 4px;
+  background: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,.22); }
+#btn-perf svg { width: 19px; height: 19px; }
+#btn-perf:hover { background: linear-gradient(140deg, rgba(255,255,255,.2), rgba(255,255,255,.06) 45%, rgba(255,255,255,.02)), var(--mica-tint); }
+#btn-perf.on { color: #34c759; box-shadow: inset 0 0 0 1px rgba(52,199,89,.55), 0 0 14px rgba(52,199,89,.25), 0 4px 14px rgba(0,0,0,.22); }
 
 /* ---------------------------------------------------------------- visualizer (MilkDrop)
    Fills the cover and lyrics view; cover and lyrics give way to it and the song details (and,
@@ -1204,17 +1231,57 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 
 /* Player bar: favourite, shuffle and repeat, when on, sit on a small Mica disc; the one-shot
    buttons (previous, next, the ones on the right) flash the same glass only while pressed.
+   The same glass as play/pause (see below), so they follow Personalización the same way.
    Follows the "Controles de reproducción" Mica switch. */
-#player #like.on, #player #shuffle.on, #player #repeat.on,
-#player .icon-btn:active:not(.on) {
-  background: linear-gradient(140deg, rgba(255,255,255,.14), rgba(255,255,255,.04)), var(--mica-tint);
+/* (.p-center too: in full screen its controls move under the song details and look the same.) */
+#player #like.on, #shuffle.on, #repeat.on,
+#player .icon-btn:active:not(.on), .p-center .icon-btn:active:not(.on) {
+  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,.2);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.11), inset 0 1px 0 rgba(255,255,255,.06), 0 4px 14px rgba(0,0,0,.22);
 }
-#player .icon-btn:active:not(.on) { transform: scale(.94); }
-#player .icon-btn { transition: background .15s, opacity .15s, color .15s, transform .12s; }
-body.no-mica-player #player #like.on, body.no-mica-player #player #shuffle.on, body.no-mica-player #player #repeat.on,
-body.no-mica-player #player .icon-btn:active:not(.on) { background: rgba(255,255,255,.1); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+/* Inside the bar, like play/pause: the bar's own glass through them (a second tint went grey). */
+#player #like.on, #player #shuffle.on, #player #repeat.on, #player .icon-btn:active:not(.on) {
+  background: linear-gradient(140deg, rgba(255,255,255,.14), rgba(255,255,255,.04) 45%, rgba(255,255,255,.02)); -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+#player .icon-btn:active:not(.on), .p-center .icon-btn:active:not(.on) { transform: scale(.94); }
+#player .icon-btn, .p-center .icon-btn { transition: background .15s, opacity .15s, color .15s, transform .12s; }
+/* Play/pause: a disc of the same Mica glass as the side bars and the player bar (same sheen,
+   tint, blur and saturation from Personalización), with a white icon (solid white without Mica). */
+#play {
+  color: #fff;
+  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.11), inset 0 1px 0 rgba(255,255,255,.06), 0 6px 18px rgba(0,0,0,.25);
+}
+/* Inside the player bar it can't see past the bar's own glass (the bar is its backdrop), so a
+   second tint would only darken it: there it lets the bar's glass through, with its sheen and edge. */
+#player #play { background: linear-gradient(140deg, rgba(255,255,255,.14), rgba(255,255,255,.04) 45%, rgba(255,255,255,.02)); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* Always on its own layer, as it is while hovered (scaled): otherwise, with Windows display
+   scaling, the glass disc and the icon could round to different pixels and the icon looked a
+   little low until the mouse went over it. */
+#play { will-change: transform; }
+
+/* Accent buttons (Reproducir, Nueva playlist…) and the round play button of the cards: the same
+   Mica glass, tinted with the accent colour. */
+.btn.primary, .card .hover-play {
+  background: linear-gradient(140deg, rgba(255,255,255,.2), rgba(255,255,255,.05) 45%, rgba(255,255,255,0)), color-mix(in srgb, var(--accent) 62%, transparent);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.12), 0 6px 18px rgba(0,0,0,.25);
+}
+/* «Spotify Sync»: the same glass in Spotify's green. */
+.btn.spotify {
+  color: #fff;
+  background: linear-gradient(140deg, rgba(255,255,255,.2), rgba(255,255,255,.05) 45%, rgba(255,255,255,0)), rgba(29, 185, 84, .62);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.12), 0 6px 18px rgba(0,0,0,.25);
+}
+.btn.spotify:hover { filter: brightness(1.1); }
+/* Ajustes → «Importar de Spotify»: its icon in Spotify's green, not the accent colour. */
+#set-import h2 svg { color: #1db954; }
+body.no-mica-player #play { color: #111; background: var(--text); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+body.no-mica-player #player #like.on, body.no-mica-player #shuffle.on, body.no-mica-player #repeat.on,
+body.no-mica-player #player .icon-btn:active:not(.on), body.no-mica-player .p-center .icon-btn:active:not(.on) { background: rgba(255,255,255,.1); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
 
 /* Ajustes > Música local: path box and buttons centred, with room before the next setting. */
 .local-actions { justify-content: center; margin: 4px 0 18px; }
@@ -1223,6 +1290,9 @@ body.no-mica-player #player .icon-btn:active:not(.on) { background: rgba(255,255
    strip reaches the top of the window instead of stopping under the title bar. */
 #titlebar { transition: -webkit-backdrop-filter .3s, backdrop-filter .3s; }
 body.route-settings:not(.np-open) #titlebar { -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+/* ...except while the suggestions are open: the bar's blur would be their backdrop, and the glass
+   would see nothing of the page behind it. */
+body.route-settings:not(.np-open) #titlebar:has(#suggest:not([hidden])) { -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 /* ---------------------------------------------------------------- macOS-style window buttons
    Yellow (minimise), green (maximise) and red (close) at the right of the title bar, in Windows'

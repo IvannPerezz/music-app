@@ -12,6 +12,10 @@ const VERSION = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dir
 
 app.setAppUserModelId('com.music.bitchord.desktop');
 app.setName('BitChord');
+// Videos (only the animated covers) are decoded in software, never by the graphics card's video
+// decoder: on Iván's PC (NVIDIA) the hardware path failed mid-clip and the machine then froze.
+// A small square clip costs the processor next to nothing.
+app.commandLine.appendSwitch('disable-accelerated-video-decode');
 if (process.env.BITCHORD_USERDATA) app.setPath('userData', process.env.BITCHORD_USERDATA);
 const userData = app.getPath('userData');
 
@@ -23,9 +27,10 @@ try {
 } catch {}
 for (const level of ['log', 'info', 'warn', 'error']) {
   const orig = console[level].bind(console);
+  // The file first: opened from its shortcut BitChord has no console, and writing to it can fail.
   console[level] = (...args) => {
-    orig(...args);
     try { fs.appendFileSync(logFile, `${new Date().toISOString()} [${level}] ${util.format(...args)}\n`); } catch {}
+    try { orig(...args); } catch {}
   };
 }
 process.on('uncaughtException', (e) => console.error('[uncaught]', e));
@@ -46,6 +51,7 @@ const discord = await import('./src/discord.js');
 const scrobble = await import('./src/scrobble.js');
 const potoken = MOCK ? null : await import('./src/potoken.js');
 const webdav = await import('./src/sources/webdav.js');
+const canvas = await import('./src/canvas.js');
 const playlists = await import('./src/playlists.js');
 const spotify = await import('./src/spotify-import.js');
 const spotifySync = await import('./src/spotify-sync.js');
@@ -276,25 +282,10 @@ app.whenReady().then(async () => {
   handle('local-folder-cover-remove', (id) => { local.removeFolderCover(id); return true; });
   handle('local-folder-open', (id) => { const f = folderList().find((x) => local.folderId(x) === id); if (f) shell.openPath(f); return !!f; });
   handle('local-folder-rescan', (id) => { const f = folderList().find((x) => local.folderId(x) === id); return (f ? rescanLocal([f]) : rescanLocal()).then((l) => l.length); });
-  // BitChord playlists
-  handle('playlists-list', () => playlists.list());
-  handle('playlist-get', (id) => playlists.get(id));
-  handle('playlist-create', (name, tracks) => playlists.create(name, tracks || []));
-  handle('playlist-rename', (id, name) => playlists.rename(id, name));
-  handle('playlist-delete', (id) => playlists.remove(id));
-  handle('playlist-add', (id, tracks) => playlists.addTracks(id, tracks));
-  handle('playlist-remove-at', (id, i) => playlists.removeAt(id, i));
-  handle('playlist-cover-pick', async (id) => {
-    const r = await dialog.showOpenDialog(win, { title: tr('Portada de la playlist'), properties: ['openFile'], filters: [{ name: tr('Imágenes'), extensions: ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'] }] });
-    if (r.canceled) return null;
-    return playlists.setCover(id, fs.readFileSync(r.filePaths[0]), nativeImage);
-  });
-  handle('playlist-cover-data', (id, bytes) => playlists.setCover(id, bytes, nativeImage));
-  handle('playlist-cover-remove', (id) => playlists.removeCover(id));
+  // Custom covers of YouTube Music playlists (kept only on this PC)
   handle('yt-covers', () => playlists.ytCoverMap());
   handle('yt-cover-data', (id, bytes) => playlists.setYtCover(id, bytes, nativeImage));
   handle('yt-cover-remove', (id) => { playlists.removeYtCover(id); return true; });
-  handle('playlist-move', (id, from, to) => playlists.move(id, from, to));
   handle('account-playlists', async () => (MOCK || yt.signedIn() ? yt.accountPlaylists() : []));
   handle('yt-playlist-add', (id, videoIds) => yt.addToAccountPlaylist(id, videoIds));
   handle('yt-playlist-delete', (id) => yt.deleteAccountPlaylist(id));
@@ -311,6 +302,10 @@ app.whenReady().then(async () => {
   handle('spotify-match', (lists) => spotify.match(lists, (q) => yt.searchSongs(q), (p) => send('import-progress', { phase: 'match', ...p })));
   handle('spotify-cancel', () => spotify.cancel());
   handle('song-search', (q) => yt.searchSongs(q));
+  // Animated cover of the big artwork (cover and lyrics view, full screen). The mock has none,
+  // unless a test hands it a clip (BITCHORD_MOCK_CANVAS).
+  canvas.configure({ countryCode: app.getLocaleCountryCode() });
+  handle('canvas-for', (t) => (!MOCK ? canvas.canvasFor(t) : process.env.BITCHORD_MOCK_CANVAS ? { url: process.env.BITCHORD_MOCK_CANVAS, source: 'prueba' } : null));
   // Configuration backup (Ajustes → Copia de la configuración)
   let pendingBackup = null;
   handle('config-export', async (localStore) => {
@@ -350,7 +345,7 @@ app.whenReady().then(async () => {
   handle('spotify-connect-cancel', () => spotifySync.cancelConnect());
   handle('spotify-disconnect', () => spotifySync.disconnect());
   handle('spotify-playlists', () => spotifySync.playlists());
-  handle('spotify-link', (id, name, dest) => spotifySync.link(id, name, dest));
+  handle('spotify-link', (id, name) => spotifySync.link(id, name));
   handle('spotify-unlink', (id) => spotifySync.unlink(id));
   handle('spotify-sync', (id, opts) => spotifySync.sync(id, opts));
   handle('spotify-auto', (on) => spotifySync.setAuto(on));
@@ -359,29 +354,17 @@ app.whenReady().then(async () => {
     for (const [n, it] of items.entries()) {
       const ids = it.tracks.map((t) => t.id);
       try {
-        if (it.dest === 'yt') {
-          const id = await yt.createAccountPlaylist(it.name, ids, {
-            description: it.description || 'Importada de Spotify con BitChord',
-            onProgress: (d) => send('import-progress', { phase: 'create', index: n, total: items.length, name: it.name, done: d, count: ids.length }),
-          });
-          out.push({ name: it.name, dest: 'yt', id, count: ids.length });
-        } else {
-          const id = playlists.create(it.name, it.tracks, { description: it.description, origin: 'spotify' });
-          send('import-progress', { phase: 'create', index: n, total: items.length, name: it.name, done: ids.length, count: ids.length });
-          out.push({ name: it.name, dest: 'local', id, count: ids.length });
-        }
+        const id = await yt.createAccountPlaylist(it.name, ids, {
+          description: it.description || 'Importada de Spotify con BitChord',
+          onProgress: (d) => send('import-progress', { phase: 'create', index: n, total: items.length, name: it.name, done: d, count: ids.length }),
+        });
+        out.push({ name: it.name, dest: 'yt', id, count: ids.length });
       } catch (e) {
         console.error('[import]', it.name, e);
-        // Don't throw away the matching work: keep the playlist in BitChord so it can be retried later.
-        let fallback = null;
-        if (it.dest === 'yt') { try { fallback = playlists.create(it.name, it.tracks, { description: it.description, origin: 'spotify' }); } catch {} }
-        out.push({ name: it.name, dest: it.dest, error: String(e?.message || e), count: ids.length, fallback });
-        if ((e?.code === 'YT_BLOCKED' || /limitado temporalmente/.test(e?.message)) && it.dest === 'yt') {
-          // YouTube is refusing us: save the rest locally instead of insisting.
-          for (const rest of items.slice(n + 1)) {
-            const fid = playlists.create(rest.name, rest.tracks, { description: rest.description, origin: 'spotify' });
-            out.push({ name: rest.name, dest: rest.dest, error: rest.dest === 'yt' ? tr('No se intentó: YouTube estaba limitando las peticiones') : null, count: rest.tracks.length, ...(rest.dest === 'yt' ? { fallback: fid } : { id: fid }) });
-          }
+        out.push({ name: it.name, dest: 'yt', error: String(e?.message || e), count: ids.length });
+        if (e?.code === 'YT_BLOCKED' || /limitado temporalmente/.test(e?.message)) {
+          // YouTube is refusing us: don't insist with the rest.
+          for (const rest of items.slice(n + 1)) out.push({ name: rest.name, dest: 'yt', error: tr('No se intentó: YouTube estaba limitando las peticiones'), count: rest.tracks.length });
           break;
         }
       }

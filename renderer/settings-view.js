@@ -7,7 +7,7 @@ import { tr, LANGUAGES, uiLang, syncUiLang, locale } from './i18n.js';
 
 const QUALITY = [['low', tr('Baja (~64 kbps)')], ['normal', tr('Normal (~96 kbps)')], ['high', tr('Alta (~160 kbps)')], ['max', tr('Máxima disponible')]];
 const SECTIONS = [
-  ['account', tr('Cuenta')], ['import', tr('Importar')], ['theme', tr('Tema')], ['sidebar', tr('Personalización')],
+  ['account', tr('Cuenta')], ['import', tr('Importar')], ['theme', tr('Tema')], ['sidebar', tr('Personalización')], ['performance', tr('Rendimiento')],
   ['playback', tr('Reproducción')], ['sources', tr('Fuentes')], ['eq', tr('Ecualizador')], ['lyrics', tr('Letras')], ['downloads', tr('Descargas')],
   ['local', tr('Música local')], ['integrations', tr('Integraciones')], ['general', tr('General')], ['backup', tr('Copia')], ['about', tr('Acerca de')],
 ];
@@ -58,6 +58,9 @@ function flip(list, redraw) {
     if (dy) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)' });
   }
 }
+
+/** Heading of a group of settings inside a section (Personalización has several). */
+const sub = (title, ic) => h(`<h3 class="set-sub"><span class="set-sub-ic">${icon(ic)}</span><span>${esc(title)}</span></h3>`);
 
 function card(id, title, ic, ...rows) {
   const el = h(`<section class="set-card" id="set-${id}"><h2>${icon(ic)}${esc(title)}</h2></section>`);
@@ -233,11 +236,18 @@ function localMusic() {
 }
 
 function importCard() {
-  const b = btn(tr('Importar playlists de Spotify…'), 'primary', 'importIcon');
-  b.onclick = () => go({ name: 'spotify-import' });
+  const link = btn(tr('Vincular cuenta de Spotify…'), 'spotify', 'open');
+  link.onclick = () => go({ name: 'spotify-import', tab: 'link' });
+  const zip = btn(tr('Importar el .zip…'), 'spotify', 'importIcon');
+  zip.onclick = () => go({ name: 'spotify-import', tab: 'zip' });
   return card('import', tr('Importar de Spotify'), 'importIcon',
-    h(`<div class="set-note">${tr('Sube el .zip con los «Datos de la cuenta» que te da Spotify y BitChord recrea tus playlists (y tus «Canciones que te gustan» como la playlist <b>Me gusta de Spotify</b>). En cada playlist eliges si se crea en <b>tu cuenta de YouTube Music</b> —y aparece también en la app oficial— o <b>solo en BitChord</b>. Antes de crear nada podrás revisar las coincidencias dudosas.')}</div>`),
-    row(tr('Importar'), tr('Necesitas haber iniciado sesión con Google para crearlas en tu cuenta.'), b),
+    h(`<div class="set-note">${tr('BitChord copia tus playlists de Spotify (y tus «Canciones que te gustan», como la playlist <b>Me gusta de Spotify</b>) en <b>tu cuenta de YouTube Music</b>, donde aparecen también en la app oficial. Busca cada canción en YouTube Music por ti. Hay dos formas de hacerlo; para las dos necesitas haber iniciado sesión con Google.')}</div>`),
+    row(tr('1. Vincular tu cuenta de Spotify (recomendado)'),
+      tr('Las playlists que elijas <b>se mantienen al día solas</b>: si añades o quitas canciones, o cambias el nombre, la descripción o la portada en Spotify, la copia cambia también (al abrir BitChord, cada 6 horas o con el botón «Spotify Sync» de la playlist). Spotify pide crear una vez una «app de desarrollador» gratuita a tu nombre: son cinco minutos y BitChord te guía paso a paso. El permiso es solo de lectura.'),
+      link),
+    row(tr('2. Subir el .zip de datos de tu cuenta'),
+      tr('Una copia de una sola vez, sin crear nada en el panel de desarrollador. Pide tus «Datos de la cuenta» en spotify.com → Cuenta → Privacidad; Spotify te manda el .zip por correo en unos días. Antes de crear las playlists podrás revisar las coincidencias dudosas. Después no se actualizan solas.'),
+      zip),
   );
 }
 
@@ -436,7 +446,7 @@ function hiddenPlaylistsBlock() {
     box.replaceChildren();
     const list = state.settings.hiddenPlaylists || [];
     if (!list.length) return;
-    box.append(h(`<h3 class="set-sub">${tr('Playlists ocultas')}</h3>`), h(`<div class="set-note">${tr('Playlists de tu cuenta de YouTube Music que has ocultado en BitChord. Siguen en tu cuenta.')}</div>`));
+    box.append(sub(tr('Playlists ocultas'), 'queue'), h(`<div class="set-note">${tr('Playlists de tu cuenta de YouTube Music que has ocultado en BitChord. Siguen en tu cuenta.')}</div>`));
     for (const p of list) {
       const b = btn(tr('Mostrar'), 'ghost');
       b.onclick = async () => { await saveSettings({ hiddenPlaylists: (state.settings.hiddenPlaylists || []).filter((x) => x.id !== p.id) }); import('./app.js').then((m) => m.renderSidebar()); draw(); };
@@ -522,7 +532,7 @@ function sidebarCard() {
   const amb = () => import('./app.js').then((m) => m.applyAmbient());
   const mica = () => import('./app.js').then((m) => m.applyMica());
   return card('sidebar', tr('Personalización'), 'tune',
-    h(`<h3 class="set-sub">${tr('Fondo animado')}</h3>`),
+    sub(tr('Fondo animado'), 'image'),
     h(`<div class="set-note">${tr('Detrás de toda la app (y en la vista de portada y letra) se mueve lentamente, mientras suena la música, la portada que está sonando, muy desenfocada (o, si lo prefieres, manchas con sus colores más destacados). Los cambios se ven al momento mientras mueves los controles.')}</div>`),
     row(tr('Fondo animado'), tr('Desactívalo para usar el fondo normal del tema.'), toggle('ambient', () => amb())),
     row(tr('Estilo'), tr('La propia portada desenfocada girando despacio, o manchas con sus colores principales.'), select('ambientMode', [['cover', tr('Portada desenfocada')], ['colors', tr('Manchas de color')]], () => amb())),
@@ -531,8 +541,10 @@ function sidebarCard() {
     row(tr('Velocidad de movimiento'), tr('Solo se mueve mientras suena una canción; en pausa se queda quieto. 0 lo deja siempre quieto.'), range('ambientSpeed', 0, 100, 1, (v) => (v ? `${v} %` : tr('Quieto')), live('ambientSpeed', amb))),
     row(tr('Tamaño'), tr('De la portada o de las manchas de color.'), range('ambientSize', 50, 160, 5, (v) => `${v} %`, live('ambientSize', amb))),
     row(tr('Saturación'), tr('Lo vivos que son los colores. 0 lo deja en blanco y negro.'), range('ambientSaturation', 0, 250, 5, (v) => `${v} %`, live('ambientSaturation', amb))),
-    h(`<h3 class="set-sub">${tr('Efecto Mica')}</h3>`),
-    h(`<div class="set-note">${tr('Cristal desenfocado y teñido con el tema, como en Windows 11: lo que pasa por detrás (el fondo animado, la música al hacer scroll) se ve a través. Actívalo o desactívalo en cada panel; si lo quitas, el panel usa el color sólido del tema. La intensidad, el desenfoque y la saturación se aplican a todos los paneles y menús con Mica.')}</div>`),
+    sub(tr('Portadas animadas'), 'album'),
+    row(tr('Portada animada'), tr('Si la pista tiene portada animada (de Apple Music, Tidal o creada por la comunidad), al abrir el modo «Portada y letra» o «Pantalla completa» la verás animada.'), toggle('animatedCovers')),
+    sub(tr('Efecto Mica'), 'sparkle'),
+    h(`<div class="set-note">${tr('Cristal desenfocado y teñido con el tema que estés usando. Actívalo o desactívalo de manera independiente en cada panel; si lo desactivas, ese panel pasa a usar el color sólido del tema aplicado. Los ajustes de intensidad, desenfoque y saturación se aplican a todos los paneles por igual.')}</div>`),
     row(tr('Barra lateral izquierda'), '', toggle('micaSidebar', () => mica())),
     row(tr('Cola (barra lateral derecha)'), '', toggle('micaQueue', () => mica())),
     row(tr('Controles de reproducción (abajo)'), '', toggle('micaPlayer', () => mica())),
@@ -541,18 +553,25 @@ function sidebarCard() {
     row(tr('Desenfoque del cristal'), tr('Cuánto se difumina lo que hay detrás. 0 = cristal transparente.'), range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
     row(tr('Saturación'), tr('Lo vivos que se ven los colores a través del cristal.'), range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
     hiddenPlaylistsBlock(),
-    h(`<h3 class="set-sub">${tr('Pantalla principal')}</h3>`),
+    sub(tr('Pantalla principal'), 'home'),
     h(`<div class="set-note">${tr('Marca los apartados que quieres ver en Inicio. También puedes ocultar uno directamente desde Inicio con el botón «Ocultar» que aparece al pasar el ratón por su título. Si YouTube Music añade apartados nuevos, aparecerán aquí en cuanto salgan en tu Inicio.')}</div>`),
     homeGrid,
-    h(`<h3 class="set-sub">${tr('Barra lateral')}</h3>`),
+    sub(tr('Barra lateral'), 'menu'),
     row(tr('Mostrar la barra lateral'), tr('Fija, al pasar el ratón por el borde izquierdo de la ventana, o con un botón junto a las flechas de navegación.'),
       select('sidebarMode', [['fixed', tr('Siempre visible')], ['hover', tr('Al pasar el ratón por la izquierda')], ['button', tr('Con un botón')]])),
     h(`<div class="set-note">${tr('Elige qué aparece en la barra lateral y en qué orden (arrastra o usa las flechas). Las pestañas de Biblioteca se pueden anclar como accesos directos. <b>Ajustes</b> está siempre arriba a la derecha (junto a tu perfil), así que nunca te quedas sin forma de volver aquí.')}</div>`),
     list,
     row(tr('Volver a la configuración original'), tr('Elementos y orden de la barra lateral.'), reset),
-    h(`<h3 class="set-sub">${tr('Datos de las pistas en «En este equipo»')}</h3>`),
+    sub(tr('Datos de las pistas en «En este equipo»'), 'computer'),
     h(`<div class="set-note">${tr('Qué información técnica se muestra de cada archivo de tu música local.')}</div>`),
     info,
+  );
+}
+
+function performanceCard() {
+  return card('performance', tr('Rendimiento'), 'speed',
+    h(`<div class="set-note">${tr('El modo rendimiento reduce al mínimo lo que BitChord pide a la tarjeta gráfica y al procesador, para equipos modestos, portátiles con batería o para jugar mientras escuchas música. También se activa con el botón del velocímetro, arriba a la derecha junto a tu foto.')}</div>`),
+    row(tr('Modo rendimiento'), tr('Mientras está activo: los paneles pasan a color sólido sin efecto Mica, se paran el fondo animado y el fondo difuminado de portada y letra, se apagan el visualizador y las portadas animadas, y las animaciones son instantáneas. Tus ajustes no cambian: al desactivarlo vuelve todo como estaba.'), toggle('performanceMode')),
   );
 }
 
@@ -592,7 +611,6 @@ function backupCard() {
     if (!m) return;
     const what = [
       tr('ajustes, temas y personalización'),
-      m.playlists ? tr('{n} playlists de BitChord', { n: m.playlists }) : null,
       m.covers ? tr('{n} portadas', { n: m.covers }) : null,
       m.spotifyLinks ? tr('{n} playlists vinculadas con Spotify', { n: m.spotifyLinks }) : null,
     ].filter(Boolean).join(', ');
@@ -608,7 +626,7 @@ function backupCard() {
   const box = h('<span class="btn-row"></span>');
   box.append(exp, imp);
   return card('backup', tr('Copia de la configuración'), 'folder',
-    h(`<div class="set-note">${icon('info')} <span>${tr('Guarda en un archivo <b>.bitchord</b> todo lo que has personalizado: ajustes, tema y temas propios, efecto Mica y fondo, barra lateral, ecualizador, letras, visualizador, tus playlists de BitChord y sus portadas, portadas de playlists y carpetas, playlists ocultas y su orden, favoritos, búsquedas recientes y las playlists vinculadas con Spotify. Llévalo a otro PC (USB, nube, correo…) e impórtalo allí.')}</span></div>`),
+    h(`<div class="set-note">${icon('info')} <span>${tr('Guarda en un archivo <b>.bitchord</b> todo lo que has personalizado: ajustes, tema y temas propios, efecto Mica y fondo, barra lateral, ecualizador, letras, visualizador, portadas de playlists y carpetas, playlists ocultas y su orden, favoritos, búsquedas recientes y las playlists vinculadas con Spotify. Llévalo a otro PC (USB, nube, correo…) e impórtalo allí.')}</span></div>`),
     row(tr('Exportar o importar'), tr('Al importar, se sustituye la configuración de este equipo y BitChord se reinicia.'), box),
     h(`<div class="set-note">${tr('No se incluyen las sesiones (Google, Last.fm, ListenBrainz ni el permiso de Spotify): por seguridad van cifradas solo para este equipo, así que en el otro tendrás que volver a iniciarlas. Tampoco las canciones descargadas ni la música local, que son archivos.')}</div>`),
   );
@@ -657,7 +675,7 @@ export async function settingsView(route) {
   };
   setTimeout(() => { $('#content').addEventListener('scroll', spy, { passive: true }); spy(); }, 50);
   chips.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && chips.scrollWidth > chips.clientWidth) { chips.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
-  root.append(account(), importCard(), themeCard(), sidebarCard(), playback(), sourcesCard(), equalizer(), lyrics(), downloads(), localMusic(), integrations(), general(), backupCard(), await about());
+  root.append(account(), importCard(), themeCard(), sidebarCard(), performanceCard(), playback(), sourcesCard(), equalizer(), lyrics(), downloads(), localMusic(), integrations(), general(), backupCard(), await about());
   root.addEventListener('click', (e) => { const a = e.target.closest('a[data-url]'); if (a) { e.preventDefault(); bc.openExternal(a.dataset.url); } });
   if (route.section) setTimeout(() => root.querySelector('#set-' + route.section)?.scrollIntoView({ block: 'start' }), 30);
   return outer;

@@ -72,6 +72,8 @@ export const DEFAULTS = {
   customThemes: [], // [{ id, name, css }] made in Ajustes > Tema
   npLyricsHidden: false,
   homeHidden: [],
+  performanceMode: false, // no glass, moving backgrounds, visualizer, animated covers or animations
+  animatedCovers: true, // looping video on the big artwork when the release has one (src/canvas.js)
   ambient: true,
   ambientMode: 'cover',
   ambientIntensity: 45,

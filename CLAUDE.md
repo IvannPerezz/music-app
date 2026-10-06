@@ -45,7 +45,7 @@ npm run package            # carpeta portable + instalador ligero en dist/ (desc
 - `src/auth.js` + `src/login-preload.cjs` — inicio de sesión de Google en una ventana con identidad de Firefox; cookie cifrada con `safeStorage` en `auth.bin`.
 - `src/downloads.js` + `src/mux/*` — descargas con etiquetas y carátula (Opus/WebM y M4A).
 - `src/local.js` — música local: índice, carpetas como playlists, portadas y vigilancia de cambios (`fs.watch`).
-- `src/playlists.js` — playlists propias de BitChord y portadas personalizadas (también las de playlists de YouTube Music, guardadas solo en local).
+- `src/playlists.js` — portadas personalizadas de las playlists de YouTube Music (guardadas solo en este PC). Desde la v0.6.37 **no hay playlists propias de BitChord**: todas viven en la cuenta de YouTube Music (crear, añadir canciones, importar y sincronizar con Spotify). No las vuelvas a añadir.
 - `src/spotify-import.js` — importación del .zip de datos de Spotify.
 - `src/lyrics.js` — proveedores de letras. `src/sources/*` — JioSaavn y WebDAV. `src/discord.js`, `src/scrobble.js` — integraciones.
 - `src/settings.js` — `DEFAULTS` de todos los ajustes (`settings.json` en el perfil).

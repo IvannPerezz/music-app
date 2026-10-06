@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https: http://127.0.0.1:*; media-src http://127.0.0.1:* blob:; connect-src http://127.0.0.1:*; frame-src http://127.0.0.1:*; worker-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https: http://127.0.0.1:*; media-src http://127.0.0.1:* blob: https://mvod.itunes.apple.com https://resources.tidal.com https://vivimusicanvas.mkmdevilmi.workers.dev; connect-src http://127.0.0.1:*; frame-src http://127.0.0.1:*; worker-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
   <title>BitChord</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -23,6 +23,7 @@
       <ul id="suggest" hidden></ul>
     </div>
     <div class="titlebar-spacer"></div>
+    <button class="icon-btn perf-btn" id="btn-perf" title="Modo rendimiento"></button>
     <button class="icon-btn account-btn" id="account-btn" title="Cuenta"></button>
     <button class="icon-btn settings-btn" id="settings-btn" title="Ajustes (Ctrl+,)"></button>
     <div class="traffic" hidden><button class="tl tl-min" data-w="minimize" title="Minimizar"></button><button class="tl tl-max" data-w="maximize" title="Maximizar"></button><button class="tl tl-close" data-w="close" title="Cerrar"></button></div>
@@ -34,7 +35,7 @@
       <div id="nav-items"></div>
       <div class="sidebar-foot">
         <span>BitChord Desktop</span>
-        <span class="muted">v0.6.33 · port de BitChord</span>
+        <span class="muted">v0.6.42.1 · port de BitChord</span>
         <button class="text-btn" id="open-log" data-i18n>Ver registro</button>
       </div>
     </nav>

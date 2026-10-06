@@ -1,12 +1,13 @@
-// Spotify import wizard: pick the export → choose playlists and destination → match → review → create.
+// Spotify import wizard: pick the export → choose playlists → match → review → create them in the
+// YouTube Music account.
 import { bc, icon, esc, fmt, api, toast, h, state, art, askText } from './core.js';
 import { go, player, openMenu, refreshView, currentRoute } from './app.js';
 import { tr } from './i18n.js';
 import { spotifyLinkView } from './spotify-link.js';
 
 // The wizard survives navigating away (matching a big library takes a while).
-const W = { step: 'pick', file: null, lists: [], sel: {}, dest: {}, results: null, choice: {}, progress: null, created: null, filter: 'all', open: {} };
-const reset = () => Object.assign(W, { step: 'pick', file: null, lists: [], sel: {}, dest: {}, results: null, choice: {}, progress: null, created: null, filter: 'all', open: {} });
+const W = { step: 'pick', file: null, lists: [], sel: {}, results: null, choice: {}, progress: null, created: null, filter: 'all', open: {} };
+const reset = () => Object.assign(W, { step: 'pick', file: null, lists: [], sel: {}, results: null, choice: {}, progress: null, created: null, filter: 'all', open: {} });
 
 bc.on('import-progress', (p) => {
   W.progress = p;
@@ -44,6 +45,14 @@ function pickStep(root) {
     </ol>
     <p class="muted">${tr('BitChord busca cada canción en YouTube Music. Antes de crear nada podrás revisar las coincidencias dudosas.')}</p>
   </div>`));
+  // The playlists are created in the YouTube Music account: that needs the Google sign-in.
+  if (!signedIn()) {
+    root.append(h(`<div class="set-note">${icon('info')} ${tr('Las playlists se crean en tu cuenta de YouTube Music (y aparecen también en la app oficial). Inicia sesión con Google para importarlas.')}</div>`));
+    const login = h(`<button class="btn primary">${icon('account')}${tr('Iniciar sesión')}</button>`);
+    login.onclick = () => go({ name: 'settings', section: 'account' });
+    actions(root, login);
+    return;
+  }
   const b = h(`<button class="btn primary">${icon('importIcon')}${tr('Elegir el .zip de Spotify…')}</button>`);
   b.onclick = async () => {
     const file = await api('chooseFile', tr('Datos de la cuenta de Spotify'), ['zip', 'json']);
@@ -53,7 +62,6 @@ function pickStep(root) {
       W.lists = await api('spotifyParse', file);
       W.file = file;
       W.sel = Object.fromEntries(W.lists.map((p) => [p.key, true]));
-      W.dest = Object.fromEntries(W.lists.map((p) => [p.key, signedIn() ? 'yt' : 'local']));
       W.step = 'select';
       refreshView();
     } catch (e) { toast(e.message, true); b.disabled = false; }
@@ -62,30 +70,14 @@ function pickStep(root) {
 }
 
 // ---------------------------------------------------------------- step 2
-function destSwitch(pk) {
-  const el = h(`<div class="seg"><button data-v="yt">${icon('library')}${tr('Mi YT Music')}</button><button data-v="local">${icon('computer')}${tr('Solo BitChord')}</button></div>`);
-  const paint = () => el.querySelectorAll('button').forEach((b) => b.classList.toggle('on', W.dest[pk] === b.dataset.v));
-  el.querySelectorAll('button').forEach((b) => {
-    if (b.dataset.v === 'yt' && !signedIn()) { b.disabled = true; b.title = tr('Inicia sesión con Google para crear playlists en tu cuenta'); }
-    b.onclick = (e) => { e.stopPropagation(); W.dest[pk] = b.dataset.v; paint(); };
-  });
-  paint();
-  return el;
-}
-
 function selectStep(root) {
   const total = W.lists.reduce((s, p) => s + p.tracks.length, 0);
   root.append(h(`<div class="imp-bar"><span class="muted">${tr('{n} playlists · {total} canciones en el archivo', { n: W.lists.length, total })}</span></div>`));
   const bar = root.lastChild;
-  const allYt = h(`<button class="btn ghost small"${signedIn() ? '' : ' disabled'}>${tr('Todas a mi YT Music')}</button>`);
-  const allLocal = h(`<button class="btn ghost small">${tr('Todas solo en BitChord')}</button>`);
   const toggleAll = h(`<button class="btn ghost small">${tr('Marcar / desmarcar todas')}</button>`);
-  allYt.onclick = () => { W.lists.forEach((p) => (W.dest[p.key] = 'yt')); refreshView(); };
-  allLocal.onclick = () => { W.lists.forEach((p) => (W.dest[p.key] = 'local')); refreshView(); };
   toggleAll.onclick = () => { const v = !W.lists.every((p) => W.sel[p.key]); W.lists.forEach((p) => (W.sel[p.key] = v)); refreshView(); };
   bar.append(h('<span class="btn-row"></span>'));
-  bar.lastChild.append(toggleAll, allYt, allLocal);
-  if (!signedIn()) root.append(h(`<div class="set-note">${icon('info')} ${tr('Para crearlas en tu cuenta de YouTube Music (y verlas en la app oficial) inicia sesión con Google en Ajustes → Cuenta. Mientras tanto solo puedes guardarlas en BitChord.')}</div>`));
+  bar.lastChild.append(toggleAll);
 
   const list = h('<div class="imp-lists"></div>');
   for (const p of W.lists) {
@@ -94,7 +86,6 @@ function selectStep(root) {
       <div class="imp-pl-t"><b>${esc(p.name)}</b><div class="muted small">${tr('{n} canciones', { n: p.tracks.length })}${p.skipped ? ' · ' + tr('{n} podcasts/archivos locales que no se importan', { n: p.skipped }) : ''}${p.liked ? ' · ' + tr('tus «Canciones que te gustan»') : ''}</div></div>
     </label>`);
     el.querySelector('input').onchange = (e) => { W.sel[p.key] = e.target.checked; el.classList.toggle('off', !e.target.checked); };
-    el.append(destSwitch(p.key));
     list.append(el);
   }
   root.append(list);
@@ -197,9 +188,8 @@ function reviewStep(root) {
     const issues = W.results[p.key].some((r, i) => !W.choice[key(p.key, i)] || (r.status === 'doubt' && W.choice[key(p.key, i)] === r.track));
     const open = W.open[p.key] ?? (W.filter !== 'all' || chosen.length === 1 || issues);
     const sec = h(`<section class="imp-sec${open ? ' open' : ''}">
-      <header><span class="chev">${icon('chevron')}</span><b>${esc(p.name)}</b><span class="muted small">${tr('{done} de {total} canciones', { done: added, total: p.tracks.length })} · ${tr(W.dest[p.key] === 'yt' ? 'a tu YT Music' : 'solo en BitChord')}</span></header>
+      <header><span class="chev">${icon('chevron')}</span><b>${esc(p.name)}</b><span class="muted small">${tr('{done} de {total} canciones', { done: added, total: p.tracks.length })}</span></header>
       <div class="imp-rows"></div></section>`);
-    sec.querySelector('header').append(destSwitch(p.key));
     sec.querySelector('header').onclick = () => { W.open[p.key] = !open; refreshView(); };
     const rows = sec.querySelector('.imp-rows');
     if (open) {
@@ -219,7 +209,7 @@ function reviewStep(root) {
   back.onclick = () => { W.step = 'select'; refreshView(); };
   create.onclick = async () => {
     const items = chosen.map((p) => ({
-      name: p.name, description: p.description, dest: W.dest[p.key],
+      name: p.name, description: p.description,
       tracks: p.tracks.map((_, i) => W.choice[key(p.key, i)]).filter(Boolean),
     })).filter((it) => it.tracks.length);
     if (!items.length) return toast(tr('No hay canciones que añadir'));
@@ -238,14 +228,13 @@ function reviewStep(root) {
 function doneStep(root) {
   const ok = W.created.filter((x) => !x.error);
   root.append(h(`<div class="imp-card"><h2>${tr(ok.length === W.created.length ? '¡Hecho!' : 'Terminado con algunos errores')}</h2>
-    <p class="muted">${tr('{n} playlists creadas.', { n: ok.length })}${W.created.some((x) => x.dest === 'yt' && !x.error) ? ' ' + tr('Las de tu cuenta ya aparecen también en la app oficial de YouTube Music (como privadas).') : ''}</p></div>`));
+    <p class="muted">${tr('{n} playlists creadas.', { n: ok.length })}${ok.length ? ' ' + tr('Las de tu cuenta ya aparecen también en la app oficial de YouTube Music (como privadas).') : ''}</p></div>`));
   const list = h('<div class="imp-lists"></div>');
-  for (let r of W.created) {
-    const el = h(`<div class="imp-pl${r.error ? ' err' : ''}"><div class="imp-pl-t"><b>${esc(r.name)}</b><div class="muted small">${r.error ? tr('Error:') + ' ' + esc(r.error) + (r.fallback ? ' — ' + tr('guardada en BitChord para que no se pierda') : '') : `${tr('{n} canciones', { n: r.count })} · ${tr(r.dest === 'yt' ? 'en tu YouTube Music' : 'en BitChord')}`}</div></div></div>`);
-    if (!r.error || r.fallback) {
-      if (r.fallback) r = { ...r, dest: 'local', id: r.fallback };
+  for (const r of W.created) {
+    const el = h(`<div class="imp-pl${r.error ? ' err' : ''}"><div class="imp-pl-t"><b>${esc(r.name)}</b><div class="muted small">${r.error ? tr('Error:') + ' ' + esc(r.error) : `${tr('{n} canciones', { n: r.count })} · ${tr('en tu YouTube Music')}`}</div></div></div>`);
+    if (!r.error) {
       const open = h(`<button class="btn ghost small">${icon('play')}${tr('Abrir')}</button>`);
-      open.onclick = () => go(r.dest === 'yt' ? { name: 'playlist', id: r.id } : { name: 'localplaylist', id: r.id });
+      open.onclick = () => go({ name: 'playlist', id: r.id });
       el.append(open);
     }
     list.append(el);
@@ -258,14 +247,17 @@ function doneStep(root) {
   actions(root, lib, again);
 }
 
-export async function importView() {
+export async function importView(route) {
   const root = h('<div class="import"></div>');
   root.append(h(`<h1 class="page-title">${tr('Importar de Spotify')}</h1>`));
-  // Two ways: the one-off .zip export, or linking the account so playlists stay up to date.
+  // Two ways: linking the account so playlists stay up to date (the main one), or the one-off .zip
+  // export. A link from Ajustes can open either (route.tab).
+  if (route?.tab) W.tab = route.tab;
+  W.tab ||= 'link';
   const tabs = h('<div class="chips"></div>');
-  [['zip', tr('Archivo .zip de datos')], ['link', tr('Cuenta de Spotify (se actualiza sola)')]].forEach(([k, l]) => {
-    const c = h(`<button class="chip${(W.tab || 'zip') === k ? ' active' : ''}" data-tab="${k}">${l}</button>`);
-    c.onclick = () => { W.tab = k; refreshView(); };
+  [['link', tr('Cuenta de Spotify (se actualiza sola)')], ['zip', tr('Archivo .zip de datos')]].forEach(([k, l]) => {
+    const c = h(`<button class="chip${W.tab === k ? ' active' : ''}" data-tab="${k}">${l}</button>`);
+    c.onclick = () => { W.tab = k; go({ name: 'spotify-import', tab: k }, { replace: true }); };
     tabs.append(c);
   });
   root.append(tabs);

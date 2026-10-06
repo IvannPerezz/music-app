@@ -29,13 +29,24 @@ await shot('01-home');
 if (!(await win.isVisible('#titlebar .traffic'))) errors.push('Faltan los botones de ventana estilo macOS');
 if (!/, Prueba$/.test(await win.textContent('#home-greet'))) errors.push('El saludo no lleva el nombre de la cuenta: ' + await win.textContent('#home-greet'));
 await win.click('.row >> nth=0'); await win.waitForTimeout(1200);
-// The queue is open by default, hides when the cover/lyrics view opens and comes back after.
+// The queue is open by default. The cover/lyrics view covers it (it stays open underneath, like the
+// left sidebar) until its button brings it up over the view; closing the view leaves it as it was.
 const qOpen = () => win.evaluate(() => !document.querySelector('#queue').hidden && !document.querySelector('#queue').classList.contains('closing'));
+const qOnTop = () => win.evaluate(() => { const r = document.querySelector('#queue').getBoundingClientRect(); return !!document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest('#queue'); });
 if (!(await qOpen())) errors.push('La cola no está abierta por defecto');
 await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('02-now-playing');
-if (await qOpen()) errors.push('La cola no se esconde al abrir portada y letra');
+if (!(await qOpen())) errors.push('La cola se cierra al abrir portada y letra');
+if (await qOnTop()) errors.push('Portada y letra no queda por encima de la cola');
+await win.click('#btn-queue'); await win.waitForTimeout(500);
+if (!(await qOpen()) || !(await qOnTop())) errors.push('El botón de cola no la saca por encima de portada y letra');
+await win.click('#btn-queue'); await win.waitForTimeout(500); // and closes it again
+await win.click('#btn-queue'); await win.waitForTimeout(500);
 await win.click('#np-close'); await win.waitForTimeout(800);
-if (!(await qOpen())) errors.push('La cola no vuelve al salir de portada y letra');
+if (!(await qOpen()) || !(await qOnTop())) errors.push('La cola no sigue abierta al salir de portada y letra');
+// Open under the view, closing the view: it's simply there again (it didn't close and reopen).
+await win.click('#btn-lyrics'); await win.waitForTimeout(900);
+await win.click('#np-close'); await win.waitForTimeout(800);
+if (!(await qOpen()) || !(await qOnTop()) || await win.evaluate(() => document.body.classList.contains('queue-under'))) errors.push('La cola no se queda como estaba al cerrar portada y letra');
 await win.click('#btn-lyrics'); await win.waitForTimeout(900);
 // Animated background: shown in the full-screen view and only moving while a song plays.
 const amb = () => win.evaluate(() => ({ np: getComputedStyle(document.querySelector('.np-amb')).display, paused: document.body.classList.contains('ambient-paused') }));
@@ -142,7 +153,7 @@ if (favCount !== 2) errors.push('La pestaña de favoritos del visualizador muest
 await shot('02i-visualizer-favorites');
 await win.click('.vis-tabs [data-t=all]'); await win.waitForTimeout(200);
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);
-await win.click('#np-vis-toggle'); await win.waitForTimeout(300);
+await win.click('#np-vis-toggle'); await win.waitForTimeout(700); // it blurs away first
 if (await win.$('#np-vis')) errors.push('El visualizador no se quita al apagarlo');
 await win.keyboard.press('Escape'); await win.waitForTimeout(1200);
 fsx = { ...(await fsState()), window: await winFs() };
@@ -205,7 +216,7 @@ if (!(await win.isVisible('.sp-uri code'))) errors.push('Falta la guía para vin
 await shot('06c-spotify-guide');
 await win.fill('.sp-connect input', '0123456789abcdef0123456789abcdef');
 await win.click('.sp-connect .btn.primary'); await win.waitForTimeout(900);
-await win.locator('.sp-row', { hasText: 'Rock en español' }).locator('.seg button[data-v=local]').click();
+if (await win.locator('.sp-row .seg').count()) errors.push('Aún se puede elegir «Solo BitChord» al vincular Spotify');
 await win.locator('.sp-row', { hasText: 'Rock en español' }).locator('input').check();
 await win.locator('.sp-row', { hasText: 'Para correr' }).locator('input').check();
 await win.click('.sp-actions .btn.primary'); await win.waitForTimeout(300);
@@ -213,12 +224,34 @@ if (!(await win.isVisible('.sp-busy'))) errors.push('No sale la barra de progres
 await shot('06d0-spotify-progress');
 await win.waitForFunction(() => /[1-9] canciones/.test(document.querySelector('.sp-row.linked')?.textContent || '') && document.querySelectorAll('.sp-row.linked').length === 2 && !document.querySelector('.sp-busy'), null, { timeout: 15000 }).catch(() => errors.push('La playlist de Spotify no se sincroniza'));
 await shot('06d-spotify-linked');
+// The copy of a linked playlist has «Actualizar desde Spotify», which checks Spotify right away.
+{
+  // (The copy lives in YouTube Music; opened with the "VL" YouTube sometimes puts in front.)
+  const pid = await win.evaluate(async () => (await window.bc.spotifyStatus()).data.links.find((l) => l.name === 'Rock en español')?.target);
+  await win.evaluate((id) => window.__bc.go({ name: 'playlist', id: 'VL' + id }), pid); await win.waitForTimeout(800);
+  const btn = win.locator('.detail-head .btn.spotify', { hasText: 'Spotify Sync' });
+  if (!(await btn.count())) errors.push('Falta el botón «Spotify Sync» en la playlist vinculada');
+  else if (!(await win.evaluate(() => document.querySelector('.detail-head [data-a=play]').nextElementSibling?.classList.contains('spotify')))) errors.push('«Spotify Sync» no está junto a Reproducir');
+  else {
+    // A song is added in Spotify (which still answers with the old version id): the button must
+    // find it anyway.
+    await app.evaluate(() => { globalThis.__mockSpotifyExtra = { sp1: 1 }; });
+    await win.evaluate(() => { document.querySelector('#toast').textContent = ''; }); // forget the previous notice
+    await btn.click();
+    await win.waitForFunction(() => { const t = document.querySelector('#toast'); return !t.hidden && /Spotify/.test(t.textContent); }, null, { timeout: 15000 })
+      .catch(() => {});
+    const msg = await win.textContent('#toast');
+    if (!/Una canción nueva desde Spotify/.test(msg)) errors.push('«Spotify Sync» no trae la canción nueva: ' + msg + ' ' + JSON.stringify(await win.evaluate(async () => (await window.bc.spotifyStatus()).data.links.find((l) => l.name === 'Rock en español'))));
+    await win.waitForTimeout(600); await shot('06d1-spotify-refresh');
+  }
+}
 // Settings → backup: export, then read it back (without applying: that restarts the app).
 {
   const r = await win.evaluate(async () => { const e = await window.bc.configExport({ 'bc.volume': '0.5', 'bc.queue': '[]' }); const o = await window.bc.configOpen(); return { e, o }; });
   if (!r.e.ok || !r.o.ok || r.o.data.app !== 'BitChord' || !r.o.data.spotifyLinks || !r.o.data.covers) errors.push('Copia de configuración: ' + JSON.stringify(r).slice(0, 300));
 }
-if (!(await win.evaluate(async () => (await window.bc.playlistsList()).data.some((p) => p.origin === 'spotify' && p.cover)))) errors.push('La playlist de Spotify no trae su portada');
+if (!(await win.evaluate(async () => { const st = (await window.bc.spotifyStatus()).data; const covers = (await window.bc.ytCovers()).data; return st.links.some((l) => covers[l.target]); }))) errors.push('La playlist de Spotify no trae su portada');
+if (await win.evaluate(() => typeof window.bc.playlistsList === 'function')) errors.push('Siguen existiendo las playlists solo de BitChord');
 await win.click('.brand img'); await win.waitForTimeout(700);
 if (!(await win.isVisible('#home-greet'))) errors.push('El logo no lleva a Inicio');
 // Home recommendation → ⋮ → "No me interesa": the song disappears from the page.
@@ -314,6 +347,20 @@ await win.click('#back'); await win.waitForTimeout(900);
 if (await win.evaluate(() => document.querySelector('#sidebar').offsetWidth < 100 || document.querySelector('#queue').hidden)) errors.push('Al salir de Ajustes no vuelven la barra lateral y la cola');
 await win.click('#content .row >> nth=0'); await win.waitForTimeout(800);
 await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('13-english-now-playing');
+// Performance mode (title bar button): no glass or moving backgrounds, no visualizer; off again,
+// everything is back.
+{
+  const perf = () => win.evaluate(() => ({ on: document.body.classList.contains('perf'), glass: getComputedStyle(document.body).getPropertyValue('--mica-filter').trim(), amb: getComputedStyle(document.querySelector('#ambient')).display }));
+  await win.click('#btn-perf'); await win.waitForTimeout(500);
+  const p = await perf();
+  if (!p.on || p.glass !== 'none' || p.amb !== 'none') errors.push('Modo rendimiento: ' + JSON.stringify(p));
+  await win.keyboard.press('v'); await win.waitForTimeout(800);
+  if (await win.$('#np-vis')) errors.push('El visualizador se enciende en el modo rendimiento');
+  await shot('14-performance-mode');
+  await win.click('#btn-perf'); await win.waitForTimeout(500);
+  const q = await perf();
+  if (q.on || q.glass === 'none') errors.push('Al quitar el modo rendimiento no vuelven los efectos: ' + JSON.stringify(q));
+}
 await app.close();
 fs.rmSync(userData, { recursive: true, force: true });
 if (errors.length) { console.error('Errores en la interfaz:\n' + errors.join('\n')); process.exit(1); }

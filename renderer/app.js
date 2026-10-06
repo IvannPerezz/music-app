@@ -5,7 +5,7 @@ import { parseResult } from './lyrics-parse.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
-import { mountVisualizer, unmountVisualizer, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange, favorites, toggleFavorite } from './visualizer.js';
+import { mountVisualizer, unmountVisualizer, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange, favorites, toggleFavorite, isReady as isVisReady } from './visualizer.js';
 import { importView } from './import-view.js';
 import { tr, translateStatic, syncUiLang, locale } from './i18n.js';
 
@@ -148,17 +148,11 @@ function followNavPill(ms) {
   requestAnimationFrame(step);
 }
 async function fillPlaylistsFold(inner) {
-  const [mine, yt] = await Promise.all([
-    api('playlistsList').catch(() => []),
-    state.account ? api('accountPlaylists').catch(() => []) : [],
-  ]);
-  const items = [
-    ...sortByPlaylistOrder([
-      ...(state.account && !isHiddenPlaylist('LM') ? [{ key: 'yt:LM', liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
-      ...yt.filter((p) => !isHiddenPlaylist(p.id)).map((p) => ({ key: 'yt:' + p.id, title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
-    ], (x) => x.key),
-    ...sortByPlaylistOrder(mine.map((p) => ({ key: 'bc:' + p.id, title: p.name, thumb: p.cover || p.thumbs?.[0], route: { name: 'localplaylist', id: p.id } })), (x) => x.key),
-  ];
+  const yt = state.account ? await api('accountPlaylists').catch(() => []) : [];
+  const items = sortByPlaylistOrder([
+    ...(state.account && !isHiddenPlaylist('LM') ? [{ key: 'yt:LM', liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
+    ...yt.filter((p) => !isHiddenPlaylist(p.id)).map((p) => ({ key: 'yt:' + p.id, title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
+  ], (x) => x.key);
   const key = JSON.stringify(items.map((x) => [x.title, x.thumb]));
   if (inner.dataset.key === key) return; // nothing changed: don't redraw (no flicker)
   inner.dataset.key = key;
@@ -454,8 +448,8 @@ const views = {
     if (!head.querySelector(':scope > img, :scope > .mosaic')) head.prepend(h(`<div class="mosaic empty">${icon('queue')}</div>`));
     coverEditor(view, {
       title: tr('Portada de la playlist (solo en BitChord)'), hasCover: !!custom,
-      onData: async (bytes) => { const url = await api('ytCoverData', route.id, bytes); state.ytCovers = { ...state.ytCovers, [route.id]: url }; },
-      onRemove: async () => { await api('ytCoverRemove', route.id); const m = { ...state.ytCovers }; delete m[route.id]; state.ytCovers = m; },
+      onData: async (bytes) => { await api('ytCoverData', route.id, bytes); state.ytCovers = await api('ytCovers'); },
+      onRemove: async () => { await api('ytCoverRemove', route.id); state.ytCovers = await api('ytCovers'); },
     });
     if (state.account && route.id !== 'LM') {
       // Rename in the account: the new name shows in the official apps too.
@@ -471,6 +465,7 @@ const views = {
       del.onclick = () => deletePlaylist({ kind: 'playlist', id: route.id, title: d.title }, { leave: true });
       view.querySelector('.actions').append(del);
     }
+    await spotifyRefreshButton(view, route.id);
     return view;
   },
 
@@ -505,28 +500,9 @@ const views = {
   },
 
   library: (route) => libraryView(route),
-  'spotify-import': () => importView(),
-  async localplaylist(route) {
-    const p = await api('playlistGet', route.id);
-    const view = detailView({
-      kind: 'localplaylist', id: p.id, title: p.name,
-      subtitle: tr(p.origin === 'spotify' ? 'Playlist de BitChord · importada de Spotify' : 'Playlist de BitChord'),
-      thumb: p.cover || p.thumbs[0] || null, mosaic: p.cover ? [] : p.thumbs,
-      tracks: p.tracks, sections: [],
-    }, tr('Playlist'), { playlistId: p.id });
-    const actions = view.querySelector('.actions');
-    coverEditor(view, {
-      title: tr('Portada de la playlist'), hasCover: !!p.cover,
-      onData: (bytes) => api('playlistCoverData', p.id, bytes),
-      onRemove: () => api('playlistCoverRemove', p.id),
-    });
-    const ren = h(`<button class="btn ghost">${icon('edit')}${tr('Renombrar')}</button>`);
-    ren.onclick = async () => { const n = await askText(tr('Renombrar playlist'), { value: p.name, ok: tr('Guardar') }); if (n) { await api('playlistRename', p.id, n); refreshView(); } };
-    const del = h(`<button class="btn ghost">${icon('trash')}${tr('Eliminar playlist')}</button>`);
-    del.onclick = () => deletePlaylist({ kind: 'localplaylist', id: p.id, title: p.name }, { leave: true });
-    actions.append(ren, del);
-    return view;
-  },
+  'spotify-import': (route) => importView(route),
+  // Playlists kept only in BitChord no longer exist (an old link or the history can still point here).
+  localplaylist: () => h(`<div class="empty">${icon('queue')}<div><b>${tr('Esta playlist ya no existe')}</b></div><div class="muted">${tr('Las playlists se guardan ahora en tu cuenta de YouTube Music.')}</div></div>`),
   async localfolder(route) {
     const f = await api('localFolderGet', route.id);
     const view = detailView({
@@ -589,12 +565,45 @@ function coverEditor(view, { title, hasCover, onData, onRemove }) {
   });
 }
 
+/** «Spotify Sync» (next to Reproducir) on a playlist that's a copy of a linked Spotify one: asks Spotify
+ *  right away for new songs, name, description and cover, instead of waiting for the automatic
+ *  update every few hours. */
+async function spotifyRefreshButton(view, target) {
+  let st;
+  try { st = await api('spotifyStatus'); } catch { return; }
+  const bare = (id) => String(id || '').replace(/^VL/, ''); // YouTube writes the same playlist with or without "VL"
+  const l = st?.connected && st.links.find((x) => x.target && bare(x.target) === bare(target));
+  if (!l) return;
+  const label = 'Spotify Sync';
+  const b = h(`<button class="btn spotify" title="${tr('Comprueba si en Spotify hay canciones nuevas o cambió el nombre o la descripción')}">${icon('refresh')}<span>${label}</span></button>`);
+  b.onclick = async () => {
+    b.disabled = true; b.classList.add('busy'); b.querySelector('span').textContent = tr('Actualizando…');
+    try {
+      const s = await api('spotifySync', l.id);
+      const now = s.links.find((x) => x.id === l.id);
+      if (now?.error) throw new Error(now.error);
+      const added = now?.lastAdded || 0, removed = now?.lastRemoved || 0;
+      const details = now && (now.name !== l.name || (now.description ?? '') !== (l.description ?? '') || now.cover !== l.cover);
+      toast(added && removed ? tr('Sincronizada: {a} canciones nuevas y {r} quitadas', { a: added, r: removed })
+        : added ? (added === 1 ? tr('Una canción nueva desde Spotify') : tr('{n} canciones nuevas desde Spotify', { n: added }))
+        : removed ? (removed === 1 ? tr('Quitada una canción que ya no está en Spotify') : tr('Quitadas {n} canciones que ya no están en Spotify', { n: removed }))
+        : details ? tr('Playlist actualizada desde Spotify') : tr('Ya estaba al día con Spotify'));
+      renderSidebar();
+      refreshView();
+    } catch (e) {
+      toast(e.message, true);
+      b.disabled = false; b.classList.remove('busy'); b.querySelector('span').textContent = label;
+    }
+  };
+  view.querySelector('[data-a=play]').after(b);
+}
+
 export function detailView(d, kindLabel, rowOpts = {}) {
   const root = h('<div></div>');
   const total = d.tracks.reduce((s, t) => s + (t.duration || 0), 0);
   const head = h(`
     <div class="detail-head">
-      ${d.mosaic?.length >= 4 ? `<div class="mosaic">${d.mosaic.slice(0, 4).map((u) => `<img src="${esc(art(u))}" alt="">`).join('')}</div>` : d.thumb ? `<img src="${esc(art(d.thumb))}" alt="">` : d.kind === 'localplaylist' ? `<div class="mosaic empty">${icon('queue')}</div>` : d.kind === 'localfolder' ? `<div class="mosaic empty">${icon('folder')}</div>` : ''}
+      ${d.mosaic?.length >= 4 ? `<div class="mosaic">${d.mosaic.slice(0, 4).map((u) => `<img src="${esc(art(u))}" alt="">`).join('')}</div>` : d.thumb ? `<img src="${esc(art(d.thumb))}" alt="">` : d.kind === 'localfolder' ? `<div class="mosaic empty">${icon('folder')}</div>` : ''}
       <div style="min-width:0">
         <div class="kind">${kindLabel}</div>
         <h1>${esc(d.title)}</h1>
@@ -669,7 +678,7 @@ function trackList(d, rowOpts, onShown) {
       b.title = tr('Ordenar por {what}', { what: b.textContent.toLowerCase() });
     });
     box.replaceChildren();
-    list.forEach((t, i) => box.append(trackRow(t, i, list, { numbered, details: !!rowOpts.details, ...(rowOpts.playlistId ? { playlistId: rowOpts.playlistId, playlistIndex: original.get(t) } : {}) })));
+    list.forEach((t, i) => box.append(trackRow(t, i, list, { numbered, details: !!rowOpts.details })));
     if (!d.tracks.length) box.append(h(`<div class="empty">${tr('No hay canciones.')}</div>`));
     else if (!list.length) box.append(h(`<div class="empty">${tr('Ninguna canción coincide con «{q}».', { q: esc(input.value.trim()) })}</div>`));
     markPlaying();
@@ -706,11 +715,10 @@ export async function downloadTracks(tracks) {
 }
 
 // ------------------------------------------------------------------ playlist menu (right click on a playlist)
-/** p: { kind: 'playlist' (YouTube Music) | 'localplaylist' (BitChord), id, title }. */
+/** p: { kind: 'playlist' (YouTube Music), id, title }. */
 export function playlistMenu(p, anchor) {
-  const tracks = () => api(p.kind === 'localplaylist' ? 'playlistGet' : 'playlist', p.id).then((d) => d.tracks).catch((e) => { toast(e.message, true); return []; });
+  const tracks = () => api('playlist', p.id).then((d) => d.tracks).catch((e) => { toast(e.message, true); return []; });
   const from = { kind: tr('Playlist'), name: p.title };
-  const yt = p.kind === 'playlist';
   openMenu([
     { header: p.title },
     { icon: 'play', label: tr('Reproducir'), action: async () => { const t = await tracks(); if (t.length) player.playList(t, 0, { from }); } },
@@ -718,34 +726,31 @@ export function playlistMenu(p, anchor) {
     { icon: 'addQueue', label: tr('Añadir a la cola'), action: async () => { const t = await tracks(); if (t.length) { player.enqueue(t); toast(tr('{n} canciones añadidas a la cola', { n: t.length })); } } },
     { icon: 'download', label: tr('Descargar'), action: async () => downloadTracks(await tracks()) },
     null,
-    { icon: 'open', label: tr('Abrir'), action: () => go({ name: p.kind, id: p.id }) },
-    ...(yt ? [{ icon: 'open', label: tr('Abrir en YouTube Music'), action: () => bc.openExternal(`https://music.youtube.com/playlist?list=${p.id.replace(/^VL/, '')}`) }] : []),
-    ...(yt && p.id === 'LM' ? [] : [{ icon: 'edit', label: tr('Renombrar'), action: async () => {
+    { icon: 'open', label: tr('Abrir'), action: () => go({ name: 'playlist', id: p.id }) },
+    { icon: 'open', label: tr('Abrir en YouTube Music'), action: () => bc.openExternal(`https://music.youtube.com/playlist?list=${p.id.replace(/^VL/, '')}`) },
+    ...(p.id === 'LM' ? [] : [{ icon: 'edit', label: tr('Renombrar'), action: async () => {
       const n = await askText(tr('Renombrar playlist'), { value: p.title, ok: tr('Guardar') });
       if (!n || n === p.title) return;
-      try { await api(yt ? 'ytPlaylistRename' : 'playlistRename', p.id, n); if (yt) toast(tr('Nombre cambiado también en tu cuenta de YouTube Music')); refreshView(); renderSidebar(); }
+      try { await api('ytPlaylistRename', p.id, n); toast(tr('Nombre cambiado también en tu cuenta de YouTube Music')); refreshView(); renderSidebar(); }
       catch (e) { toast(e.message, true); }
     } }]),
     null,
     // Hiding works for any YouTube Music playlist, "Me gusta" included (it can't be deleted).
-    ...(yt ? [{ icon: 'remove', label: tr('Ocultar en BitChord'), action: async () => { await hidePlaylist(p); refreshView(); } }] : []),
-    ...(yt && p.id === 'LM' ? [] : [{ icon: 'trash', label: tr('Eliminar playlist'), action: () => deletePlaylist(p) }]),
+    { icon: 'remove', label: tr('Ocultar en BitChord'), action: async () => { await hidePlaylist(p); refreshView(); } },
+    ...(p.id === 'LM' ? [] : [{ icon: 'trash', label: tr('Eliminar playlist'), action: () => deletePlaylist(p) }]),
   ], anchor);
 }
-/** Deletes a whole playlist after a confirmation (YouTube Music ones from the account too). */
+/** Deletes a whole YouTube Music playlist from the account, after a confirmation. */
 export async function deletePlaylist(p, { leave = false } = {}) {
-  const yt = p.kind === 'playlist';
-  const msg = yt ? tr('¿Eliminar «{name}» de tu cuenta de YouTube Music? Desaparecerá también de la app oficial. Las canciones no se borran.', { name: p.title })
-    : tr('¿Borrar «{name}»? Las canciones no se borran, solo la lista.', { name: p.title });
+  const msg = tr('¿Eliminar «{name}» de tu cuenta de YouTube Music? Desaparecerá también de la app oficial. Las canciones no se borran.', { name: p.title });
   if (!(await confirmDialog(tr('Eliminar playlist'), msg, { ok: tr('Eliminar'), danger: true }))) return false;
   try {
-    await api(yt ? 'ytPlaylistDelete' : 'playlistDelete', p.id);
+    await api('ytPlaylistDelete', p.id);
     toast(tr('Playlist eliminada'));
     renderSidebar();
     if (leave) go({ name: 'library', tab: 'playlists' }, { replace: true }); else refreshView();
     return true;
   } catch (e) {
-    if (!yt) { toast(e.message, true); return false; }
     // YouTube refuses to delete its own special lists ("Episodios para más tarde"…) and playlists
     // saved from other people: explain it and offer to hide it in BitChord instead.
     const hide = await confirmDialog(tr('No se puede eliminar'),
@@ -833,7 +838,7 @@ function trackMenu(t, anchor, opts = {}) {
     ...(t.local ? [] : [{ icon: 'radio', label: tr('Iniciar radio'), action: () => player.playRadio(t) }]),
     null,
     { icon: liked ? 'heartFill' : 'heart', label: tr(liked ? 'Quitar de favoritos' : 'Añadir a favoritos'), action: () => toggleLike(t) },
-    { icon: 'playlistAdd', label: tr('Añadir a una playlist…'), action: () => addToPlaylistMenu([t], anchor) },
+    ...(t.local ? [] : [{ icon: 'playlistAdd', label: tr('Añadir a una playlist…'), action: () => addToPlaylistMenu([t], anchor) }]),
     ...(t.local ? [] : isDownloaded(t.id)
       ? [{ icon: 'trash', label: tr('Borrar descarga'), action: () => api('downloadRemove', t.id).then(() => toast(tr('Descarga borrada'))) }]
       : [{ icon: 'download', label: tr('Descargar'), action: () => downloadTracks([t]) }]),
@@ -846,7 +851,6 @@ function trackMenu(t, anchor, opts = {}) {
       ...(t.feedback.artist ? [{ icon: 'person', label: tr('No recomendar a este artista'), action: () => notInterested(t, 'artist') }] : []),
     ] : []),
     ...(opts.queueIndex != null ? [null, { icon: 'remove', label: tr('Quitar de la cola'), action: () => player.removeAt(opts.queueIndex) }] : []),
-    ...(opts.playlistId ? [null, { icon: 'remove', label: tr('Quitar de esta playlist'), action: async () => { await api('playlistRemoveAt', opts.playlistId, opts.playlistIndex); refreshView(); } }] : []),
   ], anchor);
 }
 
@@ -883,41 +887,24 @@ async function squareJpeg(file) {
   return new Uint8Array(await blob.arrayBuffer());
 }
 
-/** "Add to playlist" picker (BitChord playlists; a new one can be created on the spot). */
+/** "Add to playlist" picker: the playlists of the YouTube Music account (a new one can be created
+ *  on the spot). Songs from this PC's files can't go in them. */
 export async function addToPlaylistMenu(tracks, anchor) {
   const online = tracks.filter((t) => !t.local);
-  const [lists, ytLists] = await Promise.all([
-    api('playlistsList'),
-    state.account && online.length ? api('accountPlaylists').catch(() => []) : [],
-  ]);
-  const add = async (id, name) => {
-    const n = await api('playlistAdd', id, tracks);
-    toast(n ? (n > 1 ? tr('Añadidas {n} canciones a «{name}»', { n, name }) : tr('Añadida a «{name}»', { name })) : tr('Ya estaba en «{name}»', { name }));
-  };
+  if (!online.length) return toast(tr('Las canciones de este equipo no se pueden añadir a playlists de YouTube Music'), true);
+  if (!state.account) return toast(tr('Inicia sesión con Google para añadir canciones a tus playlists de YouTube Music.'), true);
+  const ytLists = await api('accountPlaylists').catch(() => []);
   const addYt = async (id, name) => {
     try { await api('ytPlaylistAdd', id, online.map((t) => t.id)); toast(online.length > 1 ? tr('Añadidas {n} canciones a «{name}»', { n: online.length, name }) : tr('Añadida a «{name}»', { name })); }
     catch (e) { toast(e.message, true); }
   };
-  const newLocal = async () => {
-    const name = await askText(tr('Nueva playlist (solo en BitChord)'), { placeholder: tr('Nombre de la playlist'), ok: tr('Crear') });
+  const items = [{ header: tr('Tus playlists de YouTube Music') }, { icon: 'add', label: tr('Nueva playlist…'), action: async () => {
+    const name = await askText(tr('Nueva playlist de YouTube Music'), { placeholder: tr('Nombre de la playlist'), ok: tr('Crear') });
     if (!name) return;
-    await api('playlistCreate', name, tracks);
-    toast(tr('Playlist «{name}» creada', { name }));
-  };
-  const items = [];
-  if (state.account && online.length) {
-    items.push({ header: tr('Tus playlists de YouTube Music') }, { icon: 'add', label: tr('Nueva playlist…'), action: async () => {
-      const name = await askText(tr('Nueva playlist de YouTube Music'), { placeholder: tr('Nombre de la playlist'), ok: tr('Crear') });
-      if (!name) return;
-      try { await api('ytPlaylistCreate', name, online.map((t) => t.id)); toast(tr('Playlist «{name}» creada en YouTube Music', { name })); }
-      catch (e) { toast(e.message, true); }
-    } });
-    ytLists.slice(0, 40).forEach((p) => items.push({ icon: 'queue', label: p.title, action: () => addYt(p.id, p.title) }));
-    items.push(null, { header: tr('Solo en BitChord') }, { icon: 'add', label: tr('Nueva playlist solo en BitChord…'), action: newLocal });
-  } else {
-    items.push({ header: tr('Añadir a playlist de BitChord') }, { icon: 'add', label: tr('Nueva playlist…'), action: newLocal });
-  }
-  lists.slice(0, 30).forEach((p) => items.push({ icon: 'queue', label: p.name, hint: `${p.count}`, action: () => add(p.id, p.name) }));
+    try { await api('ytPlaylistCreate', name, online.map((t) => t.id)); toast(tr('Playlist «{name}» creada en YouTube Music', { name })); renderSidebar(); }
+    catch (e) { toast(e.message, true); }
+  } }];
+  ytLists.slice(0, 40).forEach((p) => items.push({ icon: 'queue', label: p.title, action: () => addYt(p.id, p.title) }));
   openMenu(items, anchor instanceof Element && anchor.isConnected ? anchor : { x: innerWidth / 2 - 120, y: innerHeight / 3 });
 }
 
@@ -1451,7 +1438,7 @@ let fsPanelKind = null, fsPanelGen = 0, fsPanelTimer = null;
 /** Full screen: side panel (same place and animation as the queue) with a menu or the EQ. */
 function openFsPanel(kind, title, body) {
   const p = $('#fs-panel');
-  if (!$('#queue').hidden) toggleQueue(false);
+  if (!$('#queue').hidden && !document.body.classList.contains('queue-under')) toggleQueue(false); // (one lying under the view stays)
   clearTimeout(fsPanelTimer);
   fsPanelGen++;
   fsPanelKind = kind;
@@ -1474,13 +1461,136 @@ function closeFsPanel() {
   fsPanelTimer = setTimeout(() => { p.hidden = true; p.classList.remove('closing'); }, 300);
 }
 // ------------------------------------------------------------------ visualizer
+// ------------------------------------------------------------------ performance mode
+// Everything that costs the graphics card or the processor goes: Mica glass (blurring what's behind
+// every panel, live), the animated backgrounds, the visualizer, animated covers, animations and
+// the blur of the lyrics. Nothing of the user's own settings changes, so turning it off brings it
+// all back. (styles.css: body.perf)
+export const perfMode = () => !!state.settings.performanceMode;
+const reducedMotion = () => perfMode() || matchMedia('(prefers-reduced-motion: reduce)').matches;
+function applyPerf() {
+  const on = perfMode();
+  document.body.classList.toggle('perf', on);
+  $('#btn-perf').classList.toggle('on', on);
+  $('#btn-perf').title = tr(on ? 'Modo rendimiento activado: pulsa para volver a los efectos' : 'Modo rendimiento: menos uso de gráfica y procesador');
+  applyVis();
+  updateCanvas();
+}
+export async function setPerformanceMode(on) {
+  await saveSettings({ performanceMode: !!on });
+  toast(tr(on ? 'Modo rendimiento activado: sin efectos de cristal, fondos animados, visualizador ni animaciones' : 'Modo rendimiento desactivado'));
+}
+function toggleVisualizer() {
+  if (perfMode()) return toast(tr('El visualizador está apagado en el modo rendimiento'));
+  saveSettings({ visualizer: !state.settings.visualizer });
+}
+
+let visGen = 0;
 function applyVis() {
-  const on = !!state.settings.visualizer;
-  document.body.classList.toggle('vis-on', on);
+  const on = !!state.settings.visualizer && !perfMode();
   $('#np-vis-toggle').classList.toggle('on', on);
   $('#np-vis-toggle').title = tr(on ? 'Volver a portada y letra (V)' : 'Visualizador (V)');
-  if (on && npOpen()) mountVisualizer($('#nowplaying'), engine);
-  if (!on) { unmountVisualizer(); if (fsPanelKind === 'vis') closeFsPanel(); }
+  if (!on && fsPanelKind === 'vis') closeFsPanel();
+  const gen = ++visGen;
+  // A switch cut short mustn't leave the full-screen controls hidden off screen.
+  $('#np-fs-slot').getAnimations().forEach((a) => a.cancel());
+  const animate = npOpen() && document.body.classList.contains('vis-on') !== on && !reducedMotion();
+  if (!animate) {
+    document.body.classList.toggle('vis-on', on);
+    if (on && npOpen()) mountVisualizer($('#nowplaying'), engine);
+    if (!on) unmountVisualizer();
+    return;
+  }
+  visBlurSwitch(on, gen);
+}
+/** Switching between cover/lyrics and the visualizer through a blur: what's on screen blurs and
+ *  darkens away, the song details glide to their new place, and the other view comes out of the
+ *  blur into focus (the visualizer only once it's drawing, so there's no black flash). */
+async function visBlurSwitch(on, gen) {
+  const np = $('#nowplaying'), stale = () => gen !== visGen;
+  const blurred = { opacity: 0, filter: 'blur(28px) brightness(.45)', transform: 'scale(1.04)' };
+  const sharp = { opacity: 1, filter: 'blur(0px) brightness(1)', transform: 'scale(1)' };
+  const coverParts = () => [$('#np-art'), np.querySelector('.np-right'), np.querySelector('.np-bg'), np.querySelector('.np-amb')].filter((el) => el?.offsetWidth);
+  // The lyrics blur fully; the artwork keeps its own transform (it shrinks while paused) and the
+  // backgrounds their own filters, so those only blur or fade.
+  const frames = (el, show) => {
+    const k = el.id === 'np-art' ? [{ opacity: 0, filter: blurred.filter }, { opacity: 1, filter: sharp.filter }]
+      : el.matches('.np-right') ? [blurred, sharp] : [{ opacity: 0 }, { opacity: 1 }];
+    return show ? k : [...k].reverse();
+  };
+  const meta = [$('#np-title'), $('#np-artist'), $('#np-stats')];
+  // Full screen: going to the visualizer the controls leave through the left while the view blurs
+  // away and slide up from below into their new place when it appears (once it draws); coming
+  // back they do the opposite: out through the bottom, in from the left.
+  const slot = isFs() && $('#np-fs-slot').childElementCount ? $('#np-fs-slot') : null;
+  // With the lyrics hidden (or none) the controls are already centred under the artwork: then they
+  // just glide down to the bottom (and back up) along with the song details.
+  const glideSlot = !!slot && np.classList.contains('no-lyrics');
+  const slotFrom = () => (glideSlot ? slot.getBoundingClientRect() : null);
+  const slotGlide = (a) => {
+    if (!a) return;
+    const b = slot.getBoundingClientRect();
+    slot.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)` }, { transform: 'none' }], { duration: 650, easing: FS_EASE });
+  };
+  let slotOut = null;
+  const offLeft = (r) => `translateX(${-(r.right + 60)}px)`;
+  const offBottom = (r) => `translateY(${innerHeight - r.top + 24}px)`;
+  const controlsOut = () => {
+    if (!slot || glideSlot) return;
+    const r = slot.getBoundingClientRect();
+    slotOut = slot.animate([{ transform: 'none', opacity: 1 }, { transform: on ? offLeft(r) : offBottom(r), opacity: 0 }],
+      { duration: 420, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
+  };
+  const controlsIn = () => {
+    if (!slot || glideSlot) return;
+    slotOut?.cancel();
+    const r = slot.getBoundingClientRect();
+    slot.animate([{ transform: on ? offBottom(r) : offLeft(r), opacity: 0 }, { transform: 'none', opacity: 1 }],
+      { duration: 700, easing: FS_EASE });
+  };
+  if (on) {
+    // The visualizer starts loading straight away, hidden, while the cover and lyrics blur away.
+    mountVisualizer(np, engine);
+    const frame = $('#np-vis');
+    if (frame) frame.style.opacity = '0';
+    const outs = coverParts().map((el) => el.animate(frames(el, false), { duration: 380, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }));
+    controlsOut();
+    await Promise.all(outs.map((a) => a.finished.catch(() => {})));
+    if (stale()) return outs.forEach((a) => a.cancel());
+    const before = meta.map(textRect), slotBefore = slotFrom();
+    document.body.classList.add('vis-on');
+    outs.forEach((a) => a.cancel());
+    glideText(meta, before, 650);
+    slotGlide(slotBefore);
+    // Out of the blur once it draws (or after a while, if it's slow to start).
+    await new Promise((done) => {
+      if (isVisReady()) return done();
+      const t = setTimeout(() => { off(); done(); }, 4000);
+      const off = onVisChange(() => { if (isVisReady()) { clearTimeout(t); off(); done(); } });
+    });
+    const f = $('#np-vis');
+    if (stale()) return;
+    if (!f) return controlsIn();
+    f.style.opacity = '';
+    f.animate([blurred, sharp], { duration: 900, easing: FS_EASE });
+    controlsIn();
+  } else {
+    const frame = $('#np-vis');
+    controlsOut();
+    if (frame && frame.style.opacity !== '0') { // (still hidden if it hadn't started drawing yet)
+      const out = frame.animate([sharp, blurred], { duration: 380, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' });
+      await out.finished.catch(() => {});
+      if (stale()) return out.cancel();
+    } else await slotOut?.finished.catch(() => {});
+    if (stale()) return;
+    const before = meta.map(textRect), slotBefore = slotFrom();
+    unmountVisualizer();
+    document.body.classList.remove('vis-on');
+    glideText(meta, before, 650);
+    slotGlide(slotBefore);
+    for (const el of coverParts()) el.animate(frames(el, true), { duration: 800, easing: FS_EASE });
+    controlsIn();
+  }
 }
 /** Presets panel: another one at random, when to change on its own, search and the list. */
 function toggleVisPanel() {
@@ -1562,11 +1672,101 @@ function syncFsPanelButtons() {
   $('#lyrics-source').classList.remove('open');
   $('#lyrics-source').classList.toggle('on', fsPanelKind === 'lyrics-source');
 }
-function applyFullscreen(on) {
+/** Bounds of an element's text (not of its box), or null when it isn't shown. */
+function textRect(el) {
+  if (!el.offsetWidth || !el.textContent.trim()) return null;
+  const r = document.createRange();
+  r.selectNodeContents(el);
+  return r.getBoundingClientRect();
+}
+/** Full-screen layout on/off: the player bar's controls move under the song details and back. */
+function moveFsControls(on) {
   document.body.classList.toggle('fs', on);
   const center = $('.p-center');
   if (on) $('#np-fs-slot').append(center);
   else $('#player .p-left').after(center);
+}
+const FS_EASE = 'cubic-bezier(.2,.8,.2,1)', FS_BAR_MS = 420;
+/** Each text glides (and resizes) from where it was (`before`, from textRect) to where it is now. */
+function glideText(els, before, duration = 550) {
+  els.forEach((el, i) => {
+    const a = before[i], b = textRect(el);
+    if (!a || !b || !b.height) return;
+    const box = el.getBoundingClientRect(), o = `${b.left - box.left}px ${b.top - box.top}px`;
+    el.animate([{ transformOrigin: o, transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.height / b.height})` },
+      { transformOrigin: o, transform: 'none' }], { duration, easing: FS_EASE });
+  });
+}
+/** Entering full screen the player bar slides down out of the window, controls and all, and the
+ *  full-screen controls (the same ones, moved under the song details) show up half a second later with a
+ *  fade and zoom in. Leaving, those zoom out and fade away while the bar slides back up with its
+ *  controls. The title, artist and stats (and the artwork, without the visualizer) glide and resize
+ *  between their two places. */
+const FS_CONTROLS_DELAY = 500;
+function switchFullscreen(on) {
+  const slot = $('#np-fs-slot');
+  slot.getAnimations().forEach((a) => a.cancel()); // (a previous switch, or a cover/visualizer one)
+  const bar = $('#player');
+  const meta = npOpen() ? [$('#np-title'), $('#np-artist'), $('#np-stats')] : [];
+  const art = npOpen() && !document.body.classList.contains('vis-on') ? $('#np-art') : null;
+  const metaBefore = meta.map(textRect);
+  const artBefore = art?.getBoundingClientRect();
+  const reduced = reducedMotion();
+  // Copies that do the leaving, so the real controls can move at once: entering, the whole bar;
+  // leaving, the full-screen controls (shown as they are, on top, where they are).
+  const ghostOf = (el, { rect = null, drop = '' } = {}) => {
+    const g = el.cloneNode(true);
+    if (drop) g.querySelectorAll(drop).forEach((x) => x.remove());
+    // Kept as they look now: once full screen ends, the rules for its own buttons stop applying.
+    g.querySelectorAll('.fs-only').forEach((x, i) => {
+      const real = el.querySelectorAll('.fs-only')[i];
+      if (real) x.style.setProperty('display', getComputedStyle(real).display, 'important');
+    });
+    g.setAttribute('aria-hidden', 'true');
+    g.inert = true;
+    g.style.setProperty('display', getComputedStyle(el).display, 'important');
+    g.style.pointerEvents = 'none';
+    if (rect) Object.assign(g.style, { position: 'fixed', left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', margin: '0', zIndex: '7' });
+    document.body.append(g); // after the real ones, so lookups by id still find those
+    return g;
+  };
+  let ghost = null;
+  if (!reduced && on && bar.offsetWidth) ghost = ghostOf(bar, { drop: '.fs-only' });
+  if (!reduced && !on && slot.offsetWidth) ghost = ghostOf(slot, { rect: slot.getBoundingClientRect() });
+  moveFsControls(on);
+  if (reduced) return;
+
+  glideText(meta, metaBefore);
+  // The artwork moves and resizes along with them. Added on top of its own transform (it shrinks
+  // while paused), which also scales the movement, hence the division.
+  const artAfter = art?.getBoundingClientRect();
+  if (artBefore?.width && artAfter?.width) {
+    const k = new DOMMatrix(getComputedStyle(art).transform).a || 1;
+    const dx = (artBefore.left + artBefore.width / 2 - artAfter.left - artAfter.width / 2) / k;
+    const dy = (artBefore.top + artBefore.height / 2 - artAfter.top - artAfter.height / 2) / k;
+    art.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${artBefore.width / artAfter.width})` }, { transform: 'translate(0, 0) scale(1)' }],
+      { duration: 550, easing: FS_EASE, composite: 'add' });
+  }
+  if (on) {
+    ghost?.animate([{ transform: 'none' }, { transform: 'translateY(calc(100% + 40px))' }],
+      { duration: FS_BAR_MS, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }).finished.finally(() => ghost.remove());
+    // Hidden (and not clickable) until they come in.
+    slot.style.pointerEvents = 'none';
+    slot.animate([{ opacity: 0, transform: 'scale(.85)' }, { opacity: 1, transform: 'none' }],
+      { duration: 500, delay: FS_CONTROLS_DELAY, easing: FS_EASE, fill: 'backwards' })
+      .finished.catch(() => {}).finally(() => { slot.style.pointerEvents = ''; });
+  } else {
+    slot.style.pointerEvents = '';
+    ghost?.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.85)' }],
+      { duration: 140, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished.finally(() => ghost.remove());
+    // The bar comes up once those are nearly gone, so the two sets never overlap (with the
+    // visualizer they sit right where the bar comes up).
+    bar.animate([{ transform: 'translateY(100%)' }, { transform: 'none' }], { duration: FS_BAR_MS, delay: 110, easing: FS_EASE, fill: 'backwards' });
+  }
+}
+function applyFullscreen(on) {
+  if (isFs() !== on) switchFullscreen(on);
+  else moveFsControls(on);
   $('#btn-fs').innerHTML = icon(on ? 'fullscreenExit' : 'fullscreen');
   $('#btn-fs').title = tr(on ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa (F11)');
   $('#btn-fs').classList.toggle('on', on);
@@ -1698,6 +1898,7 @@ function updateNowPlaying() {
     }) : null;
   }
   pushState();
+  updateCanvas();
   if (t) setTimeout(updateStats, 2500);
 }
 
@@ -1854,13 +2055,84 @@ function showMixBadge() {
 }
 
 let npCloseTimer = null;
+// ------------------------------------------------------------------ animated cover
+// Only the big artwork of the cover and lyrics view (and full screen) moves: the player bar's
+// cover and every list keep still images. The video (see src/canvas.js for where it comes from)
+// sits over #np-art and copies its box, transform, opacity and filter every frame, so the pause
+// shrink, the full-screen glide and the visualizer blur all carry it along untouched.
+let canvasKey = null, canvasRaf = 0;
+// Nobody sees it with the window minimised or hidden: don't spend anything decoding it.
+document.addEventListener('visibilitychange', () => {
+  const v = $('#np-canvas');
+  if (v) { if (document.hidden) v.pause(); else v.play().catch(() => {}); }
+});
+async function updateCanvas() {
+  const t = player.current;
+  const want = state.settings.animatedCovers !== false && !perfMode() && t && !t.local && npOpen() && !state.settings.visualizer;
+  const key = want ? t._k ?? t.id : null;
+  if (key === canvasKey) return;
+  canvasKey = key;
+  removeCanvas();
+  if (!key) return;
+  let c = null;
+  try { c = await api('canvasFor', { id: t.id, title: t.title, artist: artistNames(t), album: t.album?.name || null }); } catch {}
+  if (canvasKey !== key || !c?.url) return;
+  mountCanvas(c);
+}
+function removeCanvas() {
+  cancelAnimationFrame(canvasRaf);
+  const v = $('#np-canvas');
+  if (!v) return;
+  v.id = '';
+  v.animate([{ opacity: v.style.opacity || 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
+  // (A timer, not the animation's end: that never comes if the view is hidden meanwhile.)
+  setTimeout(() => { v.pause(); v.removeAttribute('src'); v.load(); v.remove(); }, 320);
+}
+function mountCanvas(c) {
+  const v = document.createElement('video');
+  v.id = 'np-canvas';
+  v.dataset.source = c.source;
+  Object.assign(v, { muted: true, loop: true, playsInline: true, autoplay: true, disablePictureInPicture: true });
+  v.setAttribute('aria-hidden', 'true');
+  v.src = c.url;
+  $('#nowplaying').append(v);
+  let shownAt = 0;
+  v.addEventListener('playing', () => { shownAt ||= performance.now(); }, { once: true });
+  // A clip that fails mid-way gets one more try from where it was; then the still cover stays.
+  let retried = false;
+  v.addEventListener('error', () => {
+    if (!v.id) return;
+    if (retried) return removeCanvas();
+    retried = true;
+    const at = v.currentTime;
+    v.load();
+    v.addEventListener('loadedmetadata', () => { v.currentTime = at; v.play().catch(() => {}); }, { once: true });
+  });
+  const last = {};
+  const set = (k, val) => { if (last[k] !== val) { last[k] = val; v.style[k] = val; } };
+  const follow = () => {
+    canvasRaf = requestAnimationFrame(follow);
+    const img = $('#np-art'), np = $('#nowplaying');
+    const r = img.getBoundingClientRect(), n = np.getBoundingClientRect();
+    if (!r.width || !img.offsetWidth) return set('opacity', '0');
+    const cs = getComputedStyle(img);
+    const fade = shownAt ? Math.min(1, (performance.now() - shownAt) / 600) : 0; // fades in once it plays
+    set('left', `${r.left - n.left}px`); set('top', `${r.top - n.top}px`);
+    set('width', `${r.width}px`); set('height', `${r.height}px`);
+    set('borderRadius', `${parseFloat(cs.borderTopLeftRadius) * (r.width / img.offsetWidth)}px`);
+    set('opacity', String(+cs.opacity * fade));
+    set('filter', cs.filter === 'none' ? '' : cs.filter); // (leave the view's own blurs alone)
+  };
+  follow();
+}
+
 function openNowPlaying() {
   if (!player.current) return toast(tr('No hay nada sonando'));
   const np = $('#nowplaying');
   clearTimeout(npCloseTimer); np.classList.remove('closing');
-  // Cover and lyrics (and full screen) get the whole window: the queue tucks itself away until
-  // its button brings it back, and comes back by itself when this view closes.
-  if (np.hidden && !$('#queue').hidden && !$('#queue').classList.contains('closing')) { toggleQueue(false, { remember: false, instant: true }); queueAutoHidden = true; }
+  // Cover and lyrics (and full screen) cover the whole window, the sidebars included. An open queue
+  // stays open underneath (nothing closes or reopens) until its button brings it up over the view.
+  if (np.hidden && queueIsOpen()) setQueueUnder(true);
   np.hidden = false;
   document.body.classList.add('np-open');
   $('#btn-lyrics').classList.add('on');
@@ -1869,6 +2141,7 @@ function openNowPlaying() {
   renderLyrics();
   updateStats();
   if (state.settings.visualizer) mountVisualizer($('#nowplaying'), engine);
+  updateCanvas();
 }
 function applyLyricsHidden() {
   // Hidden by the user, or automatically when the song has no lyrics (the cover then takes the
@@ -1890,9 +2163,10 @@ function closeNowPlaying() {
   $('#nav-nowplaying')?.classList.remove('active');
   // Slide/fade out first; the title bar keeps the artwork tone until the view is gone.
   np.classList.add('closing');
-  npCloseTimer = setTimeout(() => { np.hidden = true; np.classList.remove('closing'); document.body.classList.remove('np-open'); unmountVisualizer(); }, 230);
+  // An open queue was under the view all along: it stays there until the view has faded away
+  // (like the left sidebar), and is then simply there again.
+  npCloseTimer = setTimeout(() => { np.hidden = true; np.classList.remove('closing'); document.body.classList.remove('np-open'); setQueueUnder(false); unmountVisualizer(); updateCanvas(); }, 230);
   if (fsPanelKind === 'vis') closeFsPanel();
-  if (queueAutoHidden) { queueAutoHidden = false; setTimeout(() => { if (!npOpen()) toggleQueue(true, { remember: false }); }, 240); }
 }
 const npOpen = () => !$('#nowplaying').hidden && !$('#nowplaying').classList.contains('closing');
 
@@ -2154,6 +2428,7 @@ function setupSidebarMode() {
   applyTheme();
   applyAmbient();
   applyMica();
+  applyPerf();
   applyWindowButtons();
 }
 /** macOS-style window buttons (red/yellow/green on the left) or the native Windows ones. */
@@ -2214,10 +2489,26 @@ function renderQueue() {
 }
 let queueCloseTimer = null;
 let queueHiddenBySettings = false;
-let queueAutoHidden = false; // tucked away by the cover/lyrics view, to come back when it closes
+const queueIsOpen = () => !$('#queue').hidden && !$('#queue').classList.contains('closing');
+/** Open queue lying under the cover/lyrics view (body.queue-under, see styles.css): its buttons
+ *  don't show it as on, since it isn't visible. */
+function setQueueUnder(on) {
+  document.body.classList.toggle('queue-under', on);
+  const open = queueIsOpen();
+  $('#btn-queue').classList.toggle('on', open && !on);
+  $('#fs-queue').classList.toggle('on', open && !on);
+}
 function toggleQueue(force, { remember = true, instant = false } = {}) {
-  if (remember) queueAutoHidden = false; // the user decided: don't bring it back on our own
   const q = $('#queue');
+  // Under the cover/lyrics view: its button brings it up over the view (sliding in again).
+  if (document.body.classList.contains('queue-under') && queueIsOpen()) {
+    setQueueUnder(false);
+    if (force !== false) {
+      closeFsPanel();
+      q.animate([{ transform: 'translateX(calc(100% + 24px))' }, { transform: 'none' }], { duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      return;
+    }
+  }
   const isOpen = !q.hidden && !q.classList.contains('closing');
   const open = force != null ? !!force : !isOpen;
   clearTimeout(queueCloseTimer);
@@ -2367,6 +2658,8 @@ document.addEventListener('settings', (e) => {
   if (k.includes('fsButtons')) applyFsButtons();
   if (k.includes('windowButtons')) applyWindowButtons();
   if (k.includes('visualizer')) applyVis();
+  if (k.includes('visualizer') || k.includes('animatedCovers')) updateCanvas();
+  if (k.includes('performanceMode')) applyPerf();
   if (k.includes('visAuto')) scheduleAuto();
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
   if (k.some((x) => ['crossfade', 'gapless', 'automix', 'automixBars', 'skipSilence', 'normalize', 'speed', 'eqEnabled', 'eqBands', 'preamp'].includes(x))) applyAudioSettings();
@@ -2421,7 +2714,7 @@ function initButtons() {
   $('#fs-settings').onclick = () => fsSettings();
   $('#fs-panel-close').innerHTML = icon('close');
   $('#np-vis-toggle').innerHTML = icon('visualizer');
-  $('#np-vis-toggle').onclick = () => saveSettings({ visualizer: !state.settings.visualizer });
+  $('#np-vis-toggle').onclick = toggleVisualizer;
   $('#np-vis-presets').innerHTML = icon('tune');
   $('#np-vis-presets').onclick = () => toggleVisPanel();
   applyVis();
@@ -2447,6 +2740,8 @@ function initButtons() {
   $('#p-artist').addEventListener('click', (e) => { const a = e.target.closest('[data-artist]'); if (a) go({ name: 'artist', id: a.dataset.artist }); });
   $$('.nav-item[data-route]').forEach((b) => (b.onclick = () => go({ name: b.dataset.route })));
   $('#settings-btn').onclick = () => go({ name: 'settings' });
+  $('#btn-perf').innerHTML = icon('speed');
+  $('#btn-perf').onclick = () => setPerformanceMode(!perfMode());
   renderSidebar();
   $('#account-btn').onclick = () => toggleAccountPop();
 
@@ -2492,7 +2787,7 @@ function initButtons() {
     else if (e.key.toLowerCase() === 'e') toggleEq();
     else if (e.key.toLowerCase() === 'l') npOpen() ? closeNowPlaying() : openNowPlaying();
     else if (e.key.toLowerCase() === 'q') toggleQueue();
-    else if (e.key.toLowerCase() === 'v' && npOpen()) saveSettings({ visualizer: !state.settings.visualizer });
+    else if (e.key.toLowerCase() === 'v' && npOpen()) toggleVisualizer();
     else if (e.key.toLowerCase() === 's') player.setShuffle(!player.shuffle);
     else if (e.key.toLowerCase() === 'r') player.cycleRepeat();
     else if (e.key.toLowerCase() === 'm') $('#mute').click();
@@ -2532,6 +2827,8 @@ async function init() {
   const ver = $('.sidebar-foot .muted');
   ver.textContent = ver.textContent.replace('port de BitChord', tr('port de BitChord'));
   try { state.ytCovers = await api('ytCovers'); } catch {}
+  // A Spotify update can bring a playlist's cover: pick it up when it ends.
+  bc.on('spotify-sync', (st) => { if (!st?.busy) api('ytCovers').then((m) => { state.ytCovers = m; renderSidebar(); }).catch(() => {}); });
   providerMeta = await api('lyricsProviders');
   try { state.downloads = await api('downloads'); } catch {}
   initButtons();

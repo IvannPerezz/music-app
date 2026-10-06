@@ -117,7 +117,9 @@ export const searchSongs = async (q) => {
   // Pretend YouTube Music finds songs whose mock title shares a word with the query, else a random one.
   const hits = base.filter((t) => words.some((w) => t.title.toLowerCase().includes(w)));
   if (/zzz/.test(q)) return [];
-  return (hits.length ? hits : [base[q.length % 12]]).map((t) => ({ ...t, id: (t.id.slice(0, 9) + String(q.length).padStart(2, '0')).slice(0, 11) }));
+  // (Each query gives its own ids, so different songs never collapse into one.)
+  const tag = [...q].reduce((s, c) => (s * 31 + c.charCodeAt(0)) % 100, 7);
+  return (hits.length ? hits : [base[q.length % 12]]).map((t) => ({ ...t, id: (t.id.slice(0, 9) + String(tag).padStart(2, '0')).slice(0, 11) }));
 };
 export const createAccountPlaylist = async (title, ids, { onProgress = () => {} } = {}) => { for (let i = 0; i <= ids.length; i += 50) { onProgress(Math.min(i, ids.length)); await new Promise((ok) => setTimeout(ok, 50)); } return 'PLmock' + title.length; };
 export const accountPlaylists = async () => Array.from({ length: 4 }, (_, i) => card('playlist', i));
@@ -125,5 +127,6 @@ export const addToAccountPlaylist = async (id, ids) => ids.length;
 export const removeFromAccountPlaylist = async (id, ids) => ids.length;
 // The first account playlist behaves like a special list YouTube won't delete.
 export const renameAccountPlaylist = async () => true;
+export const describeAccountPlaylist = async () => true;
 export const sendFeedback = async () => true;
 export const deleteAccountPlaylist = async (id) => { if (id === 'PLmock0') throw new Error('Request to https://www.youtube.com/youtubei/v1/playlist/delete failed with status code 400'); return true; };

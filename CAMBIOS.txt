@@ -15,6 +15,250 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.42.1
+------------------------------------------------------------
+- Arreglado: el botón del modo rendimiento de arriba a la derecha no respondía al
+  pulsarlo (Windows lo tomaba como si fueras a arrastrar la ventana).
+- Ese botón es ahora un círculo de cristal Mica; cuando el modo está activo, el icono y
+  el borde se ponen verdes.
+
+------------------------------------------------------------
+v0.6.42
+------------------------------------------------------------
+- Nuevo modo rendimiento, para que BitChord use lo mínimo de tarjeta gráfica y
+  procesador (equipos modestos, portátil con batería, jugar mientras escuchas música).
+  Se activa con el botón del velocímetro, arriba a la derecha junto a tu foto (se pone
+  verde), o en Ajustes → Rendimiento. Mientras está activo: los paneles son de color
+  sólido sin efecto Mica, no hay fondo animado ni fondo difuminado en portada y letra,
+  el visualizador y las portadas animadas se apagan, y las animaciones son instantáneas.
+  Tus ajustes no cambian: al quitarlo vuelve todo como estaba.
+
+------------------------------------------------------------
+v0.6.41.2
+------------------------------------------------------------
+- Arreglado: al cerrar portada y letra, la cola aparecía de golpe por encima antes de que
+  la vista terminara de desvanecerse. Ahora espera a que se vaya, como la barra lateral
+  izquierda.
+
+------------------------------------------------------------
+v0.6.41.1
+------------------------------------------------------------
+- Las sugerencias del buscador de arriba tienen ahora efecto Mica, como los menús y los
+  paneles (antes eran un recuadro gris).
+
+------------------------------------------------------------
+v0.6.41
+------------------------------------------------------------
+- Al abrir portada y letra, la cola ya no se cierra (ni se vuelve a abrir al salir): se
+  queda abierta por debajo, igual que la barra lateral izquierda, y la vista de portada y
+  letra queda por encima. Pulsando el botón de cola, la cola aparece por encima de la
+  vista. Al cerrar portada y letra, la cola sigue tal cual estaba.
+- Aleatorio, repetir y favorito, cuando están activados, llevan el mismo cristal que el
+  botón de play/pausa (ya no se ven grisáceos), en la barra y en pantalla completa.
+- Ajustes: textos nuevos para "Portada animada" y "Efecto Mica".
+
+------------------------------------------------------------
+v0.6.40.5
+------------------------------------------------------------
+- Ajustes: las descripciones de cada opción se leen mejor (ya no salen en un gris tan
+  apagado).
+- Personalización: cada grupo (Fondo animado, Portadas animadas, Efecto Mica, Pantalla
+  principal, Barra lateral…) tiene ahora un título más grande con su icono y queda más
+  separado del anterior, para distinguirlos de un vistazo.
+
+------------------------------------------------------------
+v0.6.40.4
+------------------------------------------------------------
+- Pantalla completa con la letra oculta (o una canción sin letra): al cambiar al
+  visualizador, los controles bajan deslizándose desde debajo de la portada hasta la
+  parte de abajo, junto con el título, y al volver suben otra vez. Con la letra visible
+  siguen saliendo por la izquierda y entrando por abajo.
+
+------------------------------------------------------------
+v0.6.40.3
+------------------------------------------------------------
+- Pantalla completa: los controles aparecen antes (medio segundo después de entrar, en
+  vez de segundo y medio) y su fundido con zoom vuelve a la velocidad de antes.
+
+------------------------------------------------------------
+v0.6.40.2
+------------------------------------------------------------
+- Pantalla completa: los controles aparecen más rápido (siguen esperando segundo y
+  medio) y al salir se van mucho antes, y la barra de abajo sube justo después, así que
+  ya no se ven los dos reproductores uno encima del otro (pasaba sobre todo con el
+  visualizador).
+
+------------------------------------------------------------
+v0.6.40.1
+------------------------------------------------------------
+- Nueva animación al entrar en pantalla completa (también con el visualizador): la barra
+  de reproducción baja entera, con sus controles, y los controles de pantalla completa
+  aparecen segundo y medio después con un fundido y un pequeño zoom. Al salir, se van con
+  un zoom hacia atrás y un fundido mientras la barra vuelve a subir.
+
+------------------------------------------------------------
+v0.6.40
+------------------------------------------------------------
+- Portadas animadas, como en BitChord para Android: si el disco tiene portada animada
+  (las de Apple Music, los vídeos de Tidal o los de la lista de la comunidad), la portada
+  grande de portada y letra y de pantalla completa se mueve en bucle. Las portadas
+  pequeñas (la barra de abajo, listas, búsquedas) siguen quietas. Si una canción no
+  tiene, se queda la portada de siempre. Se puede apagar en Ajustes → Personalización
+  → Portadas animadas.
+- Los vídeos de las portadas se reproducen sin usar el decodificador de vídeo de la
+  tarjeta gráfica y en tamaño reducido, para que no carguen el equipo.
+
+------------------------------------------------------------
+v0.6.39.4
+------------------------------------------------------------
+- Al volver del visualizador a portada y letra en pantalla completa, los controles hacen
+  ahora el camino inverso: salen por abajo y entran deslizándose por la izquierda.
+
+------------------------------------------------------------
+v0.6.39.3
+------------------------------------------------------------
+- En pantalla completa, al cambiar entre portada y letra y el visualizador, los controles
+  de reproducción se van deslizando por la izquierda mientras la vista se desenfoca, y
+  vuelven a entrar desde abajo, en su nuevo sitio, cuando aparece la otra vista (con el
+  visualizador, en cuanto empieza a dibujar).
+
+------------------------------------------------------------
+v0.6.39.2
+------------------------------------------------------------
+- Ajustes → Importar de Spotify explica ahora las dos formas de traer tus playlists, cada
+  una con su botón: primero vincular tu cuenta de Spotify (se mantienen al día solas) y
+  después subir el .zip de datos (una copia de una sola vez).
+- La página "Importar de Spotify" abre por defecto la pestaña de vincular la cuenta.
+
+------------------------------------------------------------
+v0.6.39.1
+------------------------------------------------------------
+- Lo de Spotify va en el verde de Spotify en vez de en tu color de acento: el apartado
+  "Importar de Spotify" de Ajustes (su icono y su botón) y el botón "Importar de
+  Spotify" de Biblioteca → Playlists, con efecto Mica.
+
+------------------------------------------------------------
+v0.6.39
+------------------------------------------------------------
+- El botón de sincronizar una playlist con Spotify se llama ahora "Spotify Sync", está
+  justo al lado de "Reproducir" y es de cristal Mica en el verde de Spotify.
+- Los botones principales (Reproducir, Nueva playlist…) y el botón redondo de play que
+  sale al pasar el ratón por una tarjeta son ahora de cristal Mica teñido con tu color
+  de acento.
+- Arreglado: en pantalla completa, el icono del botón de play/pausa se veía un poco más
+  abajo de su sitio hasta que pasabas el ratón por encima (con el escalado de pantalla
+  de Windows).
+
+------------------------------------------------------------
+v0.6.38
+------------------------------------------------------------
+- Arreglado: el botón de dentro de una playlist vinculada con Spotify decía siempre que
+  ya estaba al día aunque hubiera canciones nuevas (Spotify a veces responde con una
+  versión antigua de la playlist). Ahora siempre revisa la lista real de canciones y te
+  dice cuántas ha añadido o quitado. El botón se llama ahora "Sincronizar con Spotify".
+- Arreglado: la portada que trae Spotify no se veía en la playlist de YouTube Music
+  (ni en la barra lateral hasta reiniciar). Ahora se ve al terminar de sincronizar.
+- La descripción de la copia en YouTube Music es ahora exactamente la de Spotify (antes,
+  si en Spotify estaba vacía, quedaba "Sincronizada con Spotify desde BitChord").
+- Arreglado: el registro (bitchord.log) dejaba de escribirse al abrir BitChord desde su
+  acceso directo.
+
+------------------------------------------------------------
+v0.6.37
+------------------------------------------------------------
+- Adiós a las playlists "solo en BitChord": ahora todas las playlists están en tu cuenta
+  de YouTube Music (y se ven también en la app oficial). Crear una playlist, añadirle
+  canciones, importar el .zip de Spotify o vincular tu cuenta de Spotify las crea
+  siempre en YouTube Music, así que hace falta tener la sesión de Google iniciada.
+- Las playlists de Spotify que estaban vinculadas "solo en BitChord" pasan a copiarse
+  en tu YouTube Music en la siguiente actualización.
+- Las canciones de tus carpetas de este equipo ya no se pueden añadir a playlists
+  (YouTube Music no admite archivos propios); las carpetas siguen funcionando como
+  playlists por sí mismas.
+- Arreglado: el botón "Actualizar desde Spotify" no salía en algunas playlists de
+  YouTube Music vinculadas con Spotify.
+
+------------------------------------------------------------
+v0.6.36
+------------------------------------------------------------
+- Nuevo botón "Actualizar desde Spotify" en las playlists vinculadas con tu cuenta de
+  Spotify (tanto si la copia está en BitChord como en tu YouTube Music). Al pulsarlo,
+  BitChord pregunta a Spotify al momento si hay canciones nuevas (o quitadas) y las
+  pone en la copia, sin esperar a la actualización automática de cada pocas horas.
+  Te avisa de cuántas canciones nuevas han llegado o de que ya estaba al día.
+- Si en Spotify le cambias el nombre o la descripción a una playlist vinculada, la
+  copia también se cambia (con el botón o en la actualización automática). Las playlists
+  vinculadas guardadas en BitChord muestran ahora su descripción de Spotify.
+
+------------------------------------------------------------
+v0.6.35.1
+------------------------------------------------------------
+- El botón de play/pausa usa ahora el mismo cristal Mica que las barras laterales y la
+  barra de reproducción: sigue la intensidad del tinte, el desenfoque y la saturación de
+  Ajustes > Personalización, y toma el color de lo que hay detrás en vez de verse gris.
+
+------------------------------------------------------------
+v0.6.35
+------------------------------------------------------------
+- Nueva transición entre portada y letra y el visualizador: lo que hay en pantalla se
+  desenfoca y se oscurece hasta desaparecer, el título, los artistas y los datos del
+  audio se deslizan a su nuevo sitio, y la otra vista aparece saliendo del desenfoque.
+  El visualizador no se muestra hasta que ya está dibujando, así que se acabó el
+  pantallazo negro mientras carga.
+
+------------------------------------------------------------
+v0.6.34.4
+------------------------------------------------------------
+- Arreglado: al poner la pantalla completa con la canción en pausa, la portada se hacía
+  grande un momento. Ahora se mantiene en su tamaño de pausa.
+- El botón de play/pausa lleva efecto Mica (cristal con el icono blanco), en la barra y
+  en pantalla completa. Si apagas el Mica de los controles de reproducción, vuelve a ser
+  el círculo blanco de siempre.
+
+------------------------------------------------------------
+v0.6.34.3
+------------------------------------------------------------
+- Portada y letra: al entrar o salir de pantalla completa, el título, los artistas y los
+  datos del audio se deslizan y cambian de tamaño suavemente hasta su nuevo sitio (como
+  ya pasaba con el visualizador), y la portada los acompaña en vez de saltar.
+
+------------------------------------------------------------
+v0.6.34.2
+------------------------------------------------------------
+- En pantalla completa ya no sale el álbum debajo del artista: en su lugar se quedan
+  los datos de lo que está sonando (formato, kbps, kHz, volumen y de dónde sale el audio).
+
+------------------------------------------------------------
+v0.6.34.1
+------------------------------------------------------------
+- El título, los artistas y la calidad del audio van centrados también fuera de la
+  pantalla completa, con y sin visualizador.
+
+------------------------------------------------------------
+v0.6.34
+------------------------------------------------------------
+- Los controles de reproducción en pantalla completa son ahora iguales que los de la
+  barra de abajo: el botón de play blanco y redondo, los mismos tamaños, y aleatorio y
+  repetir con el mismo disco de cristal cuando están activos. El corazón y el botón de
+  más opciones siguen a los lados (se pueden ocultar en los ajustes de pantalla completa).
+- Al poner la pantalla completa, la barra de abajo se va hacia abajo y sus controles se
+  quedan: suben flotando hasta su sitio, sobre el fondo de la pantalla completa. Al
+  salir, bajan y vuelven a encajar en la barra mientras esta sube.
+
+------------------------------------------------------------
+v0.6.33.2
+------------------------------------------------------------
+- Al poner la pantalla completa, la barra de reproducción de abajo se desliza hacia
+  abajo hasta salir de la pantalla, y al quitarla vuelve a subir.
+
+------------------------------------------------------------
+v0.6.33.1
+------------------------------------------------------------
+- Visualizador: al entrar o salir de pantalla completa, el título y el artista se
+  deslizan y cambian de tamaño suavemente hasta su nuevo sitio en vez de saltar, y los
+  controles y el álbum aparecen con un fundido.
+
+------------------------------------------------------------
 v0.6.33
 ------------------------------------------------------------
 - Nuevo en Ajustes: "Copia de la configuración". Exporta a un archivo .bitchord todo lo

@@ -20,7 +20,7 @@ const MOCK = process.env.BITCHORD_MOCK === '1';
 
 let file = null;
 // { clientId, token (encrypted refresh token, base64), user: {id, name}, auto, links: [link] }
-// link: { id, name, dest: 'yt'|'local', target, snapshot, matches: {spotifyTrackId: track|null}, added: [videoId], count, missing, lastSync, error }
+// link: { id, name, dest: 'yt', target, snapshot, matches: {spotifyTrackId: track|null}, added: [videoId], count, missing, lastSync, error }
 let cfg = { clientId: '', token: '', user: null, auto: true, links: [] };
 let access = null; // { token, until }
 let deps = null;   // { yt, playlists, openExternal, notify }
@@ -30,6 +30,11 @@ export function init(userData, d) {
   deps = d;
   file = path.join(userData, 'spotify.json');
   try { cfg = { ...cfg, ...JSON.parse(fs.readFileSync(file, 'utf8')) }; } catch {}
+  // Copies kept only in BitChord no longer exist (v0.6.37): those links now go to YouTube Music,
+  // where the copy is created on the next update.
+  let moved = 0;
+  for (const l of cfg.links) if (l.dest !== 'yt') { Object.assign(l, { dest: 'yt', target: null, snapshot: null, added: [], cover: null }); moved++; }
+  if (moved) { console.log('[spotify]', moved, 'vínculos pasan de BitChord a YouTube Music'); save(); }
   if (MOCK && process.env.BITCHORD_MOCK_SPOTIFY === '1') cfg = { ...cfg, clientId: 'mockclient', token: 'mock', user: { id: 'iv', name: 'Iván' } };
   // Auto update: a little after start, then every few hours.
   setTimeout(() => autoSync(), MOCK ? 3e9 : 45e3);
@@ -175,17 +180,46 @@ async function tracksOf(id) {
   return rest();
 }
 
-/** Version of the playlist (changes when its songs change) and its cover. */
+/** Version of the playlist (changes when its songs change), its cover, name and description
+ *  (name/description null for «Me gusta», which has neither). */
 async function snapshotOf(id) {
-  if (MOCK) return { snap: 'mock' + mockTracks(id).length, image: id === LIKED ? '' : 'mock:' + id };
-  if (id === LIKED) { const j = await get('/me/tracks?limit=1'); return { snap: `${j.total}:${j.items?.[0]?.added_at || ''}`, image: '' }; }
-  const j = await get(`/playlists/${id}?fields=snapshot_id,images`);
+  if (MOCK) {
+    const m = mockLists().find((x) => x.id === id);
+    // (The same version id even when songs are added: like Spotify's stale answers.)
+    return { snap: 'mock', image: id === LIKED ? '' : 'mock:' + id, name: id === LIKED ? null : m?.name ?? null, description: id === LIKED ? null : m?.description ?? '' };
+  }
+  if (id === LIKED) { const j = await get('/me/tracks?limit=1'); return { snap: `${j.total}:${j.items?.[0]?.added_at || ''}`, image: '', name: null, description: null }; }
+  const j = await get(`/playlists/${id}?fields=snapshot_id,images,name,description`);
   // The biggest image Spotify has (its own collage, or the one you uploaded).
   const img = (j.images || []).slice().sort((a, b) => (b.width || 0) - (a.width || 0))[0];
-  return { snap: j.snapshot_id, image: img?.url || '' };
+  return { snap: j.snapshot_id, image: img?.url || '', name: j.name || null, description: plainText(j.description || '') };
+}
+/** Spotify sends descriptions as HTML (entities, links to other playlists): keep just the text. */
+const plainText = (s) => s.replace(/<[^>]*>/g, '').replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (m, e) => {
+  const named = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[e.toLowerCase()];
+  if (named) return named;
+  const n = e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+  return Number.isFinite(n) ? String.fromCodePoint(n) : m;
+}).trim();
+
+/** Name and description changed in Spotify go to the copy too (what you change on the copy itself
+ *  stays until they change again in Spotify). */
+async function updateDetails(l, name, description) {
+  if (!l.target) return;
+  const { yt } = deps;
+  if (name && name !== l.name) {
+    await yt.renameAccountPlaylist(l.target, name).catch((e) => console.error('[spotify] nombre de', l.name, e?.message || e));
+    l.name = name;
+  }
+  // (descSynced: copies made before v0.6.38 kept BitChord's own text; they get Spotify's once.)
+  if (description != null && (description !== l.description || !l.descSynced)) {
+    try { await yt.describeAccountPlaylist(l.target, description); l.descSynced = true; }
+    catch (e) { console.error('[spotify] descripción de', l.name, e?.message || e); }
+    l.description = description;
+  }
 }
 
-/** Puts the Spotify cover on the copy (BitChord playlist, or the local cover of a YT Music one). */
+/** Puts the Spotify cover on the copy (as the BitChord-only cover of the YT Music playlist). */
 async function updateCover(l, image) {
   if (!image || !l.target || l.cover === image) return;
   try {
@@ -196,19 +230,19 @@ async function updateCover(l, image) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       bytes = Buffer.from(await r.arrayBuffer());
     }
-    if (l.dest === 'local') deps.playlists.setCover(l.target, bytes, nativeImage);
-    else deps.playlists.setYtCover(l.target, bytes, nativeImage);
+    deps.playlists.setYtCover(l.target, bytes, nativeImage);
     l.cover = image;
   } catch (e) { console.error('[spotify] portada de', l.name, e?.message || e); }
 }
 
 // ---------------------------------------------------------------- links
 
-export function link(id, name, dest) {
+/** The copy always goes to the YouTube Music account. */
+export function link(id, name) {
   if (!cfg.token) throw new Error(tr('Vincula tu cuenta de Spotify primero.'));
   let l = cfg.links.find((x) => x.id === id);
-  if (!l) cfg.links.push(l = { id, name, dest, target: null, snapshot: null, matches: {}, added: [], count: 0, missing: 0, lastSync: 0 });
-  else { l.name = name; if (l.dest !== dest) Object.assign(l, { dest, target: null, snapshot: null, added: [], cover: null }); }
+  if (!l) cfg.links.push(l = { id, name, dest: 'yt', target: null, snapshot: null, matches: {}, added: [], count: 0, missing: 0, lastSync: 0 });
+  else l.name = name;
   save(); notify();
   return status();
 }
@@ -250,12 +284,16 @@ export async function sync(id = null, { force = false } = {}) {
 
 async function syncOne(l, force) {
   if (force) l.cover = null;
-  const { yt, playlists: local } = deps;
-  const { snap, image } = await snapshotOf(l.id);
-  const targetOk = l.target && (l.dest === 'yt' || local.exists(l.target));
+  const { yt } = deps;
+  const { snap, image, name, description } = await snapshotOf(l.id);
+  console.log('[spotify]', l.name, '· portada:', image ? 'sí' : 'no', '· descripción:', description ? `${description.length} caracteres` : 'vacía');
+  const targetOk = !!l.target;
   if (!targetOk) l.cover = null; // a new copy needs the cover again
-  if (!force && targetOk && snap === l.snapshot) { await updateCover(l, image); l.lastSync = Date.now(); return; }
-
+  if (targetOk) await updateDetails(l, name, description);
+  // The song list is always read again: Spotify can keep answering with an old version id
+  // (snapshot) for a while after a change, so trusting it skipped new songs. Only songs not seen
+  // before are looked up in YouTube Music, and nothing is written there if nothing changed.
+  l.lastAdded = 0; l.lastRemoved = 0;
   const src = await tracksOf(l.id);
   busy.count = src.length;
   // Look up only songs that weren't matched before.
@@ -273,28 +311,30 @@ async function syncOne(l, force) {
   const seen = new Set();
   const tracks = src.map((t) => l.matches[t.sid]).filter((t) => t && !seen.has(t.id) && seen.add(t.id));
 
-  if (l.dest === 'local') {
-    if (targetOk) local.setTracks(l.target, tracks);
-    else l.target = local.create(l.name, tracks, { description: tr('Sincronizada con Spotify'), origin: 'spotify' });
+  if (!targetOk) { // a new copy starts with Spotify's name and description
+    if (name) l.name = name;
+    if (description != null) l.description = description;
+  }
+  const want = tracks.map((t) => t.id);
+  if (!l.target) {
+    l.target = await yt.createAccountPlaylist(l.name, want, { description: description || '' });
+    l.added = want;
+    l.descSynced = true;
   } else {
-    const want = tracks.map((t) => t.id);
-    if (!l.target) {
-      l.target = await yt.createAccountPlaylist(l.name, want, { description: 'Sincronizada con Spotify desde BitChord' });
-      l.added = want;
-    } else {
-      const have = new Set(l.added || []);
-      const add = want.filter((v) => !have.has(v));
-      const wantSet = new Set(want);
-      const remove = (l.added || []).filter((v) => !wantSet.has(v)); // only songs BitChord put there
-      try {
-        if (add.length) await yt.addToAccountPlaylist(l.target, add);
-        if (remove.length) await yt.removeFromAccountPlaylist(l.target, remove);
-      } catch (e) {
-        if (/not found|no existe|404|cannot be edited/i.test(e?.message)) { l.target = null; l.added = []; throw new Error(tr('La playlist de YouTube Music ya no existe; se volverá a crear en la próxima actualización.')); }
-        throw e;
-      }
-      l.added = want;
+    const have = new Set(l.added || []);
+    const add = want.filter((v) => !have.has(v));
+    const wantSet = new Set(want);
+    const remove = (l.added || []).filter((v) => !wantSet.has(v)); // only songs BitChord put there
+    try {
+      if (add.length) await yt.addToAccountPlaylist(l.target, add);
+      if (remove.length) await yt.removeFromAccountPlaylist(l.target, remove);
+    } catch (e) {
+      if (/not found|no existe|404|cannot be edited/i.test(e?.message)) { l.target = null; l.added = []; throw new Error(tr('La playlist de YouTube Music ya no existe; se volverá a crear en la próxima actualización.')); }
+      throw e;
     }
+    l.added = want;
+    l.lastAdded = add.length; l.lastRemoved = remove.length;
+    if (add.length || remove.length) console.log('[spotify]', l.name, '+' + add.length, '-' + remove.length);
   }
   await updateCover(l, image);
   l.snapshot = snap;
@@ -319,7 +359,8 @@ function mockLists() {
   ];
 }
 function mockTracks(id) {
-  const n = id === LIKED ? 6 : id === 'sp1' ? 5 : 4;
+  // Tests add songs "in Spotify" through globalThis.__mockSpotifyExtra = { [id]: n }.
+  const n = Math.min(6, (id === LIKED ? 6 : id === 'sp1' ? 5 : 4) + (globalThis.__mockSpotifyExtra?.[id] || 0));
   const names = ['Luz de Neón', 'Midnight Drive', 'Olas', 'Paper Planes', 'Ciudad Dormida', 'Golden Hour'];
   const artists = ['Lúa Vega', 'The Night Owls', 'Marea Alta', 'Kite Club', 'Solenne'];
   return Array.from({ length: n }, (_, i) => ({ sid: id + i, title: names[i], artist: artists[i % 5], album: '', uri: '' }));
