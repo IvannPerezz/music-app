@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.45.2
+------------------------------------------------------------
+- Letras: se prefieren las que se van rellenando sílaba a sílaba. Si la primera fuente
+  que encuentra la letra solo la tiene frase a frase, esa se muestra al momento, pero
+  BitChord sigue preguntando a las fuentes sílaba a sílaba (LyricsPlus, BetterLyrics,
+  SimpMusic, Unison...). Si alguna la tiene, la cambia sola en unos segundos.
+  Si eliges una fuente a mano, o tienes desactivada la sincronía palabra a palabra en
+  Ajustes > Letras, no cambia nada.
+
+------------------------------------------------------------
 v0.6.45.1
 ------------------------------------------------------------
 - Círculo: el latido con los bajos vuelve a ser como antes, pero ahora también reacciona

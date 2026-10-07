@@ -2259,7 +2259,23 @@ async function loadLyrics(t, forced = null) {
   if (player.current?.id !== t.id) return;
   player.lyrics = { ...result, id: t.id, forced };
   if (npOpen()) renderLyrics();
+  // Found only line by line: it shows straight away, but the providers that time each syllable
+  // are still asked (in the user's order), and the first that has this song takes over.
+  if (forced || state.settings.lyricsWordSync === false || hasWordTiming(result)) return;
+  const shown = player.lyrics;
+  const wordy = order.filter((p) => p !== result.provider && providerMeta.find((m) => m.id === p)?.word);
+  wordy.forEach((p) => { if (!inflight.has(p)) inflight.set(p, api('lyrics', q, p).then(parseResult).catch(() => null)); });
+  for (const p of wordy) {
+    const r = await inflight.get(p);
+    if (player.lyrics !== shown) return; // another song, or a source picked by hand
+    if (r?.synced && hasWordTiming(r)) {
+      player.lyrics = { ...r, provider: p, id: t.id, forced };
+      if (npOpen()) renderLyrics();
+      return;
+    }
+  }
 }
+const hasWordTiming = (l) => !!l?.synced && (l.lines || []).some((ln) => ln.words?.length > 1);
 
 let activeLine = -1;
 let wordEls = [];
