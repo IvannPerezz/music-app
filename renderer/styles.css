@@ -1131,7 +1131,7 @@ body.vis-on #nowplaying .np-corner > #lyrics-source, body.vis-on #nowplaying .np
 body:not(.vis-on) #nowplaying .np-corner > #np-vis-presets, body.circle-on #nowplaying .np-corner > #np-vis-presets,
 body:not(.circle-on) #nowplaying .np-corner > #np-circle-opts {
   transform: translateX(calc(100% + 48px)); opacity: 0; height: 0; min-height: 0; margin-top: -10px;
-  border-width: 0; overflow: hidden; pointer-events: none; }
+  border-width: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; pointer-events: none; }
 #np-vis-toggle.on, #np-circle-toggle.on { color: var(--accent); }
 body.fs.fs-hide-vis #np-vis-toggle, body.fs.fs-hide-vis #np-vis-presets { display: none; }
 body.fs.fs-hide-circle #np-circle-toggle, body.fs.fs-hide-circle #np-circle-opts { display: none; }
@@ -1661,3 +1661,9 @@ label.circle-opt { cursor: pointer; }
 .vis-panel .vis-row { flex-wrap: wrap; }
 .vis-panel .vis-row .select { flex: 1 1 100%; order: 3; white-space: nowrap; }
 .vis-panel .vis-row .btn { flex: 1 1 0; justify-content: center; }
+
+/* Long song titles: on several lines (still centred), never cut off. */
+#np-title.ellipsis { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; text-wrap: balance; line-height: 1.2; }
+/* Cover/lyrics view buttons: the circle and the visualizer on top, then the room of one button. */
+.np-corner-gap { display: block; width: 36px; height: 36px; flex: none; }
+body.fs.fs-hide-vis.fs-hide-circle .np-corner-gap { display: none; }

@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.45.3
+------------------------------------------------------------
+- Portada y letra: los títulos largos ya no se cortan con "...": ocupan las líneas que
+  hagan falta y siguen centrados.
+- Los botones del círculo y del visualizador van ahora arriba del todo de la columna de
+  botones (primero el círculo y debajo el visualizador), separados del resto por el hueco
+  de un botón.
+
+------------------------------------------------------------
 v0.6.45.2
 ------------------------------------------------------------
 - Letras: se prefieren las que se van rellenando sílaba a sílaba. Si la primera fuente
