@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.46.2
+------------------------------------------------------------
+- Discord: ya se puede hacer que ponga "Escuchando BitChord" en vez de "Escuchando
+  Metrolist". Discord muestra el nombre de la aplicación de Discord que manda la
+  actividad, y la que venía con BitChord está registrada con ese otro nombre. En Ajustes >
+  Integraciones > "Nombre en Discord" tienes los pasos para crear la tuya (gratis, un
+  minuto) llamada BitChord; pegas su Application ID y Discord cambia el nombre al momento.
+
+------------------------------------------------------------
 v0.6.46.1
 ------------------------------------------------------------
 - SF Pro Display ya no se ve más pequeña que Inter: se muestra un 10 % más grande para que
