@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.47.1
+------------------------------------------------------------
+- El logotipo de BitChord pasa de rosa-rojo a rojo, en todas partes: el logo de arriba a
+  la izquierda, el icono de la ventana y de la barra de tareas, el de la bandeja junto al
+  reloj y los accesos directos del Escritorio y del menú Inicio.
+
+------------------------------------------------------------
 v0.6.47
 ------------------------------------------------------------
 - Emojis de Apple: los emojis de títulos de canciones, artistas, playlists y letras se ven
