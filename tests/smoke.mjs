@@ -138,6 +138,7 @@ await win.click('#np-vis-toggle');
 try { await win.waitForFunction(() => document.body.dataset.vis === 'ready', null, { timeout: 8000 }); }
 catch { errors.push('El visualizador no arranca'); }
 await win.waitForTimeout(1500); await shot('02g-visualizer');
+if (!(await win.evaluate(() => { const c = document.querySelector('#np-vis-circle'); return c && c.width > 0; }))) errors.push('No sale el círculo de bajos del visualizador');
 const corner = await win.evaluate(() => ['#lyrics-source', '#np-lyrics-toggle', '#np-vis-presets'].map((q) => { const s = getComputedStyle(document.querySelector(q)); return +s.opacity > 0.5 && parseFloat(s.height) > 20; }));
 if (corner.join() !== 'false,false,true') errors.push('Con el visualizador, los botones de la letra deberían salir y el de presets entrar: ' + corner.join());
 await win.click('#np-vis-presets'); await win.waitForTimeout(500);

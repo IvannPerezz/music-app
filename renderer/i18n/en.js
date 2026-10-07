@@ -1,6 +1,8 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Círculo": "Circle",
+  "Círculo con la portada que late con los bajos, estilo Trap Nation": "Circle with the cover beating to the bass, Trap Nation style",
   "Guardar la configuración de BitChord": "Save BitChord's configuration",
   "Configuración de BitChord": "BitChord configuration",
   "Importar la configuración de BitChord": "Import BitChord's configuration",

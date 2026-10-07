@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.43
+------------------------------------------------------------
+- Visualizador: nuevo círculo estilo Trap Nation encima de los efectos. La portada de la
+  canción va en un círculo en el centro que late con los bajos (y la imagen tiembla un
+  poco en los golpes fuertes), rodeada de un anillo de ondas que sigue la música, con
+  los bajos arriba y los agudos abajo, en el color de la portada. Hay partículas que
+  salen hacia fuera y se aceleran con cada golpe de bajo.
+  Se quita o se pone con el botón "Círculo" del panel de presets del visualizador.
+
+------------------------------------------------------------
 v0.6.42.1
 ------------------------------------------------------------
 - Arreglado: el botón del modo rendimiento de arriba a la derecha no respondía al

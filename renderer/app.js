@@ -5,7 +5,7 @@ import { parseResult } from './lyrics-parse.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
-import { mountVisualizer, unmountVisualizer, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange, favorites, toggleFavorite, isReady as isVisReady } from './visualizer.js';
+import { mountVisualizer, unmountVisualizer, setCircle, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange, favorites, toggleFavorite, isReady as isVisReady } from './visualizer.js';
 import { importView } from './import-view.js';
 import { tr, translateStatic, syncUiLang, locale } from './i18n.js';
 
@@ -1598,6 +1598,7 @@ function toggleVisPanel() {
   const root = h(`<div class="vis-panel">
     <div class="vis-row">
       <button class="btn ghost small" data-a="rand" title="${tr('Otro preset al azar')}">${icon('shuffle')}${tr('Al azar')}</button>
+      <button class="btn ghost small vis-circle-btn${state.settings.visCircle !== false ? ' on' : ''}" data-a="circle" title="${tr('Círculo con la portada que late con los bajos, estilo Trap Nation')}">${icon('disc')}${tr('Círculo')}</button>
       <select class="select" data-a="auto" title="${tr('Cuándo cambia de preset solo')}">
         <option value="song">${tr('Con cada canción')}</option><option value="30">${tr('Cada 30 segundos')}</option>
         <option value="60">${tr('Cada minuto')}</option><option value="off">${tr('Siempre el mismo')}</option>
@@ -1611,6 +1612,12 @@ function toggleVisPanel() {
   auto.value = String(state.settings.visAuto || 'song');
   auto.onchange = () => saveSettings({ visAuto: auto.value });
   root.querySelector('[data-a=rand]').onclick = () => randomPreset();
+  root.querySelector('[data-a=circle]').onclick = (e) => {
+    const on = state.settings.visCircle === false;
+    e.currentTarget.classList.toggle('on', on);
+    setCircle(on);
+    saveSettings({ visCircle: on });
+  };
   search.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
   // Tabs: all the presets, or only the starred ones (then "Al azar" and the automatic changes
   // also pick among the favourites).

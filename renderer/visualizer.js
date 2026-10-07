@@ -4,6 +4,7 @@
 // sends the samples to the iframe every frame and picks the presets.
 import { state, saveSettings, toast } from './core.js';
 import { tr } from './i18n.js';
+import { mountCircle, unmountCircle, drawCircle } from './vis-circle.js';
 
 const SIZE = 1024; // samples per channel Butterchurn works with
 let engine = null, taps = null, frame = null, host = null, raf = 0, autoTimer = 0;
@@ -32,6 +33,7 @@ function ensureTaps() {
 
 function loop() {
   raf = requestAnimationFrame(loop);
+  drawCircle();
   const win = frame?.contentWindow;
   if (!win || !names.length) return;
   taps.m.getByteTimeDomainData(buf.t);
@@ -73,6 +75,16 @@ export function mountVisualizer(into, eng) {
   frame.onload = () => frame?.contentWindow?.postMessage({ type: 'init', sampleRate: engine.ctx.sampleRate }, '*');
   window.addEventListener('message', onMessage);
   host.prepend(frame);
+  if (state.settings.visCircle !== false) mountCircle(host, engine.ctx, engine.tap);
+  // The circle draws from the start (MilkDrop joins in when its presets are loaded).
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(loop);
+}
+
+/** Trap Nation-style bass circle over the visualizer, on or off. */
+export function setCircle(on) {
+  if (!frame) return;
+  if (on) mountCircle(host, engine.ctx, engine.tap); else unmountCircle();
 }
 
 /** Removes it completely (frees the GPU while the view is closed or the visualizer is off). */
@@ -81,6 +93,7 @@ export function unmountVisualizer() {
   clearInterval(autoTimer); autoTimer = 0;
   window.removeEventListener('message', onMessage);
   frame?.remove();
+  unmountCircle();
   frame = null; names = []; current = '';
   delete document.body.dataset.vis;
   notify();

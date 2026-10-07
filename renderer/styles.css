@@ -1645,3 +1645,10 @@ label.sp-row { cursor: pointer; }
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.3);
 }
+
+/* Visualizer: Trap Nation-style bass circle, over MilkDrop. */
+#np-vis-circle { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.vis-circle-btn.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.vis-panel .vis-row { flex-wrap: wrap; }
+.vis-panel .vis-row .select { flex: 1 1 100%; order: 3; white-space: nowrap; }
+.vis-panel .vis-row .btn { flex: 1 1 0; justify-content: center; }
