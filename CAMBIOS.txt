@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.47
+------------------------------------------------------------
+- Emojis de Apple: los emojis de títulos de canciones, artistas, playlists y letras se ven
+  como en el iPhone, con la fuente "Apple Color Emoji" que tienes instalada en Windows.
+  Solo cambia los emojis: números, flechas o el símbolo © siguen con la letra normal. Se
+  puede quitar en Ajustes > Personalización > "Emojis de Apple".
+
+------------------------------------------------------------
 v0.6.46.4
 ------------------------------------------------------------
 - Con SF Pro Display los textos ya no salen casi todos en negrita. Cada texto usa su

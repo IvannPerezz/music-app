@@ -546,6 +546,7 @@ function sidebarCard() {
   });
   return card('sidebar', tr('Personalización'), 'tune',
     sub(tr('Fuente'), 'edit'),
+    row(tr('Emojis de Apple'), tr('Los emojis de títulos, artistas y letras se ven como en el iPhone. Usa la fuente «Apple Color Emoji» instalada en Windows (si no está instalada, se ven los emojis normales de Windows).'), toggle('appleEmoji')),
     row(tr('Fuente de la aplicación'), tr('La letra de todos los textos de BitChord. SF Pro Display es la de Apple: se usan tus propios archivos (la primera vez se copian de la carpeta «sf-pro-display» del Escritorio o de la que elijas), con cada grosor donde toca: normal, medio, negrita…'), font),
     sub(tr('Fondo animado'), 'image'),
     h(`<div class="set-note">${tr('Detrás de toda la app (y en la vista de portada y letra) se mueve lentamente, mientras suena la música, la portada que está sonando, muy desenfocada (o, si lo prefieres, manchas con sus colores más destacados). Los cambios se ven al momento mientras mueves los controles.')}</div>`),

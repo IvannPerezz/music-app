@@ -43,7 +43,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 body {
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.4 var(--ui-font, "BitChord Sans"), "BitChord Sans", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  font: 14px/1.4 var(--emoji-font, "BitChord Sans"), var(--ui-font, "BitChord Sans"), "BitChord Sans", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   font-optical-sizing: auto;
   letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;

@@ -2526,7 +2526,25 @@ function setupSidebarMode() {
   applyPerf();
   applyWindowButtons();
   applyFont();
+  applyEmoji();
 }
+/** Apple's emoji for emoji characters only (titles, artists, lyrics…), from the Apple Color Emoji
+ *  font installed in Windows. A system font: as a font file loaded by the app it would be refused
+ *  (it's ~250 MB and Chromium takes web fonts up to 30 MB). Limited to emoji code points, so
+ *  digits, ©, arrows and the like keep the normal font. */
+const EMOJI_RANGE = 'U+231A-231B, U+23E9-23FA, U+24C2, U+2600-27BF, U+2934-2935, U+2B05-2B55, U+3030, U+303D, U+3297, U+3299, U+200D, U+20E3, U+FE0F, U+1F000-1FAFF, U+E0020-E007F';
+let emojiFace = null;
+export async function applyEmoji() {
+  const root = document.documentElement;
+  if (state.settings.appleEmoji === false) return root.style.removeProperty('--emoji-font');
+  if (!emojiFace) {
+    const f = new FontFace('BitChord Emoji', "local('Apple Color Emoji'), local('AppleColorEmoji')", { unicodeRange: EMOJI_RANGE });
+    try { await f.load(); document.fonts.add(f); emojiFace = f; }
+    catch { emojiFace = false; }
+  }
+  if (emojiFace) root.style.setProperty('--emoji-font', '"BitChord Emoji"');
+}
+export const appleEmojiInstalled = () => emojiFace === null ? null : !!emojiFace;
 /** Interface font: Inter (built in) or SF Pro Display from the user's files. A weight the files
  *  don't have uses the lighter one next to it (only weights very close to the heavier one take
  *  it): without an upright Semibold, the many semibold texts would otherwise all come out bold. */
@@ -2784,6 +2802,7 @@ document.addEventListener('settings', (e) => {
   if (k.includes('visualizer') || k.includes('animatedCovers')) updateCanvas();
   if (k.includes('performanceMode')) applyPerf();
   if (k.includes('uiFont')) applyFont();
+  if (k.includes('appleEmoji')) applyEmoji();
   if (k.includes('visAuto')) scheduleAuto();
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
   if (k.some((x) => ['crossfade', 'gapless', 'automix', 'automixBars', 'skipSilence', 'normalize', 'speed', 'eqEnabled', 'eqBands', 'preamp'].includes(x))) applyAudioSettings();
