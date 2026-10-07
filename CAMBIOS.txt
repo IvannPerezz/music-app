@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.45.4
+------------------------------------------------------------
+- Al activar el círculo, el botón de sus ajustes entra a la vez que se van los de la
+  letra, igual que el de los presets con el visualizador (antes aparecía antes de
+  tiempo).
+- En lugar del hueco, los botones del círculo y del visualizador se separan del resto con
+  una raya horizontal.
+
+------------------------------------------------------------
 v0.6.45.3
 ------------------------------------------------------------
 - Portada y letra: los títulos largos ya no se cortan con "...": ocupan las líneas que
