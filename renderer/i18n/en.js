@@ -1,6 +1,14 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Carpeta con los archivos de SF Pro Display": "Folder with the SF Pro Display files",
+  "En esa carpeta no hay archivos de SF Pro Display (.otf o .ttf).": "There are no SF Pro Display files (.otf or .ttf) in that folder.",
+  "Inter (la de siempre)": "Inter (the usual one)",
+  "SF Pro Display añadida ({n} archivos)": "SF Pro Display added ({n} files)",
+  "Fuente": "Font",
+  "Fuente de la aplicación": "App font",
+  "La letra de todos los textos de BitChord. SF Pro Display es la de Apple: se usan tus propios archivos (la primera vez se copian de la carpeta «sf-pro-display» del Escritorio o de la que elijas), con cada grosor donde toca: normal, medio, negrita…": "The typeface of all of BitChord's text. SF Pro Display is Apple's: your own files are used (the first time they're copied from the “sf-pro-display” folder on the Desktop, or from the one you choose), with each weight where it belongs: regular, medium, bold…",
+  "Modo rendimiento activado": "Performance mode on",
   "Círculo y sus ajustes": "Circle and its settings",
   "El círculo está apagado en el modo rendimiento": "The circle is off in performance mode",
   "Volver a portada y letra (C)": "Back to cover and lyrics (C)",
@@ -767,7 +775,6 @@ export default {
   "Sincronizar con Spotify": "Sync with Spotify",
   "Modo rendimiento activado: pulsa para volver a los efectos": "Performance mode on: click to bring the effects back",
   "Modo rendimiento: menos uso de gráfica y procesador": "Performance mode: less graphics card and processor use",
-  "Modo rendimiento activado: sin efectos de cristal, fondos animados, visualizador ni animaciones": "Performance mode on: no glass effects, animated backgrounds, visualizer or animations",
   "Modo rendimiento desactivado": "Performance mode off",
   "El visualizador está apagado en el modo rendimiento": "The visualizer is off in performance mode",
   "Rendimiento": "Performance",

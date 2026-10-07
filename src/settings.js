@@ -90,6 +90,7 @@ export const DEFAULTS = {
   visPreset: '',
   visAuto: 'song', // 'song' | seconds ('30', '60') | 'off'
   visFavorites: [], // preset names marked with the star
+  uiFont: 'default', // 'default' (Inter) | 'sf' (SF Pro Display, the user's own files)
   circleMode: false, // "Círculo" view (Trap Nation style), instead of cover and lyrics
   circleGain: 1, // how strongly the aura reacts to the music
   circleSize: 1,

@@ -15,6 +15,19 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.46
+------------------------------------------------------------
+- Nuevo en Ajustes > Personalización: "Fuente de la aplicación". Puedes cambiar la letra
+  de todo BitChord por SF Pro Display, la de Apple. La primera vez se copian tus archivos
+  de la carpeta "sf-pro-display" del Escritorio (o de la que elijas), y cada texto usa el
+  grosor que le toca: normal, medio, negrita... La fuente también va en la copia de la
+  configuración, para el otro PC.
+- Ajustes del círculo: el panel es más ancho y cada opción cabe en una sola línea. Al
+  cambiar "Color del aura" o "Fondo", la marca de la opción elegida se desliza hasta la
+  nueva.
+- El aviso al activar el modo rendimiento es ahora solo "Modo rendimiento activado".
+
+------------------------------------------------------------
 v0.6.45.4
 ------------------------------------------------------------
 - Al activar el círculo, el botón de sus ajustes entra a la vez que se van los de la

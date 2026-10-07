@@ -56,6 +56,7 @@ const playlists = await import('./src/playlists.js');
 const spotify = await import('./src/spotify-import.js');
 const spotifySync = await import('./src/spotify-sync.js');
 const backup = await import('./src/backup.js');
+const fonts = await import('./src/fonts.js');
 const sources = await import('./src/sources/index.js');
 
 nativeTheme.themeSource = 'dark';
@@ -198,6 +199,7 @@ app.whenReady().then(async () => {
   local.init(userData);
   webdav.init(userData);
   playlists.init(userData);
+  fonts.init(userData);
   spotifySync.init(userData, { yt, playlists, openExternal: (u) => shell.openExternal(u), notify: (st) => send('spotify-sync', st) });
   const { port } = await startProxy({ userData });
   proxyPort = port;
@@ -306,6 +308,18 @@ app.whenReady().then(async () => {
   // unless a test hands it a clip (BITCHORD_MOCK_CANVAS).
   canvas.configure({ countryCode: app.getLocaleCountryCode() });
   handle('canvas-for', (t) => (!MOCK ? canvas.canvasFor(t) : process.env.BITCHORD_MOCK_CANVAS ? { url: process.env.BITCHORD_MOCK_CANVAS, source: 'prueba' } : null));
+  // Interface font (SF Pro Display from the user's own files)
+  handle('font-status', () => ({ installed: fonts.installed(), found: fonts.defaultFolder() }));
+  handle('font-import', async () => {
+    let folder = fonts.defaultFolder();
+    if (!folder) {
+      const r = await dialog.showOpenDialog(win, { title: tr('Carpeta con los archivos de SF Pro Display'), properties: ['openDirectory'] });
+      if (r.canceled) return 0;
+      folder = r.filePaths[0];
+    }
+    return fonts.importFrom(folder);
+  });
+  handle('font-faces', () => fonts.faces());
   // Configuration backup (Ajustes → Copia de la configuración)
   let pendingBackup = null;
   handle('config-export', async (localStore) => {

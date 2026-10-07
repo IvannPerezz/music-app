@@ -43,7 +43,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 body {
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.4 "BitChord Sans", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  font: 14px/1.4 var(--ui-font, "BitChord Sans"), "BitChord Sans", "SF Pro Display", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   font-optical-sizing: auto;
   letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;
@@ -1667,3 +1667,13 @@ label.circle-opt { cursor: pointer; }
 /* Cover/lyrics view buttons: the circle and the visualizer on top, then a dividing line. */
 .np-corner-gap { display: block; width: 26px; height: 2px; margin: 2px 5px; border-radius: 2px; flex: none; background: rgba(255,255,255,.45); }
 body.fs.fs-hide-vis.fs-hide-circle .np-corner-gap { display: none; }
+
+/* Circle settings: wide enough for every label on one line; the choices slide. */
+#fs-panel[data-kind="circle"] { width: min(470px, calc(100vw - 120px)); }
+.circle-panel .menu-sliders label { grid-template-columns: max-content minmax(90px, 1fr) 52px; }
+.circle-panel .menu-sliders label > span, .circle-opt > span:first-child { white-space: nowrap; }
+.circle-panel .seg { position: relative; }
+.circle-panel .seg button { position: relative; z-index: 1; background: transparent; transition: color .3s ease; }
+.circle-panel .seg button.on { background: transparent; color: #111; }
+.circle-panel .seg-pill { position: absolute; top: 3px; bottom: 3px; left: 3px; width: 0; border-radius: 8px; background: var(--text); }
+.circle-panel.ready .seg-pill { transition: left .4s cubic-bezier(.32,.72,0,1), width .4s cubic-bezier(.32,.72,0,1); }

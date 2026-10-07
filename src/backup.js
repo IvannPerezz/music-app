@@ -12,6 +12,7 @@ const SKIP_SETTINGS = ['windowBounds', 'listenbrainzToken', 'lastfmSession', 'la
 const SKIP_LOCAL = ['queue', 'resumeAt', 'history', 'homeSeen'];
 const FILES = ['local-folders.json', 'yt-playlist-covers.json'];
 const COVERS = 'playlist-covers';
+const FONTS = 'fonts/sf-pro-display';
 
 const readJson = (p, d = null) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return d; } };
 
@@ -32,6 +33,8 @@ export function build(userData, settings, localStore, version) {
     files[`${COVERS}/${f}`] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
     covers++;
   }
+  const fdir = path.join(userData, FONTS);
+  if (fs.existsSync(fdir)) for (const f of fs.readdirSync(fdir)) if (/\.(otf|ttf)$/i.test(f)) files[`${FONTS}/${f}`] = new Uint8Array(fs.readFileSync(path.join(fdir, f)));
   const manifest = { app: 'BitChord', format: 1, version, created: Date.now(), covers, themes: (s.customThemes || []).length, spotifyLinks: (sp?.links || []).length };
   files['manifest.json'] = strToU8(JSON.stringify(manifest));
   return { data: zipSync(files, { level: 6 }), manifest };
@@ -64,6 +67,13 @@ export function apply(userData, settings, { files }) {
     if (!name.startsWith(COVERS + '/')) continue;
     const base = path.basename(name);
     if (/^[\w-]+\.jpg$/i.test(base)) fs.writeFileSync(path.join(dir, base), data);
+  }
+  for (const [name, data] of Object.entries(files)) {
+    if (!name.startsWith(FONTS + '/')) continue;
+    const base = path.basename(name);
+    if (!/^[\w-]+\.(otf|ttf)$/i.test(base)) continue;
+    fs.mkdirSync(path.join(userData, FONTS), { recursive: true });
+    fs.writeFileSync(path.join(userData, FONTS, base), data);
   }
   return files['local-storage.json'] ? JSON.parse(strFromU8(files['local-storage.json'])) : {};
 }

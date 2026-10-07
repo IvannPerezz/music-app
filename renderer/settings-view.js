@@ -1,7 +1,7 @@
 // Settings page.
 import { bc, $, $$, icon, esc, api, toast, h, state, saveSettings, art, store, confirmDialog } from './core.js';
 import { eqPanel } from './eq-panel.js';
-import { refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent, applyTheme, setThemeCss } from './app.js';
+import { applyFont, refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent, applyTheme, setThemeCss } from './app.js';
 import { colorPicker } from './color-picker.js';
 import { tr, LANGUAGES, uiLang, syncUiLang, locale } from './i18n.js';
 
@@ -531,7 +531,21 @@ function sidebarCard() {
   const live = (key, fn) => (v) => { state.settings = { ...state.settings, [key]: v }; fn(); };
   const amb = () => import('./app.js').then((m) => m.applyAmbient());
   const mica = () => import('./app.js').then((m) => m.applyMica());
+  // Interface font: SF Pro Display comes from the user's own files (the first time it's chosen,
+  // they're copied from the "sf-pro-display" folder on the Desktop, or from a folder picked).
+  const font = select('uiFont', [['default', tr('Inter (la de siempre)')], ['sf', 'SF Pro Display']], async (v) => {
+    if (v !== 'sf') return;
+    const st = await api('fontStatus');
+    if (st.installed) return;
+    let n = 0;
+    try { n = await api('fontImport'); } catch (e) { toast(e.message, true); }
+    if (!n) { font.value = 'default'; await saveSettings({ uiFont: 'default' }); return; }
+    toast(tr('SF Pro Display añadida ({n} archivos)', { n }));
+    applyFont();
+  });
   return card('sidebar', tr('Personalización'), 'tune',
+    sub(tr('Fuente'), 'edit'),
+    row(tr('Fuente de la aplicación'), tr('La letra de todos los textos de BitChord. SF Pro Display es la de Apple: se usan tus propios archivos (la primera vez se copian de la carpeta «sf-pro-display» del Escritorio o de la que elijas), con cada grosor donde toca: normal, medio, negrita…'), font),
     sub(tr('Fondo animado'), 'image'),
     h(`<div class="set-note">${tr('Detrás de toda la app (y en la vista de portada y letra) se mueve lentamente, mientras suena la música, la portada que está sonando, muy desenfocada (o, si lo prefieres, manchas con sus colores más destacados). Los cambios se ven al momento mientras mueves los controles.')}</div>`),
     row(tr('Fondo animado'), tr('Desactívalo para usar el fondo normal del tema.'), toggle('ambient', () => amb())),

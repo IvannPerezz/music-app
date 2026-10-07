@@ -1479,7 +1479,7 @@ function applyPerf() {
 }
 export async function setPerformanceMode(on) {
   await saveSettings({ performanceMode: !!on });
-  toast(tr(on ? 'Modo rendimiento activado: sin efectos de cristal, fondos animados, visualizador ni animaciones' : 'Modo rendimiento desactivado'));
+  toast(tr(on ? 'Modo rendimiento activado' : 'Modo rendimiento desactivado'));
 }
 function toggleVisualizer() {
   if (perfMode()) return toast(tr('El visualizador está apagado en el modo rendimiento'));
@@ -1652,11 +1652,23 @@ function toggleCirclePanel() {
     i.oninput = () => { i.nextElementSibling.textContent = pct(+i.value); state.settings = { ...state.settings, [i.dataset.k]: +i.value }; };
     i.onchange = () => saveSettings({ [i.dataset.k]: +i.value });
   });
-  root.querySelectorAll('.seg button').forEach((b) => { b.onclick = () => { saveSettings({ [b.parentElement.dataset.k]: b.dataset.v }).then(paint); }; });
+  // The choice's highlight slides from one option to the other.
+  const pills = () => root.querySelectorAll('.seg').forEach((g) => {
+    const on = g.querySelector('button.on'), pill = g.querySelector('.seg-pill');
+    if (on && pill) { pill.style.left = on.offsetLeft + 'px'; pill.style.width = on.offsetWidth + 'px'; }
+  });
+  root.querySelectorAll('.seg').forEach((g) => g.prepend(h('<span class="seg-pill"></span>')));
+  root.querySelectorAll('.seg button').forEach((b) => { b.onclick = () => {
+    b.parentElement.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+    pills();
+    saveSettings({ [b.parentElement.dataset.k]: b.dataset.v });
+  }; });
   root.querySelectorAll('input[type=checkbox]').forEach((i) => { i.onchange = () => saveSettings({ [i.dataset.k]: i.checked }); });
-  root.querySelector('[data-a=reset]').onclick = () => saveSettings(DEF).then(paint);
+  root.querySelector('[data-a=reset]').onclick = () => saveSettings(DEF).then(() => { paint(); pills(); });
   paint();
   openFsPanel('circle', tr('Círculo'), root);
+  pills();
+  requestAnimationFrame(() => root.classList.add('ready')); // (no slide when it opens)
 }
 /** Presets panel: another one at random, when to change on its own, search and the list. */
 function toggleVisPanel() {
@@ -2513,6 +2525,31 @@ function setupSidebarMode() {
   applyMica();
   applyPerf();
   applyWindowButtons();
+  applyFont();
+}
+/** Interface font: Inter (built in) or SF Pro Display from the user's files. Each file is used
+ *  for the weights nearest to it (the ones in between go to the heavier of the two). */
+let fontLoaded = false;
+export async function applyFont() {
+  const root = document.documentElement;
+  if (state.settings.uiFont !== 'sf') { root.style.removeProperty('--ui-font'); delete root.dataset.font; return; }
+  if (!fontLoaded) {
+    let faces = [];
+    try { faces = await api('fontFaces'); } catch {}
+    if (!faces.length) return;
+    for (const style of ['normal', 'italic']) {
+      const set = faces.filter((f) => f.style === style).sort((a, b) => a.weight - b.weight);
+      set.forEach((f, i) => {
+        const lo = i ? Math.floor((set[i - 1].weight + f.weight) / 2) : 1;
+        const hi = i < set.length - 1 ? Math.floor((f.weight + set[i + 1].weight) / 2) - 1 : 1000;
+        const face = new FontFace('BitChord SF', f.data, { weight: `${lo} ${hi}`, style });
+        face.load().then(() => document.fonts.add(face)).catch(() => {});
+      });
+    }
+    fontLoaded = true;
+  }
+  root.style.setProperty('--ui-font', '"BitChord SF"');
+  root.dataset.font = 'sf';
 }
 /** macOS-style window buttons (red/yellow/green on the left) or the native Windows ones. */
 function applyWindowButtons() {
@@ -2743,6 +2780,7 @@ document.addEventListener('settings', (e) => {
   if (k.includes('visualizer') || k.includes('circleMode') || k.includes('circleBg')) applyVis();
   if (k.includes('visualizer') || k.includes('animatedCovers')) updateCanvas();
   if (k.includes('performanceMode')) applyPerf();
+  if (k.includes('uiFont')) applyFont();
   if (k.includes('visAuto')) scheduleAuto();
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
   if (k.some((x) => ['crossfade', 'gapless', 'automix', 'automixBars', 'skipSilence', 'normalize', 'speed', 'eqEnabled', 'eqBands', 'preamp'].includes(x))) applyAudioSettings();
