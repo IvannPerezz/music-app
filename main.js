@@ -10,7 +10,8 @@ const MOCK = process.env.BITCHORD_MOCK === '1';
 // The version of *this* code (with in-place updates it can differ from the installer's app.asar).
 const VERSION = (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version; } catch { return app.getVersion(); } })();
 
-app.setAppUserModelId('com.music.bitchord.desktop');
+const AUMID = 'com.music.bitchord.desktop';
+app.setAppUserModelId(AUMID);
 app.setName('BitChord');
 // Videos (only the animated covers) are decoded in software, never by the graphics card's video
 // decoder: on Iván's PC (NVIDIA) the hardware path failed mid-clip and the machine then froze.
@@ -77,6 +78,25 @@ const send = (ch, data) => { if (win && !win.isDestroyed()) win.webContents.send
 
 const img = (n) => nativeImage.createFromPath(path.join(__dirname, 'build', n));
 
+/** The taskbar: the installed BitChord.exe is Electron's own executable renamed, so Windows would
+ *  title its right-click menu "Electron" with Electron's icon. Name and icon are given to the
+ *  window, and the Start menu and Desktop shortcuts get the same app ID so Windows ties them in. */
+function brandTaskbar() {
+  if (process.platform !== 'win32' || MOCK || !/bitchord\.exe$/i.test(process.execPath)) return;
+  const ico = path.join(path.dirname(process.execPath), 'BitChord.ico');
+  try {
+    win.setAppDetails({ appId: AUMID, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: 'BitChord', ...(fs.existsSync(ico) ? { appIconPath: ico, appIconIndex: 0 } : {}) });
+  } catch (e) { console.warn('[taskbar]', e?.message); }
+  for (const lnk of [path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'BitChord.lnk'), path.join(app.getPath('desktop'), 'BitChord.lnk')]) {
+    try {
+      if (!fs.existsSync(lnk)) continue;
+      const cur = shell.readShortcutLink(lnk);
+      if (path.resolve(cur.target).toLowerCase() !== path.resolve(process.execPath).toLowerCase() || cur.appUserModelId === AUMID) continue;
+      shell.writeShortcutLink(lnk, 'update', { appUserModelId: AUMID });
+    } catch (e) { console.warn('[taskbar] acceso directo', lnk, e?.message); }
+  }
+}
+
 function updateThumbar() {
   if (process.platform !== 'win32' || !win) return;
   if (!win || win.isDestroyed()) return;
@@ -132,6 +152,7 @@ function createWindow() {
   });
   if (bounds.maximized) win.maximize();
   win.once('ready-to-show', () => { win.show(); updateThumbar(); });
+  brandTaskbar();
   // Full-screen mode of the cover and lyrics view (button next to the volume, or F11).
   // The window buttons (minimise/maximise/close) stay drawn over a full-screen window: squash
   // the overlay while full screen and bring it back afterwards.
