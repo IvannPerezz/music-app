@@ -1494,7 +1494,7 @@ function toggleCircle() {
 const visMode = () => (perfMode() ? null : state.settings.circleMode ? 'circle' : state.settings.visualizer ? 'milkdrop' : null);
 const visEl = () => $('#np-vis') || $('#np-vis-circle');
 function mountMode(mode) {
-  if (mode === 'circle') { unmountVisualizer(); mountCircle($('#nowplaying'), engine.ctx, engine.tap); }
+  if (mode === 'circle') { unmountVisualizer(); mountCircle($('#nowplaying'), engine.ctx, engine.tap, () => !engine.paused); }
   else if (mode === 'milkdrop') { unmountCircle(); mountVisualizer($('#nowplaying'), engine); }
 }
 function unmountModes() { unmountVisualizer(); unmountCircle(); }
@@ -1632,14 +1632,16 @@ function toggleCirclePanel() {
       <label><span>${tr('Intensidad del aura')}</span><input type="range" min="0.2" max="3" step="0.1" data-k="circleGain"><b></b></label>
       <label><span>${tr('Latido de la portada')}</span><input type="range" min="0" max="2.5" step="0.1" data-k="circlePulse"><b></b></label>
       <label><span>${tr('Tamaño del círculo')}</span><input type="range" min="0.6" max="1.5" step="0.05" data-k="circleSize"><b></b></label>
+      <label><span>${tr('Velocidad de giro')}</span><input type="range" min="0.25" max="3" step="0.25" data-k="circleSpinSpeed"><b></b></label>
     </div>
+    <label class="circle-opt"><span>${tr('Portada girando como un disco')}</span><span class="switch"><input type="checkbox" data-k="circleSpin"><span></span></span></label>
     <div class="circle-opt"><span>${tr('Color del aura')}</span><div class="seg" data-k="circleColor"><button data-v="cover">${tr('De la portada')}</button><button data-v="white">${tr('Blanco')}</button></div></div>
     <div class="circle-opt"><span>${tr('Fondo')}</span><div class="seg" data-k="circleBg"><button data-v="cover">${tr('Portada difuminada')}</button><button data-v="black">${tr('Negro')}</button></div></div>
     <label class="circle-opt"><span>${tr('Partículas')}</span><span class="switch"><input type="checkbox" data-k="circleParticles"><span></span></span></label>
     <label class="circle-opt"><span>${tr('Temblor en los golpes de bajo')}</span><span class="switch"><input type="checkbox" data-k="circleShake"><span></span></span></label>
     <button class="btn ghost small" data-a="reset">${icon('refresh')}${tr('Restablecer')}</button>
   </div>`);
-  const DEF = { circleGain: 1, circlePulse: 1, circleSize: 1, circleColor: 'cover', circleBg: 'cover', circleParticles: true, circleShake: true };
+  const DEF = { circleGain: 1, circlePulse: 1, circleSize: 1, circleSpinSpeed: 1, circleSpin: true, circleColor: 'cover', circleBg: 'cover', circleParticles: true, circleShake: true };
   const pct = (v) => `${Math.round(v * 100)} %`;
   const paint = () => {
     const s = state.settings;

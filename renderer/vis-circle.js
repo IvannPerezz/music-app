@@ -8,16 +8,28 @@ const BARS = 72;      // points per half of the ring
 const PARTICLES = 140;
 
 let canvas = null, ctx = null, analyser = null, freq = null, raf = 0;
+let bassAn = null, bassBuf = null, playing = () => true;
 let w = 0, h = 0, dpr = 1;
 const smooth = new Float32Array(BARS);
 const slow = new Float32Array(BARS); // a lagging copy for the second, softer layer
 const peak = new Float32Array(BARS).fill(0.3); // each band's recent maximum (evens out bass and treble)
-let bassAvg = 0.2, kick = 0, pulse = 0;
+let bassAvg = 0.2, bassPeak = 0.4, kick = 0, pulse = 0;
+// Turntable: angle of the cover, its speed (eases to a stop when paused) and the cross-fade
+// from the previous cover to the next one.
+let angle = 0, spin = 0, lastT = 0, shownPic = null, prevPic = null, fadeAt = 0;
 let cover = null, coverSrc = '', accent = '#ff5a36', accentAt = 0;
 const parts = [];
 
-export function mountCircle(host, ctxAudio, tapNode) {
+export function mountCircle(host, ctxAudio, tapNode, isPlaying) {
   if (canvas) return;
+  if (isPlaying) playing = isPlaying;
+  // The kick is read from its own analyser: finer bass bins and almost no smoothing, so each hit
+  // comes through sharp (the ring's analyser is smoother on purpose).
+  bassAn = ctxAudio.createAnalyser();
+  bassAn.fftSize = 4096;
+  bassAn.smoothingTimeConstant = 0.15;
+  tapNode.connect(bassAn);
+  bassBuf = new Uint8Array(bassAn.frequencyBinCount);
   analyser = ctxAudio.createAnalyser();
   analyser.fftSize = 2048;
   analyser.smoothingTimeConstant = 0.72;
@@ -39,8 +51,10 @@ export const circleMounted = () => !!canvas;
 export function unmountCircle() {
   cancelAnimationFrame(raf); raf = 0;
   try { analyser?.disconnect(); } catch {}
+  try { bassAn?.disconnect(); } catch {}
   canvas?.remove();
-  canvas = ctx = analyser = null;
+  canvas = ctx = analyser = bassAn = null;
+  shownPic = prevPic = null;
   parts.length = 0;
 }
 
@@ -82,23 +96,27 @@ function drawCircle() {
   if (performance.now() - accentAt > 1000) {
     accentAt = performance.now();
     accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || accent;
-    readCover();
   }
+  readCover();
   analyser.getByteFrequencyData(freq);
   const hz = analyser.context.sampleRate / analyser.fftSize;
   const st = state.settings;
   const gain = st.circleGain ?? 1, size = st.circleSize ?? 1, beat = st.circlePulse ?? 1;
   const color = st.circleColor === 'white' ? '#fff' : accent;
 
-  // Bass (≈ 30–150 Hz): its level against a slow running average gives the kick.
-  const b0 = Math.max(1, Math.floor(30 / hz)), b1 = Math.ceil(150 / hz);
+  // Kick (≈ 40–120 Hz): where the bass is between its recent average and its recent peak, so it
+  // hits just as hard in a quiet song as in a loud one.
+  bassAn.getByteFrequencyData(bassBuf);
+  const bhz = bassAn.context.sampleRate / bassAn.fftSize;
+  const b0 = Math.max(1, Math.floor(40 / bhz)), b1 = Math.ceil(120 / bhz);
   let bass = 0;
-  for (let i = b0; i <= b1; i++) bass += freq[i];
-  bass /= (b1 - b0 + 1) * 255;
-  bassAvg += (bass - bassAvg) * 0.02;
-  const hit = Math.max(0, Math.min(1, (bass - bassAvg * 0.95) * 4 + bass * 0.35));
-  kick = hit > kick ? hit : kick * 0.86;         // fast attack, smooth release
-  pulse += (kick - pulse) * 0.35;
+  for (let i = b0; i <= b1; i++) bass += bassBuf[i];
+  bass = Math.pow(bass / ((b1 - b0 + 1) * 255), 1.4);
+  bassAvg += (bass - bassAvg) * 0.025;
+  bassPeak = Math.max(bassPeak * 0.996, bass, bassAvg + 0.04);
+  const hit = Math.max(0, Math.min(1, (bass - bassAvg) / (bassPeak - bassAvg)));
+  kick = hit > kick ? hit : kick * 0.82;         // instant attack, quick release: a thump
+  pulse = Math.pow(kick, 1.5);
 
   // Ring: log-spaced bands from ~40 Hz to ~6 kHz, fast up and slower down.
   const lo = Math.log(40), hi = Math.log(5000);
@@ -119,8 +137,8 @@ function drawCircle() {
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, w, h);
   const base = Math.min(w, h) * 0.16 * size;
-  const R = base * (1 + pulse * 0.16 * beat);
-  const shake = st.circleShake !== false && pulse > 0.55 ? (pulse - 0.55) * 14 * dpr * beat : 0;
+  const R = base * (1 + pulse * 0.26 * beat);
+  const shake = st.circleShake !== false && pulse > 0.45 ? (pulse - 0.45) * 22 * dpr * beat : 0;
   const cx = w / 2 + (Math.random() - 0.5) * shake, cy = h * 0.44 + (Math.random() - 0.5) * shake;
 
   // Particles: drift outwards, faster with the bass.
@@ -147,7 +165,7 @@ function drawCircle() {
       const j = s ? BARS - 1 - i : i;
       const t = (s ? BARS + i : i) / (BARS * 2);
       const ang = -Math.PI / 2 + t * Math.PI * 2;
-      const ext = R * 1.02 + Math.min(1.6, vals[j] * gain) * base * scale;
+      const ext = R * 1.02 + Math.min(1.6, vals[j] * gain) * base * scale * (1 + pulse * 0.45 * beat);
       pts.push([cx + Math.cos(ang) * ext, cy + Math.sin(ang) * ext]);
     }
     // Smooth closed curve through the points.
@@ -175,16 +193,29 @@ function drawCircle() {
   c.fillStyle = '#111';
   c.fill();
   c.clip();
+  // Like a record on a turntable: it turns while the music plays and eases to a stop on pause.
+  const now = performance.now(), dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 0;
+  lastT = now;
+  const want = st.circleSpin !== false && playing() ? (Math.PI * 2) / 8 * (st.circleSpinSpeed ?? 1) : 0;
+  spin += (want - spin) * Math.min(1, dt * 2.5);
+  angle = (angle + spin * dt) % (Math.PI * 2);
+  if (st.circleSpin === false && spin < 0.01) angle *= 0.9; // back upright
   const pic = liveVideo() || cover;
-  if (pic) {
-    const pw = pic.videoWidth || pic.naturalWidth, ph = pic.videoHeight || pic.naturalHeight;
+  if (pic !== shownPic) { prevPic = shownPic; shownPic = pic; fadeAt = now; }
+  const fade = prevPic ? Math.min(1, (now - fadeAt) / 900) : 1;
+  if (fade >= 1) prevPic = null;
+  c.translate(cx, cy);
+  c.rotate(angle);
+  const paint = (p, alpha) => {
+    c.globalAlpha = alpha;
+    if (!p) { c.fillStyle = accent; c.fillRect(-R, -R, R * 2, R * 2); return; }
+    const pw = p.videoWidth || p.naturalWidth, ph = p.videoHeight || p.naturalHeight;
     const s = Math.max((R * 2) / pw, (R * 2) / ph);
-    const iw = pw * s, ih = ph * s;
-    c.drawImage(pic, cx - iw / 2, cy - ih / 2, iw, ih);
-  } else {
-    c.fillStyle = accent;
-    c.fillRect(cx - R, cy - R, R * 2, R * 2);
-  }
+    c.drawImage(p, -pw * s / 2, -ph * s / 2, pw * s, ph * s);
+  };
+  if (prevPic) paint(prevPic, 1);
+  paint(shownPic, fade * fade * (3 - 2 * fade)); // the next cover fades in over the last one
+  c.globalAlpha = 1;
   c.restore();
   c.lineWidth = Math.max(2, R * 0.035);
   c.strokeStyle = 'rgba(255,255,255,.95)';

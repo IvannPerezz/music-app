@@ -95,6 +95,8 @@ export const DEFAULTS = {
   circleSize: 1,
   circlePulse: 1, // how much the cover beats with the bass
   circleParticles: true,
+  circleSpin: true, // the cover turns like a record
+  circleSpinSpeed: 1, // 1 = a turn every 8 s
   circleShake: true,
   circleColor: 'cover', // 'cover' | 'white'
   circleBg: 'cover', // 'cover' (blurred cover) | 'black'

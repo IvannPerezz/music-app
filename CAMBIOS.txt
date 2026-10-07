@@ -15,6 +15,19 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.45
+------------------------------------------------------------
+- Círculo: ahora retumba con los bajos. Cada golpe de bombo hace crecer de golpe la
+  portada y todo el aura, y vuelven enseguida, como un latido. Se adapta al volumen de
+  cada canción, así que golpea igual en una canción suave que en una fuerte.
+- La portada del círculo gira como un disco en un tocadiscos (sin el agujero del
+  centro). Gira mientras suena la música, se va frenando al pausar y arranca suave al
+  volver a reproducir. Al cambiar de canción, la portada nueva aparece fundiéndose
+  sobre la anterior sin dejar de girar.
+- En Ajustes del círculo: "Portada girando como un disco" para quitarlo o ponerlo, y
+  "Velocidad de giro".
+
+------------------------------------------------------------
 v0.6.44
 ------------------------------------------------------------
 - El círculo estilo Trap Nation es ahora un modo aparte, con su propio botón en la
