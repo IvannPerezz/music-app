@@ -2542,7 +2542,9 @@ export async function applyFont() {
       set.forEach((f, i) => {
         const lo = i ? Math.floor((set[i - 1].weight + f.weight) / 2) : 1;
         const hi = i < set.length - 1 ? Math.floor((f.weight + set[i + 1].weight) / 2) - 1 : 1000;
-        const face = new FontFace('BitChord SF', f.data, { weight: `${lo} ${hi}`, style });
+        // SF Pro Display is narrower than Inter (which widens at small sizes): about 10 % bigger
+        // they look the same size.
+        const face = new FontFace('BitChord SF', f.data, { weight: `${lo} ${hi}`, style, sizeAdjust: '110%' });
         face.load().then(() => document.fonts.add(face)).catch(() => {});
       });
     }

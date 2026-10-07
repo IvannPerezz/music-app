@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.46.1
+------------------------------------------------------------
+- SF Pro Display ya no se ve más pequeña que Inter: se muestra un 10 % más grande para que
+  los textos ocupen lo mismo con las dos fuentes.
+
+------------------------------------------------------------
 v0.6.46
 ------------------------------------------------------------
 - Nuevo en Ajustes > Personalización: "Fuente de la aplicación". Puedes cambiar la letra
