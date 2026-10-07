@@ -8,23 +8,23 @@ const BARS = 72;      // points per half of the ring
 const PARTICLES = 140;
 
 let canvas = null, ctx = null, analyser = null, freq = null, raf = 0;
-let bassAn = null, bassBuf = null, playing = () => true;
+let bassAn = null, bassBuf = null;
 let w = 0, h = 0, dpr = 1;
 const smooth = new Float32Array(BARS);
 const slow = new Float32Array(BARS); // a lagging copy for the second, softer layer
 const peak = new Float32Array(BARS).fill(0.3); // each band's recent maximum (evens out bass and treble)
-let bassAvg = 0.2, bassPeak = 0.4, kick = 0, pulse = 0;
-// Turntable: angle of the cover, its speed (eases to a stop when paused) and the cross-fade
-// from the previous cover to the next one.
-let angle = 0, spin = 0, lastT = 0, shownPic = null, prevPic = null, fadeAt = 0;
+let bassAvg = 0.2, prevBass = 0, kick = 0, pulse = 0;
 let cover = null, coverSrc = '', accent = '#ff5a36', accentAt = 0;
+// Song change: the last picture shown (frozen) while the next cover loads, then a quick spin from
+// it to the new one. The animated cover, if the song has one, fades in once the spin is over.
+const SPIN_MS = 950;
+let held = null, trans = null, vid = null, vidAt = 0, lastDrawn = null;
 const parts = [];
 
-export function mountCircle(host, ctxAudio, tapNode, isPlaying) {
+export function mountCircle(host, ctxAudio, tapNode) {
   if (canvas) return;
-  if (isPlaying) playing = isPlaying;
-  // The kick is read from its own analyser: finer bass bins and almost no smoothing, so each hit
-  // comes through sharp (the ring's analyser is smoother on purpose).
+  // A second analyser, with finer bass bins and almost no smoothing, catches the moment each kick
+  // lands (the ring's analyser is smoother on purpose).
   bassAn = ctxAudio.createAnalyser();
   bassAn.fftSize = 4096;
   bassAn.smoothingTimeConstant = 0.15;
@@ -54,7 +54,8 @@ export function unmountCircle() {
   try { bassAn?.disconnect(); } catch {}
   canvas?.remove();
   canvas = ctx = analyser = bassAn = null;
-  shownPic = prevPic = null;
+  cover = held = trans = vid = lastDrawn = null;
+  coverSrc = '';
   parts.length = 0;
 }
 
@@ -77,14 +78,31 @@ function liveVideo() {
   const v = document.getElementById('np-canvas');
   return v && v.readyState >= 2 && v.videoWidth ? v : null;
 }
+/** A still, square copy of what was on screen (the animated cover's video goes away with its song). */
+function snapshot(p) {
+  const pw = p && (p.videoWidth || p.naturalWidth || p.width), ph = p && (p.videoHeight || p.naturalHeight || p.height);
+  if (!pw || !ph) return null;
+  const o = document.createElement('canvas');
+  o.width = o.height = 640;
+  const s = Math.max(640 / pw, 640 / ph);
+  try { o.getContext('2d').drawImage(p, (640 - pw * s) / 2, (640 - ph * s) / 2, pw * s, ph * s); } catch { return null; }
+  return o;
+}
 function readCover() {
   const src = document.querySelector('#np-art')?.currentSrc || document.querySelector('#np-art')?.src || '';
   if (src === coverSrc) return;
+  const first = !coverSrc;
   coverSrc = src;
   if (!src) { cover = null; return; }
+  if (!first) { held = snapshot(lastDrawn) || held; trans = null; }
   const img = new Image();
   img.decoding = 'async';
-  img.onload = () => { if (coverSrc === src) cover = img; };
+  img.onload = () => {
+    if (coverSrc !== src) return;
+    cover = img;
+    if (held) trans = { from: held, at: performance.now() };
+    held = null;
+  };
   img.src = src;
 }
 
@@ -104,19 +122,25 @@ function drawCircle() {
   const gain = st.circleGain ?? 1, size = st.circleSize ?? 1, beat = st.circlePulse ?? 1;
   const color = st.circleColor === 'white' ? '#fff' : accent;
 
-  // Kick (≈ 40–120 Hz): where the bass is between its recent average and its recent peak, so it
-  // hits just as hard in a quiet song as in a loud one.
+  // Bass (≈ 30–150 Hz): its level against a slow running average gives the kick…
+  const b0 = Math.max(1, Math.floor(30 / hz)), b1 = Math.ceil(150 / hz);
+  let bass = 0;
+  for (let i = b0; i <= b1; i++) bass += freq[i];
+  bass /= (b1 - b0 + 1) * 255;
+  bassAvg += (bass - bassAvg) * 0.02;
+  // …plus how much the low end jumped since the last frame (sharp analyser): that catches kicks
+  // landing on top of a bass line that's loud all the time, which the level alone missed.
   bassAn.getByteFrequencyData(bassBuf);
   const bhz = bassAn.context.sampleRate / bassAn.fftSize;
-  const b0 = Math.max(1, Math.floor(40 / bhz)), b1 = Math.ceil(120 / bhz);
-  let bass = 0;
-  for (let i = b0; i <= b1; i++) bass += bassBuf[i];
-  bass = Math.pow(bass / ((b1 - b0 + 1) * 255), 1.4);
-  bassAvg += (bass - bassAvg) * 0.025;
-  bassPeak = Math.max(bassPeak * 0.996, bass, bassAvg + 0.04);
-  const hit = Math.max(0, Math.min(1, (bass - bassAvg) / (bassPeak - bassAvg)));
-  kick = hit > kick ? hit : kick * 0.82;         // instant attack, quick release: a thump
-  pulse = Math.pow(kick, 1.5);
+  const k0 = Math.max(1, Math.floor(40 / bhz)), k1 = Math.ceil(120 / bhz);
+  let low = 0;
+  for (let i = k0; i <= k1; i++) low += bassBuf[i];
+  low /= (k1 - k0 + 1) * 255;
+  const rise = Math.max(0, low - prevBass);
+  prevBass = low;
+  const hit = Math.max(0, Math.min(1, (bass - bassAvg * 0.95) * 4 + bass * 0.35 + rise * 4));
+  kick = hit > kick ? hit : kick * 0.86;         // fast attack, smooth release
+  pulse += (kick - pulse) * 0.35;
 
   // Ring: log-spaced bands from ~40 Hz to ~6 kHz, fast up and slower down.
   const lo = Math.log(40), hi = Math.log(5000);
@@ -137,8 +161,8 @@ function drawCircle() {
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, w, h);
   const base = Math.min(w, h) * 0.16 * size;
-  const R = base * (1 + pulse * 0.26 * beat);
-  const shake = st.circleShake !== false && pulse > 0.45 ? (pulse - 0.45) * 22 * dpr * beat : 0;
+  const R = base * (1 + pulse * 0.16 * beat);
+  const shake = st.circleShake !== false && pulse > 0.55 ? (pulse - 0.55) * 14 * dpr * beat : 0;
   const cx = w / 2 + (Math.random() - 0.5) * shake, cy = h * 0.44 + (Math.random() - 0.5) * shake;
 
   // Particles: drift outwards, faster with the bass.
@@ -165,7 +189,7 @@ function drawCircle() {
       const j = s ? BARS - 1 - i : i;
       const t = (s ? BARS + i : i) / (BARS * 2);
       const ang = -Math.PI / 2 + t * Math.PI * 2;
-      const ext = R * 1.02 + Math.min(1.6, vals[j] * gain) * base * scale * (1 + pulse * 0.45 * beat);
+      const ext = R * 1.02 + Math.min(1.6, vals[j] * gain) * base * scale;
       pts.push([cx + Math.cos(ang) * ext, cy + Math.sin(ang) * ext]);
     }
     // Smooth closed curve through the points.
@@ -193,28 +217,33 @@ function drawCircle() {
   c.fillStyle = '#111';
   c.fill();
   c.clip();
-  // Like a record on a turntable: it turns while the music plays and eases to a stop on pause.
-  const now = performance.now(), dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 0;
-  lastT = now;
-  const want = st.circleSpin !== false && playing() ? (Math.PI * 2) / 8 * (st.circleSpinSpeed ?? 1) : 0;
-  spin += (want - spin) * Math.min(1, dt * 2.5);
-  angle = (angle + spin * dt) % (Math.PI * 2);
-  if (st.circleSpin === false && spin < 0.01) angle *= 0.9; // back upright
-  const pic = liveVideo() || cover;
-  if (pic !== shownPic) { prevPic = shownPic; shownPic = pic; fadeAt = now; }
-  const fade = prevPic ? Math.min(1, (now - fadeAt) / 900) : 1;
-  if (fade >= 1) prevPic = null;
+  const now = performance.now();
+  const t = trans ? Math.min(1, (now - trans.at) / SPIN_MS) : 1;
+  if (t >= 1) trans = null;
+  // The animated cover only once the spin is over (and fading in, not popping).
+  const v = !trans && !held ? liveVideo() : null;
+  if (v !== vid) { vid = v; vidAt = now; }
   c.translate(cx, cy);
-  c.rotate(angle);
   const paint = (p, alpha) => {
     c.globalAlpha = alpha;
     if (!p) { c.fillStyle = accent; c.fillRect(-R, -R, R * 2, R * 2); return; }
-    const pw = p.videoWidth || p.naturalWidth, ph = p.videoHeight || p.naturalHeight;
+    const pw = p.videoWidth || p.naturalWidth || p.width, ph = p.videoHeight || p.naturalHeight || p.height;
     const s = Math.max((R * 2) / pw, (R * 2) / ph);
     c.drawImage(p, -pw * s / 2, -ph * s / 2, pw * s, ph * s);
   };
-  if (prevPic) paint(prevPic, 1);
-  paint(shownPic, fade * fade * (3 - 2 * fade)); // the next cover fades in over the last one
+  if (held) paint(held, 1); // (the next cover is still loading)
+  else if (trans) {
+    // One fast turn, speeding up and braking, with the new cover fading in around the middle.
+    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    c.rotate(e * Math.PI * 2);
+    paint(trans.from, 1);
+    const f = Math.max(0, Math.min(1, (t - 0.3) / 0.4));
+    paint(cover, f * f * (3 - 2 * f));
+  } else {
+    paint(cover, 1);
+    if (vid) paint(vid, Math.min(1, (now - vidAt) / 500));
+  }
+  lastDrawn = held || (vid && now - vidAt > 500 ? vid : cover);
   c.globalAlpha = 1;
   c.restore();
   c.lineWidth = Math.max(2, R * 0.035);

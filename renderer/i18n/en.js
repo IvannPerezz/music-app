@@ -1,8 +1,6 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
-  "Velocidad de giro": "Spin speed",
-  "Portada girando como un disco": "Cover spinning like a record",
   "Círculo y sus ajustes": "Circle and its settings",
   "El círculo está apagado en el modo rendimiento": "The circle is off in performance mode",
   "Volver a portada y letra (C)": "Back to cover and lyrics (C)",

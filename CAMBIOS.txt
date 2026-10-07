@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.45.1
+------------------------------------------------------------
+- Círculo: el latido con los bajos vuelve a ser como antes, pero ahora también reacciona
+  a los golpes de bajo que antes se le escapaban (los que caen encima de una línea de
+  bajo que suena todo el rato).
+- La portada ya no gira todo el rato. Ahora, al cambiar de canción, la portada anterior
+  da una vuelta rápida y, a mitad del giro, se funde con la nueva, que se queda quieta.
+  Si la canción tiene portada animada, aparece cuando termina el giro.
+- Fuera de Ajustes del círculo las opciones de giro, que ya no hacen falta.
+
+------------------------------------------------------------
 v0.6.45
 ------------------------------------------------------------
 - Círculo: ahora retumba con los bajos. Cada golpe de bombo hace crecer de golpe la
