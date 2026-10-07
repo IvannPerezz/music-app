@@ -2527,8 +2527,9 @@ function setupSidebarMode() {
   applyWindowButtons();
   applyFont();
 }
-/** Interface font: Inter (built in) or SF Pro Display from the user's files. Each file is used
- *  for the weights nearest to it (the ones in between go to the heavier of the two). */
+/** Interface font: Inter (built in) or SF Pro Display from the user's files. A weight the files
+ *  don't have uses the lighter one next to it (only weights very close to the heavier one take
+ *  it): without an upright Semibold, the many semibold texts would otherwise all come out bold. */
 let fontLoaded = false;
 export async function applyFont() {
   const root = document.documentElement;
@@ -2540,8 +2541,8 @@ export async function applyFont() {
     for (const style of ['normal', 'italic']) {
       const set = faces.filter((f) => f.style === style).sort((a, b) => a.weight - b.weight);
       set.forEach((f, i) => {
-        const lo = i ? Math.floor((set[i - 1].weight + f.weight) / 2) : 1;
-        const hi = i < set.length - 1 ? Math.floor((f.weight + set[i + 1].weight) / 2) - 1 : 1000;
+        const lo = i ? f.weight - 20 : 1;
+        const hi = i < set.length - 1 ? set[i + 1].weight - 21 : 1000;
         // SF Pro Display is narrower than Inter (which widens at small sizes): about 10 % bigger
         // they look the same size.
         const face = new FontFace('BitChord SF', f.data, { weight: `${lo} ${hi}`, style, sizeAdjust: '110%' });

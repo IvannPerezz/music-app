@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.46.4
+------------------------------------------------------------
+- Con SF Pro Display los textos ya no salen casi todos en negrita. Cada texto usa su
+  grosor: normal, medio, seminegrita (con el archivo Semibold que has añadido) o negrita.
+  Si falta algún grosor, se usa el más fino de al lado en lugar de la negrita.
+- Si añades más archivos de la fuente a la carpeta "sf-pro-display" del Escritorio,
+  BitChord los coge solo al abrirse.
+
+------------------------------------------------------------
 v0.6.46.3
 ------------------------------------------------------------
 - Barra de tareas: al hacer click derecho en el icono de BitChord, el menú pone ahora

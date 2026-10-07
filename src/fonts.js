@@ -28,8 +28,17 @@ export function importFrom(folder) {
   return files.length;
 }
 
+/** Files added later to the Desktop folder (a missing weight, say) are picked up too. */
+function syncNew() {
+  const from = defaultFolder();
+  if (!from || !installed()) return;
+  const have = new Set(list(dir).map((f) => f.toUpperCase()));
+  for (const f of list(from)) if (!have.has(f.toUpperCase())) { try { fs.copyFileSync(path.join(from, f), path.join(dir, f.toUpperCase())); } catch {} }
+}
+
 /** Every face with its weight and style, and the file's bytes (the window builds FontFaces). */
 export function faces() {
+  syncNew();
   return list(dir).map((f) => {
     const m = NAME.exec(f);
     return { weight: WEIGHTS[m[1].toUpperCase()], style: m[2] ? 'italic' : 'normal', data: new Uint8Array(fs.readFileSync(path.join(dir, f))) };
