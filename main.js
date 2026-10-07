@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, shell, nativeTheme, Menu, Tray, nativeImag
 import path from 'node:path';
 import fs from 'node:fs';
 import util from 'node:util';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -83,7 +84,7 @@ const img = (n) => nativeImage.createFromPath(path.join(__dirname, 'build', n));
  *  window, and the Start menu and Desktop shortcuts get the same app ID so Windows ties them in. */
 function brandTaskbar() {
   if (process.platform !== 'win32' || MOCK || !/bitchord\.exe$/i.test(process.execPath)) return;
-  const ico = path.join(path.dirname(process.execPath), 'BitChord.ico');
+  const ico = installIcon();
   try {
     win.setAppDetails({ appId: AUMID, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: 'BitChord', ...(fs.existsSync(ico) ? { appIconPath: ico, appIconIndex: 0 } : {}) });
   } catch (e) { console.warn('[taskbar]', e?.message); }
@@ -91,9 +92,30 @@ function brandTaskbar() {
     try {
       if (!fs.existsSync(lnk)) continue;
       const cur = shell.readShortcutLink(lnk);
-      if (path.resolve(cur.target).toLowerCase() !== path.resolve(process.execPath).toLowerCase() || cur.appUserModelId === AUMID) continue;
-      shell.writeShortcutLink(lnk, 'update', { appUserModelId: AUMID });
+      if (path.resolve(cur.target).toLowerCase() !== path.resolve(process.execPath).toLowerCase()) continue;
+      const iconOk = !ico || (cur.icon && path.resolve(cur.icon).toLowerCase() === ico.toLowerCase());
+      if (cur.appUserModelId === AUMID && iconOk) continue;
+      shell.writeShortcutLink(lnk, 'update', { appUserModelId: AUMID, ...(ico ? { icon: ico, iconIndex: 0 } : {}) });
     } catch (e) { console.warn('[taskbar] acceso directo', lnk, e?.message); }
+  }
+}
+
+/** The logo as an .ico next to BitChord.exe, named after its contents (BitChord-1a2b3c4d.ico):
+ *  Windows keeps shortcut icons cached by file name, so a new logo needs a new name to show up.
+ *  Older copies are removed. */
+function installIcon() {
+  try {
+    const data = fs.readFileSync(path.join(__dirname, 'build', 'icon.ico'));
+    const dir = path.dirname(process.execPath);
+    const name = `BitChord-${crypto.createHash('sha1').update(data).digest('hex').slice(0, 8)}.ico`;
+    const file = path.join(dir, name);
+    if (!fs.existsSync(file)) fs.writeFileSync(file, data);
+    for (const f of fs.readdirSync(dir)) if (/^BitChord-[0-9a-f]{8}\.ico$/i.test(f) && f !== name) { try { fs.rmSync(path.join(dir, f)); } catch {} }
+    return file;
+  } catch (e) {
+    console.warn('[taskbar] icono', e?.message);
+    const old = path.join(path.dirname(process.execPath), 'BitChord.ico');
+    return fs.existsSync(old) ? old : null;
   }
 }
 

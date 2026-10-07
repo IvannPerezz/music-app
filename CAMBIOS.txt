@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.47.3
+------------------------------------------------------------
+- Arreglado: los accesos directos (Escritorio, menú Inicio) y la barra de tareas seguían
+  enseñando el logo antiguo aunque se reiniciara el PC. Windows guarda los iconos por el
+  nombre del archivo, así que ahora el icono se guarda con un nombre nuevo cada vez que
+  cambia el logo y los accesos directos se actualizan solos al abrir BitChord.
+
+------------------------------------------------------------
 v0.6.47.2
 ------------------------------------------------------------
 - Logotipo definitivo: rojo granate oscuro con las ondas blancas, en todas partes (logo de
