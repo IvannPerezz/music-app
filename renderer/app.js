@@ -5,7 +5,8 @@ import { parseResult } from './lyrics-parse.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
-import { mountVisualizer, unmountVisualizer, setCircle, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange, favorites, toggleFavorite, isReady as isVisReady } from './visualizer.js';
+import { mountCircle, unmountCircle } from './vis-circle.js';
+import { mountVisualizer, unmountVisualizer, visOnTrackChange, presetNames, currentPreset, pickPreset, randomPreset, scheduleAuto, onVisChange, favorites, toggleFavorite, isReady as isVisReady } from './visualizer.js';
 import { importView } from './import-view.js';
 import { tr, translateStatic, syncUiLang, locale } from './i18n.js';
 
@@ -1405,7 +1406,7 @@ const FS_BUTTONS = [
   // key, label, icon, group
   ['queue', tr('Cola'), 'queue', 'side'], ['eq', tr('Ecualizador'), 'equalizer', 'side'],
   ['lyricsSource', tr('Cambiar la fuente de la letra'), 'lyrics', 'side'], ['lyricsToggle', tr('Mostrar u ocultar la letra'), 'subtitlesOff', 'side'],
-  ['vis', tr('Visualizador y sus presets'), 'visualizer', 'side'],
+  ['vis', tr('Visualizador y sus presets'), 'visualizer', 'side'], ['circle', tr('Círculo y sus ajustes'), 'disc', 'side'],
   ['like', tr('Favorito'), 'heart', 'play'], ['shuffle', tr('Aleatorio'), 'shuffle', 'play'], ['repeat', tr('Repetir'), 'repeat', 'play'],
   ['more', tr('Más opciones (temporizador, velocidad…)'), 'more', 'play'],
 ];
@@ -1482,23 +1483,51 @@ export async function setPerformanceMode(on) {
 }
 function toggleVisualizer() {
   if (perfMode()) return toast(tr('El visualizador está apagado en el modo rendimiento'));
-  saveSettings({ visualizer: !state.settings.visualizer });
+  saveSettings({ visualizer: !state.settings.visualizer, circleMode: false });
 }
+/** "Círculo" mode: like the visualizer, it takes the place of the cover and lyrics. */
+function toggleCircle() {
+  if (perfMode()) return toast(tr('El círculo está apagado en el modo rendimiento'));
+  saveSettings({ circleMode: !state.settings.circleMode, visualizer: false });
+}
+/** What the view shows instead of cover and lyrics: 'milkdrop', 'circle' or nothing. */
+const visMode = () => (perfMode() ? null : state.settings.circleMode ? 'circle' : state.settings.visualizer ? 'milkdrop' : null);
+const visEl = () => $('#np-vis') || $('#np-vis-circle');
+function mountMode(mode) {
+  if (mode === 'circle') { unmountVisualizer(); mountCircle($('#nowplaying'), engine.ctx, engine.tap); }
+  else if (mode === 'milkdrop') { unmountCircle(); mountVisualizer($('#nowplaying'), engine); }
+}
+function unmountModes() { unmountVisualizer(); unmountCircle(); }
 
 let visGen = 0;
+let shownMode = null;
 function applyVis() {
-  const on = !!state.settings.visualizer && !perfMode();
-  $('#np-vis-toggle').classList.toggle('on', on);
-  $('#np-vis-toggle').title = tr(on ? 'Volver a portada y letra (V)' : 'Visualizador (V)');
-  if (!on && fsPanelKind === 'vis') closeFsPanel();
+  const mode = visMode(), on = !!mode;
+  $('#np-vis-toggle').classList.toggle('on', mode === 'milkdrop');
+  $('#np-vis-toggle').title = tr(mode === 'milkdrop' ? 'Volver a portada y letra (V)' : 'Visualizador (V)');
+  $('#np-circle-toggle').classList.toggle('on', mode === 'circle');
+  $('#np-circle-toggle').title = tr(mode === 'circle' ? 'Volver a portada y letra (C)' : 'Círculo (C)');
+  document.body.classList.toggle('circle-black', state.settings.circleBg === 'black');
+  if (mode !== 'milkdrop' && fsPanelKind === 'vis') closeFsPanel();
+  if (mode !== 'circle' && fsPanelKind === 'circle') closeFsPanel();
+  const was = shownMode;
+  shownMode = mode;
+  // From one mode straight to the other: swap what's drawing, the view stays as it is.
+  if (was && mode && was !== mode) {
+    document.body.classList.toggle('circle-on', mode === 'circle');
+    if (npOpen()) mountMode(mode);
+    return;
+  }
+  if (mode === 'circle') document.body.classList.add('circle-on');
   const gen = ++visGen;
   // A switch cut short mustn't leave the full-screen controls hidden off screen.
   $('#np-fs-slot').getAnimations().forEach((a) => a.cancel());
   const animate = npOpen() && document.body.classList.contains('vis-on') !== on && !reducedMotion();
   if (!animate) {
     document.body.classList.toggle('vis-on', on);
-    if (on && npOpen()) mountVisualizer($('#nowplaying'), engine);
-    if (!on) unmountVisualizer();
+    if (!on) document.body.classList.remove('circle-on');
+    if (on && npOpen()) mountMode(mode);
+    if (!on) unmountModes();
     return;
   }
   visBlurSwitch(on, gen);
@@ -1510,7 +1539,9 @@ async function visBlurSwitch(on, gen) {
   const np = $('#nowplaying'), stale = () => gen !== visGen;
   const blurred = { opacity: 0, filter: 'blur(28px) brightness(.45)', transform: 'scale(1.04)' };
   const sharp = { opacity: 1, filter: 'blur(0px) brightness(1)', transform: 'scale(1)' };
-  const coverParts = () => [$('#np-art'), np.querySelector('.np-right'), np.querySelector('.np-bg'), np.querySelector('.np-amb')].filter((el) => el?.offsetWidth);
+  // (The circle keeps the view's blurred background: that one stays put.)
+  const keepBg = document.body.classList.contains('circle-on') && state.settings.circleBg !== 'black';
+  const coverParts = () => [$('#np-art'), np.querySelector('.np-right'), ...(keepBg ? [] : [np.querySelector('.np-bg'), np.querySelector('.np-amb')])].filter((el) => el?.offsetWidth);
   // The lyrics blur fully; the artwork keeps its own transform (it shrinks while paused) and the
   // backgrounds their own filters, so those only blur or fade.
   const frames = (el, show) => {
@@ -1550,8 +1581,8 @@ async function visBlurSwitch(on, gen) {
   };
   if (on) {
     // The visualizer starts loading straight away, hidden, while the cover and lyrics blur away.
-    mountVisualizer(np, engine);
-    const frame = $('#np-vis');
+    mountMode(visMode());
+    const frame = visEl();
     if (frame) frame.style.opacity = '0';
     const outs = coverParts().map((el) => el.animate(frames(el, false), { duration: 380, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' }));
     controlsOut();
@@ -1564,18 +1595,18 @@ async function visBlurSwitch(on, gen) {
     slotGlide(slotBefore);
     // Out of the blur once it draws (or after a while, if it's slow to start).
     await new Promise((done) => {
-      if (isVisReady()) return done();
+      if (isVisReady() || $('#np-vis-circle')) return done();
       const t = setTimeout(() => { off(); done(); }, 4000);
       const off = onVisChange(() => { if (isVisReady()) { clearTimeout(t); off(); done(); } });
     });
-    const f = $('#np-vis');
+    const f = visEl();
     if (stale()) return;
     if (!f) return controlsIn();
     f.style.opacity = '';
     f.animate([blurred, sharp], { duration: 900, easing: FS_EASE });
     controlsIn();
   } else {
-    const frame = $('#np-vis');
+    const frame = visEl();
     controlsOut();
     if (frame && frame.style.opacity !== '0') { // (still hidden if it hadn't started drawing yet)
       const out = frame.animate([sharp, blurred], { duration: 380, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' });
@@ -1584,13 +1615,47 @@ async function visBlurSwitch(on, gen) {
     } else await slotOut?.finished.catch(() => {});
     if (stale()) return;
     const before = meta.map(textRect), slotBefore = slotFrom();
-    unmountVisualizer();
-    document.body.classList.remove('vis-on');
+    unmountModes();
+    document.body.classList.remove('vis-on', 'circle-on');
     glideText(meta, before, 650);
     slotGlide(slotBefore);
     for (const el of coverParts()) el.animate(frames(el, true), { duration: 800, easing: FS_EASE });
     controlsIn();
   }
+}
+/** Options of the circle mode (live while dragging). */
+function toggleCirclePanel() {
+  if (fsPanelKind === 'circle') return closeFsPanel();
+  const st = state.settings;
+  const root = h(`<div class="circle-panel">
+    <div class="menu-sliders">
+      <label><span>${tr('Intensidad del aura')}</span><input type="range" min="0.2" max="3" step="0.1" data-k="circleGain"><b></b></label>
+      <label><span>${tr('Latido de la portada')}</span><input type="range" min="0" max="2.5" step="0.1" data-k="circlePulse"><b></b></label>
+      <label><span>${tr('Tamaño del círculo')}</span><input type="range" min="0.6" max="1.5" step="0.05" data-k="circleSize"><b></b></label>
+    </div>
+    <div class="circle-opt"><span>${tr('Color del aura')}</span><div class="seg" data-k="circleColor"><button data-v="cover">${tr('De la portada')}</button><button data-v="white">${tr('Blanco')}</button></div></div>
+    <div class="circle-opt"><span>${tr('Fondo')}</span><div class="seg" data-k="circleBg"><button data-v="cover">${tr('Portada difuminada')}</button><button data-v="black">${tr('Negro')}</button></div></div>
+    <label class="circle-opt"><span>${tr('Partículas')}</span><span class="switch"><input type="checkbox" data-k="circleParticles"><span></span></span></label>
+    <label class="circle-opt"><span>${tr('Temblor en los golpes de bajo')}</span><span class="switch"><input type="checkbox" data-k="circleShake"><span></span></span></label>
+    <button class="btn ghost small" data-a="reset">${icon('refresh')}${tr('Restablecer')}</button>
+  </div>`);
+  const DEF = { circleGain: 1, circlePulse: 1, circleSize: 1, circleColor: 'cover', circleBg: 'cover', circleParticles: true, circleShake: true };
+  const pct = (v) => `${Math.round(v * 100)} %`;
+  const paint = () => {
+    const s = state.settings;
+    root.querySelectorAll('input[type=range]').forEach((i) => { i.value = s[i.dataset.k] ?? DEF[i.dataset.k]; i.nextElementSibling.textContent = pct(+i.value); });
+    root.querySelectorAll('.seg').forEach((g) => g.querySelectorAll('button').forEach((b) => b.classList.toggle('on', (s[g.dataset.k] ?? DEF[g.dataset.k]) === b.dataset.v)));
+    root.querySelectorAll('input[type=checkbox]').forEach((i) => { i.checked = s[i.dataset.k] ?? DEF[i.dataset.k]; });
+  };
+  root.querySelectorAll('input[type=range]').forEach((i) => {
+    i.oninput = () => { i.nextElementSibling.textContent = pct(+i.value); state.settings = { ...state.settings, [i.dataset.k]: +i.value }; };
+    i.onchange = () => saveSettings({ [i.dataset.k]: +i.value });
+  });
+  root.querySelectorAll('.seg button').forEach((b) => { b.onclick = () => { saveSettings({ [b.parentElement.dataset.k]: b.dataset.v }).then(paint); }; });
+  root.querySelectorAll('input[type=checkbox]').forEach((i) => { i.onchange = () => saveSettings({ [i.dataset.k]: i.checked }); });
+  root.querySelector('[data-a=reset]').onclick = () => saveSettings(DEF).then(paint);
+  paint();
+  openFsPanel('circle', tr('Círculo'), root);
 }
 /** Presets panel: another one at random, when to change on its own, search and the list. */
 function toggleVisPanel() {
@@ -1598,7 +1663,6 @@ function toggleVisPanel() {
   const root = h(`<div class="vis-panel">
     <div class="vis-row">
       <button class="btn ghost small" data-a="rand" title="${tr('Otro preset al azar')}">${icon('shuffle')}${tr('Al azar')}</button>
-      <button class="btn ghost small vis-circle-btn${state.settings.visCircle !== false ? ' on' : ''}" data-a="circle" title="${tr('Círculo con la portada que late con los bajos, estilo Trap Nation')}">${icon('disc')}${tr('Círculo')}</button>
       <select class="select" data-a="auto" title="${tr('Cuándo cambia de preset solo')}">
         <option value="song">${tr('Con cada canción')}</option><option value="30">${tr('Cada 30 segundos')}</option>
         <option value="60">${tr('Cada minuto')}</option><option value="off">${tr('Siempre el mismo')}</option>
@@ -1612,12 +1676,6 @@ function toggleVisPanel() {
   auto.value = String(state.settings.visAuto || 'song');
   auto.onchange = () => saveSettings({ visAuto: auto.value });
   root.querySelector('[data-a=rand]').onclick = () => randomPreset();
-  root.querySelector('[data-a=circle]').onclick = (e) => {
-    const on = state.settings.visCircle === false;
-    e.currentTarget.classList.toggle('on', on);
-    setCircle(on);
-    saveSettings({ visCircle: on });
-  };
   search.addEventListener('keydown', (e) => { if (e.key !== 'Escape') e.stopPropagation(); });
   // Tabs: all the presets, or only the starred ones (then "Al azar" and the automatic changes
   // also pick among the favourites).
@@ -1674,6 +1732,7 @@ function toggleVisPanel() {
 }
 function syncFsPanelButtons() {
   $('#np-vis-presets').classList.toggle('on', fsPanelKind === 'vis');
+  $('#np-circle-opts').classList.toggle('on', fsPanelKind === 'circle');
   $('#fs-eq').classList.toggle('on', fsPanelKind === 'eq');
   // The panel already says which source is in use: keep the pill folded, just highlighted.
   $('#lyrics-source').classList.remove('open');
@@ -2147,7 +2206,7 @@ function openNowPlaying() {
   applyLyricsHidden();
   renderLyrics();
   updateStats();
-  if (state.settings.visualizer) mountVisualizer($('#nowplaying'), engine);
+  if (visMode()) mountMode(visMode());
   updateCanvas();
 }
 function applyLyricsHidden() {
@@ -2172,8 +2231,8 @@ function closeNowPlaying() {
   np.classList.add('closing');
   // An open queue was under the view all along: it stays there until the view has faded away
   // (like the left sidebar), and is then simply there again.
-  npCloseTimer = setTimeout(() => { np.hidden = true; np.classList.remove('closing'); document.body.classList.remove('np-open'); setQueueUnder(false); unmountVisualizer(); updateCanvas(); }, 230);
-  if (fsPanelKind === 'vis') closeFsPanel();
+  npCloseTimer = setTimeout(() => { np.hidden = true; np.classList.remove('closing'); document.body.classList.remove('np-open'); setQueueUnder(false); unmountModes(); updateCanvas(); }, 230);
+  if (fsPanelKind === 'vis' || fsPanelKind === 'circle') closeFsPanel();
 }
 const npOpen = () => !$('#nowplaying').hidden && !$('#nowplaying').classList.contains('closing');
 
@@ -2664,7 +2723,7 @@ document.addEventListener('settings', (e) => {
   if (k.some((x) => x.startsWith('mica'))) applyMica();
   if (k.includes('fsButtons')) applyFsButtons();
   if (k.includes('windowButtons')) applyWindowButtons();
-  if (k.includes('visualizer')) applyVis();
+  if (k.includes('visualizer') || k.includes('circleMode') || k.includes('circleBg')) applyVis();
   if (k.includes('visualizer') || k.includes('animatedCovers')) updateCanvas();
   if (k.includes('performanceMode')) applyPerf();
   if (k.includes('visAuto')) scheduleAuto();
@@ -2724,6 +2783,10 @@ function initButtons() {
   $('#np-vis-toggle').onclick = toggleVisualizer;
   $('#np-vis-presets').innerHTML = icon('tune');
   $('#np-vis-presets').onclick = () => toggleVisPanel();
+  $('#np-circle-toggle').innerHTML = icon('disc');
+  $('#np-circle-toggle').onclick = toggleCircle;
+  $('#np-circle-opts').innerHTML = icon('tune');
+  $('#np-circle-opts').onclick = () => toggleCirclePanel();
   applyVis();
   $('#fs-panel-close').onclick = () => closeFsPanel();
   applyFsButtons();
@@ -2795,6 +2858,7 @@ function initButtons() {
     else if (e.key.toLowerCase() === 'l') npOpen() ? closeNowPlaying() : openNowPlaying();
     else if (e.key.toLowerCase() === 'q') toggleQueue();
     else if (e.key.toLowerCase() === 'v' && npOpen()) toggleVisualizer();
+    else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && npOpen()) toggleCircle();
     else if (e.key.toLowerCase() === 's') player.setShuffle(!player.shuffle);
     else if (e.key.toLowerCase() === 'r') player.cycleRepeat();
     else if (e.key.toLowerCase() === 'm') $('#mute').click();

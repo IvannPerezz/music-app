@@ -138,7 +138,6 @@ await win.click('#np-vis-toggle');
 try { await win.waitForFunction(() => document.body.dataset.vis === 'ready', null, { timeout: 8000 }); }
 catch { errors.push('El visualizador no arranca'); }
 await win.waitForTimeout(1500); await shot('02g-visualizer');
-if (!(await win.evaluate(() => { const c = document.querySelector('#np-vis-circle'); return c && c.width > 0; }))) errors.push('No sale el círculo de bajos del visualizador');
 const corner = await win.evaluate(() => ['#lyrics-source', '#np-lyrics-toggle', '#np-vis-presets'].map((q) => { const s = getComputedStyle(document.querySelector(q)); return +s.opacity > 0.5 && parseFloat(s.height) > 20; }));
 if (corner.join() !== 'false,false,true') errors.push('Con el visualizador, los botones de la letra deberían salir y el de presets entrar: ' + corner.join());
 await win.click('#np-vis-presets'); await win.waitForTimeout(500);
@@ -156,6 +155,18 @@ await win.click('.vis-tabs [data-t=all]'); await win.waitForTimeout(200);
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);
 await win.click('#np-vis-toggle'); await win.waitForTimeout(700); // it blurs away first
 if (await win.$('#np-vis')) errors.push('El visualizador no se quita al apagarlo');
+// "Círculo" mode: its own button; the lyrics buttons leave and its options button comes in.
+await win.click('#np-circle-toggle'); await win.waitForTimeout(1500);
+if (!(await win.evaluate(() => { const c = document.querySelector('#np-vis-circle'); return c && c.width > 0 && !document.querySelector('#np-vis'); }))) errors.push('No sale el modo círculo');
+const ccorner = await win.evaluate(() => ['#np-lyrics-toggle', '#np-vis-presets', '#np-circle-opts'].map((q) => { const s = getComputedStyle(document.querySelector(q)); return +s.opacity > 0.5 && parseFloat(s.height) > 20; }));
+if (ccorner.join() !== 'false,false,true') errors.push('Con el círculo, botones de la esquina: ' + ccorner.join());
+await win.click('#np-circle-opts'); await win.waitForTimeout(500);
+await win.locator('#fs-panel [data-k=circleGain]').fill('2'); await win.waitForTimeout(300);
+if (!(await win.evaluate(() => window.__bc.state.settings.circleGain === 2))) errors.push('La intensidad del aura no cambia');
+await shot('02j-circle');
+await win.click('#fs-panel-close'); await win.waitForTimeout(400);
+await win.click('#np-circle-toggle'); await win.waitForTimeout(900);
+if (await win.$('#np-vis-circle')) errors.push('El círculo no se quita al apagarlo');
 await win.keyboard.press('Escape'); await win.waitForTimeout(1200);
 fsx = { ...(await fsState()), window: await winFs() };
 if (fsx.fs || fsx.inside || fsx.window || !(await win.$('#player .p-center'))) errors.push('Al salir de pantalla completa: ' + JSON.stringify(fsx));

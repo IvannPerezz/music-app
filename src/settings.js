@@ -90,7 +90,14 @@ export const DEFAULTS = {
   visPreset: '',
   visAuto: 'song', // 'song' | seconds ('30', '60') | 'off'
   visFavorites: [], // preset names marked with the star
-  visCircle: true, // Trap Nation-style bass circle over the visualizer
+  circleMode: false, // "Círculo" view (Trap Nation style), instead of cover and lyrics
+  circleGain: 1, // how strongly the aura reacts to the music
+  circleSize: 1,
+  circlePulse: 1, // how much the cover beats with the bass
+  circleParticles: true,
+  circleShake: true,
+  circleColor: 'cover', // 'cover' | 'white'
+  circleBg: 'cover', // 'cover' (blurred cover) | 'black'
   visUseFavs: false, // "Favoritos" tab: random and automatic changes only among the favourites
   // Buttons shown in full-screen mode (Ajustes de pantalla completa, the gear in that mode).
   fsButtons: { queue: true, eq: true, more: true, lyricsSource: true, lyricsToggle: true, like: true, shuffle: true, repeat: true, vis: true },

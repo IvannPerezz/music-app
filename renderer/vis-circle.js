@@ -1,11 +1,13 @@
-// Trap Nation-style bass circle drawn over the MilkDrop visualizer: the round cover in the middle
-// beats with the bass, a ring of spectrum waves around it (mirrored left/right) and particles
-// flying outwards that speed up on each kick. Plain 2D canvas in the main window (no eval needed).
+// "Círculo" mode of the cover and lyrics view, Trap Nation style: the round cover (or the animated
+// cover, when the song has one) in the middle beats with the bass, a ring of spectrum waves around
+// it (mirrored left/right) and particles flying outwards that speed up on each kick. Plain 2D
+// canvas in the main window, over the view's blurred background. Options in Ajustes del círculo.
+import { state } from './core.js';
 
 const BARS = 72;      // points per half of the ring
 const PARTICLES = 140;
 
-let canvas = null, ctx = null, analyser = null, freq = null;
+let canvas = null, ctx = null, analyser = null, freq = null, raf = 0;
 let w = 0, h = 0, dpr = 1;
 const smooth = new Float32Array(BARS);
 const slow = new Float32Array(BARS); // a lagging copy for the second, softer layer
@@ -25,12 +27,17 @@ export function mountCircle(host, ctxAudio, tapNode) {
   canvas.id = 'np-vis-circle';
   canvas.setAttribute('aria-hidden', 'true');
   ctx = canvas.getContext('2d');
-  const vis = host.querySelector('#np-vis');
-  if (vis) vis.after(canvas); else host.prepend(canvas);
+  // Over the view's blurred background, under the song details and the controls.
+  const inner = host.querySelector('.np-inner');
+  if (inner) inner.before(canvas); else host.prepend(canvas);
   for (let i = 0; i < PARTICLES; i++) parts.push(newPart(true));
+  const loop = () => { raf = requestAnimationFrame(loop); drawCircle(); };
+  raf = requestAnimationFrame(loop);
 }
+export const circleMounted = () => !!canvas;
 
 export function unmountCircle() {
+  cancelAnimationFrame(raf); raf = 0;
   try { analyser?.disconnect(); } catch {}
   canvas?.remove();
   canvas = ctx = analyser = null;
@@ -51,6 +58,11 @@ function resize() {
   }
 }
 
+// The animated cover (a looping video, see updateCanvas in app.js) when the song has one.
+function liveVideo() {
+  const v = document.getElementById('np-canvas');
+  return v && v.readyState >= 2 && v.videoWidth ? v : null;
+}
 function readCover() {
   const src = document.querySelector('#np-art')?.currentSrc || document.querySelector('#np-art')?.src || '';
   if (src === coverSrc) return;
@@ -62,8 +74,8 @@ function readCover() {
   img.src = src;
 }
 
-/** One frame (called from the visualizer's animation loop). */
-export function drawCircle() {
+/** One frame. */
+function drawCircle() {
   if (!canvas || !canvas.isConnected) return;
   resize();
   if (!w || !h) return;
@@ -74,6 +86,9 @@ export function drawCircle() {
   }
   analyser.getByteFrequencyData(freq);
   const hz = analyser.context.sampleRate / analyser.fftSize;
+  const st = state.settings;
+  const gain = st.circleGain ?? 1, size = st.circleSize ?? 1, beat = st.circlePulse ?? 1;
+  const color = st.circleColor === 'white' ? '#fff' : accent;
 
   // Bass (≈ 30–150 Hz): its level against a slow running average gives the kick.
   const b0 = Math.max(1, Math.floor(30 / hz)), b1 = Math.ceil(150 / hz);
@@ -103,15 +118,15 @@ export function drawCircle() {
   const c = ctx;
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, w, h);
-  const base = Math.min(w, h) * 0.16;
-  const R = base * (1 + pulse * 0.16);
-  const shake = pulse > 0.55 ? (pulse - 0.55) * 14 * dpr : 0;
+  const base = Math.min(w, h) * 0.16 * size;
+  const R = base * (1 + pulse * 0.16 * beat);
+  const shake = st.circleShake !== false && pulse > 0.55 ? (pulse - 0.55) * 14 * dpr * beat : 0;
   const cx = w / 2 + (Math.random() - 0.5) * shake, cy = h * 0.44 + (Math.random() - 0.5) * shake;
 
   // Particles: drift outwards, faster with the bass.
   const far = Math.hypot(w, h) / 2;
   c.fillStyle = '#fff';
-  for (let i = 0; i < parts.length; i++) {
+  if (st.circleParticles !== false) for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
     p.d += p.v * (1 + pulse * 9);
     if (p.d > 1) { parts[i] = newPart(false); continue; }
@@ -132,7 +147,7 @@ export function drawCircle() {
       const j = s ? BARS - 1 - i : i;
       const t = (s ? BARS + i : i) / (BARS * 2);
       const ang = -Math.PI / 2 + t * Math.PI * 2;
-      const ext = R * 1.02 + vals[j] * base * scale;
+      const ext = R * 1.02 + Math.min(1.6, vals[j] * gain) * base * scale;
       pts.push([cx + Math.cos(ang) * ext, cy + Math.sin(ang) * ext]);
     }
     // Smooth closed curve through the points.
@@ -147,8 +162,8 @@ export function drawCircle() {
     c.fillStyle = fill;
     c.fill();
   };
-  c.globalAlpha = 0.55; layer(slow, 1.25, accent, accent);
-  c.globalAlpha = 0.8; layer(smooth, 0.95, accent, '');
+  c.globalAlpha = 0.55; layer(slow, 1.25, color, color);
+  c.globalAlpha = 0.8; layer(smooth, 0.95, color, '');
   c.globalAlpha = 1; layer(smooth, 0.55, '#fff', 'rgba(255,255,255,.6)');
   c.shadowBlur = 0;
 
@@ -160,10 +175,12 @@ export function drawCircle() {
   c.fillStyle = '#111';
   c.fill();
   c.clip();
-  if (cover) {
-    const s = Math.max((R * 2) / cover.naturalWidth, (R * 2) / cover.naturalHeight);
-    const iw = cover.naturalWidth * s, ih = cover.naturalHeight * s;
-    c.drawImage(cover, cx - iw / 2, cy - ih / 2, iw, ih);
+  const pic = liveVideo() || cover;
+  if (pic) {
+    const pw = pic.videoWidth || pic.naturalWidth, ph = pic.videoHeight || pic.naturalHeight;
+    const s = Math.max((R * 2) / pw, (R * 2) / ph);
+    const iw = pw * s, ih = ph * s;
+    c.drawImage(pic, cx - iw / 2, cy - ih / 2, iw, ih);
   } else {
     c.fillStyle = accent;
     c.fillRect(cx - R, cy - R, R * 2, R * 2);

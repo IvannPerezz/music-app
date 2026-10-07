@@ -15,6 +15,21 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.44
+------------------------------------------------------------
+- El círculo estilo Trap Nation es ahora un modo aparte, con su propio botón en la
+  vista de portada y letra (debajo del visualizador, o la tecla C). Igual que con el
+  visualizador, al activarlo se van la portada, la letra y sus botones. En su lugar
+  aparece el botón "Ajustes del círculo". Ya no está en el panel de presets del
+  visualizador.
+- Ajustes del círculo: intensidad del aura (cuánto reacciona a la música), latido de
+  la portada, tamaño del círculo, color del aura (el de la portada o blanco), fondo
+  (portada difuminada o negro), partículas y temblor en los golpes de bajo. Todo se ve
+  en directo mientras mueves los controles, y "Restablecer" lo deja como al principio.
+- Si la canción tiene portada animada, el círculo la muestra en movimiento.
+- En "Botones de pantalla completa" se pueden ocultar también los del círculo.
+
+------------------------------------------------------------
 v0.6.43
 ------------------------------------------------------------
 - Visualizador: nuevo círculo estilo Trap Nation encima de los efectos. La portada de la
