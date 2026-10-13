@@ -15,6 +15,19 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.48.3
+------------------------------------------------------------
+- Vuelven a funcionar los clientes web de YouTube Music con tu sesión. YouTube cambió cómo
+  quiere los "PO tokens" (la prueba de que la petición viene de un navegador de verdad): ahora
+  van ligados a cada canción, y BitChord los seguía haciendo a la antigua, así que YouTube
+  cortaba el audio al primer mega. Con esto:
+  - Las canciones con restricción de edad (como "Where Is My Mind?" de Pixies) se vuelven a
+    reproducir con tu cuenta, la subida original, no otra.
+  - Si YouTube cierra algún día el cliente móvil que se usaba para todo, queda el web de
+    respaldo.
+  (La v0.6.48.2, que buscaba otra subida de la canción, se retiró.)
+
+------------------------------------------------------------
 v0.6.48.1
 ------------------------------------------------------------
 - Círculo: se mueve mucho más, como en los vídeos de Trap Nation y NCS. En pantallas de

@@ -15,7 +15,6 @@ const PARTITION = 'potoken';
 let win = null;
 let ready = null; // Promise while initialising
 let expiresAt = 0;
-let sessionTokens = new Map(); // visitorData -> token
 let failures = 0;
 let disabledUntil = 0;
 
@@ -74,7 +73,6 @@ async function init() {
   const ttl = Number(it[1]) || 3600;
   await win.webContents.executeJavaScript(`createPoTokenMinter(window.webPoSignalOutput, new Uint8Array(${JSON.stringify(integrity)}))`, true);
   expiresAt = Date.now() + (ttl - 600) * 1000;
-  sessionTokens = new Map();
   console.log(`[potoken] BotGuard listo (caduca en ${Math.round(ttl / 60)} min)`);
 }
 
@@ -101,13 +99,13 @@ async function mint(identifier) {
   return Buffer.from(out).toString('base64').replace(/\+/g, '-').replace(/\//g, '_');
 }
 
-/** {player: token bound to the video, streaming: token bound to the visitor session} or null. */
-export async function tokensFor(videoId, visitorData) {
+/** {player, streaming} tokens for a video, or null. Both are bound to the video: since 2026 the
+ *  streaming (GVS) one bound to the visitor or the account's Data Sync ID, as before, is ignored and
+ *  googlevideo stops after the first MiB (yt-dlp's PO Token Guide: web tokens are video-bound). */
+export async function tokensFor(videoId) {
   try {
-    let streaming = sessionTokens.get(visitorData);
-    if (!streaming) { streaming = await mint(visitorData); sessionTokens.set(visitorData, streaming); }
-    const player = await mint(videoId);
-    return { player, streaming };
+    const token = await mint(videoId);
+    return { player: token, streaming: token };
   } catch (e) {
     console.warn('[potoken]', e?.message || e);
     if (win && !win.isDestroyed()) { win.destroy(); }

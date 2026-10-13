@@ -582,24 +582,6 @@ async function anonClient() {
   return anonPromise;
 }
 
-// Signed in, the streaming (GVS) PO token must be bound to the account's Data Sync ID, not to
-// the visitor id.
-let dataSync = { id: null, at: 0, forCookie: null };
-async function dataSyncId(c) {
-  if (dataSync.forCookie === cookie && Date.now() - dataSync.at < 6 * 3600e3) return dataSync.id;
-  let id = null;
-  for (const [browseId, cl] of [['FEmusic_home', 'YTMUSIC'], ['FEwhat_to_watch', 'WEB']]) {
-    try {
-      const r = await c.actions.execute('/browse', { browseId, client: cl });
-      const raw = r?.data?.responseContext?.mainAppWebResponseContext?.datasyncId;
-      if (raw) { id = String(raw).split('||')[0] || null; break; }
-    } catch {}
-  }
-  dataSync = { id, at: Date.now(), forCookie: cookie };
-  console.log('[yt] Data Sync ID de la cuenta', id ? 'obtenido' : 'no disponible');
-  return id;
-}
-
 async function resolveUncached(videoId, opts) {
   assertNotBlocked('playback');
   const main = await client();
@@ -615,12 +597,7 @@ async function resolveUncached(videoId, opts) {
     try {
       const c = anon ? await anonClient() : main;
       if (anon) anonTries++;
-      const visitorData = c.session?.context?.client?.visitorData || '';
-      let tokens = null;
-      if (cl.pot && potoken && visitorData) {
-        const binding = !anon && cookie ? (await dataSyncId(c)) || visitorData : visitorData;
-        tokens = await potoken.tokensFor(videoId, binding);
-      }
+      const tokens = cl.pot && potoken ? await potoken.tokensFor(videoId) : null;
       const info = await playerInfo(c, videoId, cl, tokens);
       const ps = info.playability_status;
       if (ps && ps.status && ps.status !== 'OK') { errors.push(`${label}: ${ps.reason || ps.status}`); continue; }
