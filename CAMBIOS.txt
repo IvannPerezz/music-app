@@ -15,6 +15,21 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.48
+------------------------------------------------------------
+- BitChord abre más rápido: la ventana aparece al momento (en un tercio de segundo) y el
+  contenido llega justo después. Antes, la primera vez tras encender el PC, podía tardar
+  unos 8 segundos en salir la ventana.
+- Si BitChord ya está abierto y vuelves a abrirlo desde el acceso directo, la ventana se
+  pone delante enseguida.
+- Arrastrar y soltar como en cualquier programa: las portadas ya no se pueden arrastrar
+  como si fueran imágenes de una web, y si sueltas un archivo o un enlace donde no toca,
+  el cursor indica que no se puede soltar ahí (antes la ventana podía abrir ese archivo y
+  BitChord desaparecía). Reordenar la cola y las playlists sigue igual.
+- Con la ventana minimizada o en la bandeja, la portada animada se pausa y deja de gastar
+  procesador; vuelve a moverse al abrir la ventana.
+
+------------------------------------------------------------
 v0.6.47.3
 ------------------------------------------------------------
 - Arreglado: los accesos directos (Escritorio, menú Inicio) y la barra de tareas seguían

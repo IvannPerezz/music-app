@@ -2141,9 +2141,11 @@ let npCloseTimer = null;
 // shrink, the full-screen glide and the visualizer blur all carry it along untouched.
 let canvasKey = null, canvasRaf = 0;
 // Nobody sees it with the window minimised or hidden: don't spend anything decoding it.
-document.addEventListener('visibilitychange', () => {
+let winHidden = false;
+bc.on('window-visible', (on) => {
+  winHidden = !on;
   const v = $('#np-canvas');
-  if (v) { if (document.hidden) v.pause(); else v.play().catch(() => {}); }
+  if (v) { if (winHidden) v.pause(); else v.play().catch(() => {}); }
 });
 async function updateCanvas() {
   const t = player.current;
@@ -2171,7 +2173,7 @@ function mountCanvas(c) {
   const v = document.createElement('video');
   v.id = 'np-canvas';
   v.dataset.source = c.source;
-  Object.assign(v, { muted: true, loop: true, playsInline: true, autoplay: true, disablePictureInPicture: true });
+  Object.assign(v, { muted: true, loop: true, playsInline: true, autoplay: !winHidden, disablePictureInPicture: true });
   v.setAttribute('aria-hidden', 'true');
   v.src = c.url;
   $('#nowplaying').append(v);
@@ -3008,6 +3010,11 @@ async function init() {
   document.addEventListener('pointerdown', unlock);
   document.addEventListener('keydown', unlock);
 }
+
+// Dragging and dropping like in any program: covers and links aren't picked up as web images
+// (see styles.css), and dropping something where nothing takes it shows "can't drop here".
+document.addEventListener('dragover', (e) => { if (!e.defaultPrevented) { e.preventDefault(); e.dataTransfer.dropEffect = 'none'; } });
+document.addEventListener('drop', (e) => e.preventDefault());
 
 // Exposed for debugging from DevTools.
 window.__bc = { player, go, engine, state, saveSidebar: (sidebar) => saveSettings({ sidebar }) };

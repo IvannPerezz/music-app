@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import util from 'node:util';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MOCK = process.env.BITCHORD_MOCK === '1';
@@ -40,33 +41,56 @@ process.on('unhandledRejection', (e) => console.error('[unhandled]', e));
 if (globalThis.__bitchordLoader?.note) console.log('[update]', globalThis.__bitchordLoader.note);
 console.log(`BitChord ${VERSION} · Electron ${process.versions.electron} · ${process.platform} ${process.arch}${MOCK ? ' · MOCK' : ''}`);
 
-const settings = await import('./src/settings.js');
-settings.load(userData);
-const { tr } = await import('./src/i18n.js');
-const yt = MOCK ? await import('./src/mock.js') : await import('./src/yt.js');
-const lyrics = MOCK ? await import('./src/mock.js') : await import('./src/lyrics.js');
-const { startProxy } = MOCK ? await import('./src/mock.js') : await import('./src/proxy.js');
-const downloads = await import('./src/downloads.js');
-const local = await import('./src/local.js');
-const auth = await import('./src/auth.js');
-const discord = await import('./src/discord.js');
-const scrobble = await import('./src/scrobble.js');
-const potoken = MOCK ? null : await import('./src/potoken.js');
-const webdav = await import('./src/sources/webdav.js');
-const canvas = await import('./src/canvas.js');
-const playlists = await import('./src/playlists.js');
-const spotify = await import('./src/spotify-import.js');
-const spotifySync = await import('./src/spotify-sync.js');
-const backup = await import('./src/backup.js');
-const fonts = await import('./src/fonts.js');
-const sources = await import('./src/sources/index.js');
-
-nativeTheme.themeSource = 'dark';
-
+// Opening BitChord while it's already open only has to bring that window forward: decided before
+// loading anything heavy, so the second click on the shortcut answers at once.
 if (!app.requestSingleInstanceLock()) {
   app.quit();
   process.exit(0);
 }
+
+const settings = await import('./src/settings.js');
+settings.load(userData);
+const { tr } = await import('./src/i18n.js');
+// The rest (youtubei.js above all: seconds, the first time after turning the PC on) loads once the
+// window is on screen: loading it blocks this process, which also has to put the window up.
+// Calls from the window wait for it (see `wrap`).
+let yt, lyrics, startProxy, downloads, local, auth, discord, scrobble, potoken, webdav, canvas, playlists, spotify, spotifySync, backup, fonts, sources;
+const loadModules = () => Promise.all([
+  MOCK ? import('./src/mock.js') : import('./src/yt.js'),
+  MOCK ? import('./src/mock.js') : import('./src/lyrics.js'),
+  MOCK ? import('./src/mock.js') : import('./src/proxy.js'),
+  import('./src/downloads.js'),
+  import('./src/local.js'),
+  import('./src/auth.js'),
+  import('./src/discord.js'),
+  import('./src/scrobble.js'),
+  MOCK ? null : import('./src/potoken.js'),
+  import('./src/sources/webdav.js'),
+  import('./src/canvas.js'),
+  import('./src/playlists.js'),
+  import('./src/spotify-import.js'),
+  import('./src/spotify-sync.js'),
+  import('./src/backup.js'),
+  import('./src/fonts.js'),
+  import('./src/sources/index.js'),
+]).then((m) => {
+  let proxy;
+  [yt, lyrics, proxy, downloads, local, auth, discord, scrobble, potoken, webdav, canvas, playlists, spotify, spotifySync, backup, fonts, sources] = m;
+  ({ startProxy } = proxy);
+}).catch((e) => {
+  console.error('[inicio] no se pudo cargar BitChord', e);
+  // Same safety as loader.js gives the rest of the code: an update that can't start is forgotten
+  // and BitChord opens again with the installed version.
+  const res = process.env.BITCHORD_TEST_RESOURCES || process.resourcesPath;
+  if (/app-\d+\.asar/.test(globalThis.__bitchordLoader?.entry || '')) {
+    try { createRequire(import.meta.url)('original-fs').writeFileSync(path.join(res, 'current.txt'), ''); } catch {}
+    app.relaunch();
+  } else dialog.showErrorBox('BitChord', String(e?.stack || e));
+  app.exit(1);
+  return new Promise(() => {}); // (nothing else runs)
+});
+
+nativeTheme.themeSource = 'dark';
 
 
 let win = null;
@@ -184,6 +208,14 @@ function createWindow() {
   win.applyWindowButtons = () => overlay(!win.isFullScreen());
   win.on('maximize', () => send('maximized', true));
   win.on('unmaximize', () => send('maximized', false));
+  // Minimised or hidden in the tray: Chromium stops drawing, but the page isn't told (that comes
+  // with backgroundThrottling: false, which the audio needs), so a video would keep decoding.
+  win.on('minimize', () => send('window-visible', false));
+  win.on('hide', () => send('window-visible', false));
+  win.on('restore', () => send('window-visible', true));
+  win.on('show', () => send('window-visible', !win.isMinimized()));
+  // Nothing takes BitChord's place inside its window, as a file or link dropped on it would.
+  win.webContents.on('will-navigate', (e, url) => { if (url.split('#')[0] !== win.webContents.getURL().split('#')[0]) e.preventDefault(); });
   win.on('enter-full-screen', () => { overlay(false); send('fullscreen', true); });
   win.on('leave-full-screen', () => { overlay(true); send('fullscreen', false); });
   win.webContents.on('before-input-event', (e, input) => {
@@ -218,8 +250,9 @@ app.on('second-instance', () => {
 });
 app.on('before-quit', () => { quitting = true; });
 
+let started = null; // set once the app is ready: the modules loaded and the media server listening
 const wrap = (fn) => async (_e, ...args) => {
-  try { return { ok: true, data: await fn(...args) }; }
+  try { await started; return { ok: true, data: await fn(...args) }; }
   catch (e) {
     console.error('[ipc]', e?.message || e);
     return { ok: false, error: String(e?.message || e) };
@@ -236,20 +269,25 @@ function applyYtConfig() {
 }
 
 app.whenReady().then(async () => {
-  auth.init(userData);
-  applyYtConfig();
-  downloads.init(userData, (state) => send('downloads', state));
-  local.init(userData);
-  webdav.init(userData);
-  playlists.init(userData);
-  fonts.init(userData);
-  spotifySync.init(userData, { yt, playlists, openExternal: (u) => shell.openExternal(u), notify: (st) => send('spotify-sync', st) });
-  const { port } = await startProxy({ userData });
-  proxyPort = port;
-  console.log('media server on port', port);
+  // The window opens first (see the end) and the rest gets ready as soon as it's on screen.
+  let shown;
+  started = new Promise((r) => { shown = r; }).then(loadModules).then(async () => {
+    auth.init(userData);
+    applyYtConfig();
+    downloads.init(userData, (state) => send('downloads', state));
+    local.init(userData);
+    webdav.init(userData);
+    playlists.init(userData);
+    fonts.init(userData);
+    spotifySync.init(userData, { yt, playlists, openExternal: (u) => shell.openExternal(u), notify: (st) => send('spotify-sync', st) });
+    canvas.configure({ countryCode: app.getLocaleCountryCode() });
+    yt.setBlockListener?.((st) => send('yt-status', st));
+    const { port } = await startProxy({ userData });
+    proxyPort = port;
+    console.log('media server on port', port);
+  });
 
-  ipcMain.handle('proxy-port', () => proxyPort);
-  yt.setBlockListener?.((st) => send('yt-status', st));
+  ipcMain.handle('proxy-port', async () => { await started; return proxyPort; });
   handle('yt-status', () => yt.blockStatus?.() || { blocked: false });
   // YouTube Music
   handle('home', () => yt.home());
@@ -350,7 +388,6 @@ app.whenReady().then(async () => {
   handle('song-search', (q) => yt.searchSongs(q));
   // Animated cover of the big artwork (cover and lyrics view, full screen). The mock has none,
   // unless a test hands it a clip (BITCHORD_MOCK_CANVAS).
-  canvas.configure({ countryCode: app.getLocaleCountryCode() });
   handle('canvas-for', (t) => (!MOCK ? canvas.canvasFor(t) : process.env.BITCHORD_MOCK_CANVAS ? { url: process.env.BITCHORD_MOCK_CANVAS, source: 'prueba' } : null));
   // Interface font (SF Pro Display from the user's own files)
   handle('font-status', () => ({ installed: fonts.installed(), found: fonts.defaultFolder() }));
@@ -445,8 +482,10 @@ app.whenReady().then(async () => {
       if (playing && !blocker) blocker = powerSaveBlocker.start('prevent-app-suspension');
       if (!playing && blocker != null) { powerSaveBlocker.stop(blocker); blocker = null; }
     }
-    discord.update(st);
-    try { scrobble.tick(st); } catch (e) { console.warn('[scrobble]', e.message); }
+    if (scrobble) { // (once loaded)
+      discord.update(st);
+      try { scrobble.tick(st); } catch (e) { console.warn('[scrobble]', e.message); }
+    }
     win?.setTitle(st?.track ? `${st.track.title} · ${(st.track.artists || []).map((a) => a.name).join(', ')} — BitChord` : 'BitChord');
   });
   handle('listenbrainz-validate', (token) => scrobble.validateListenBrainz(token));
@@ -469,7 +508,10 @@ app.whenReady().then(async () => {
 
   Menu.setApplicationMenu(null);
   createWindow();
+  win.once('ready-to-show', () => setTimeout(shown, 30));
+  setTimeout(shown, 2500);
   if (settings.get('closeToTray')) createTray();
+  await started;
   discord.setClientId(settings.get('discordAppId'));
   discord.setEnabled(!!settings.get('discordRpc'));
   // Pick up whatever changed in the music folders while BitChord was closed, then keep watching.
@@ -502,4 +544,4 @@ function applyLocalWatch() {
   local.watch(list, (folder) => { console.log('[local] cambios en', folder); rescanLocal([folder]); });
 }
 
-app.on('window-all-closed', () => { local.unwatchAll(); app.quit(); });
+app.on('window-all-closed', () => { local?.unwatchAll(); app.quit(); });

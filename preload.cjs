@@ -22,7 +22,7 @@ contextBridge.exposeInMainWorld('bc', {
   playerState: (st) => ipcRenderer.send('player-state', st),
   setProgress: (p) => ipcRenderer.send('set-progress', p),
   on: (ch, fn) => {
-    if (!['command', 'downloads', 'local-scan', 'import-progress', 'spotify-sync', 'yt-status', 'fullscreen', 'maximized'].includes(ch)) return;
+    if (!['command', 'downloads', 'local-scan', 'import-progress', 'spotify-sync', 'yt-status', 'fullscreen', 'maximized', 'window-visible'].includes(ch)) return;
     ipcRenderer.on(ch, (_e, data) => fn(data));
   },
   platform: process.platform,
