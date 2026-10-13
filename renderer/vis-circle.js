@@ -6,12 +6,20 @@ import { state } from './core.js';
 
 const BARS = 72;      // points per half of the ring
 const PARTICLES = 140;
+// The sound is read and the motion worked out 60 times a second, whatever the screen's refresh
+// rate: on a 144 or 360 Hz screen every kick used to fade out several times sooner (and the jump
+// that tells a kick was split into tiny steps), so the circle barely moved.
+const STEP = 1000 / 60;
+// The ring's trail, Trap Nation style: the same waves a few moments late, bigger and fainter behind.
+const TRAIL = [[9, 1.2, 0.24], [6, 1.12, 0.36], [3, 1.04, 0.52], [0, 0.95, 0.8]]; // [steps late, size, opacity]
+const HIST = 10;
 
 let canvas = null, ctx = null, analyser = null, freq = null, raf = 0;
 let bassAn = null, bassBuf = null;
 let w = 0, h = 0, dpr = 1;
 const smooth = new Float32Array(BARS);
-const slow = new Float32Array(BARS); // a lagging copy for the second, softer layer
+const hist = Array.from({ length: HIST }, () => new Float32Array(BARS)); // the last moments of `smooth`
+let histAt = 0, lastT = 0, acc = 0, shx = 0, shy = 0;
 const peak = new Float32Array(BARS).fill(0.3); // each band's recent maximum (evens out bass and treble)
 let bassAvg = 0.2, prevBass = 0, kick = 0, pulse = 0;
 let cover = null, coverSrc = '', accent = '#ff5a36', accentAt = 0;
@@ -56,6 +64,7 @@ export function unmountCircle() {
   canvas = ctx = analyser = bassAn = null;
   cover = held = trans = vid = lastDrawn = null;
   coverSrc = '';
+  lastT = acc = 0;
   parts.length = 0;
 }
 
@@ -116,11 +125,25 @@ function drawCircle() {
     accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || accent;
   }
   readCover();
-  analyser.getByteFrequencyData(freq);
-  const hz = analyser.context.sampleRate / analyser.fftSize;
   const st = state.settings;
   const gain = st.circleGain ?? 1, size = st.circleSize ?? 1, beat = st.circlePulse ?? 1;
   const color = st.circleColor === 'white' ? '#fff' : accent;
+  const now = performance.now();
+  const dt = lastT ? Math.min(100, now - lastT) : STEP;
+  lastT = now;
+  acc += dt;
+  for (let n = 0; acc >= STEP; n++) {
+    if (n === 6) { acc = 0; break; } // (back from a pause: don't catch up)
+    acc -= STEP;
+    listen(beat);
+  }
+  draw(dt / STEP, gain, size, beat, color, now);
+}
+
+/** One step of the motion (1/60 s): the sound now, the kick and the ring's waves. */
+function listen(beat) {
+  analyser.getByteFrequencyData(freq);
+  const hz = analyser.context.sampleRate / analyser.fftSize;
 
   // Bass (≈ 30–150 Hz): its level against a slow running average gives the kick…
   const b0 = Math.max(1, Math.floor(30 / hz)), b1 = Math.ceil(150 / hz);
@@ -154,23 +177,29 @@ function drawCircle() {
     peak[i] = Math.max(peak[i] * 0.997, v, 0.12);
     v = Math.pow(v / peak[i], 2.2) * (0.35 + v * 0.65);
     smooth[i] = v > smooth[i] ? smooth[i] + (v - smooth[i]) * 0.6 : smooth[i] * 0.9 + v * 0.1;
-    slow[i] += (smooth[i] - slow[i]) * 0.18;
   }
+  histAt = (histAt + 1) % HIST;
+  hist[histAt].set(smooth);
+  // The shake moves at the same pace (a new offset every step, not on every screen refresh).
+  const shake = state.settings.circleShake !== false && pulse > 0.5 ? (pulse - 0.5) * 20 * dpr * beat : 0;
+  shx = (Math.random() - 0.5) * shake; shy = (Math.random() - 0.5) * shake;
+}
 
+/** One frame on screen; `k` is how many 1/60 s it covers (the particles move by it). */
+function draw(k, gain, size, beat, color, now) {
   const c = ctx;
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, w, h);
   const base = Math.min(w, h) * 0.16 * size;
-  const R = base * (1 + pulse * 0.16 * beat);
-  const shake = st.circleShake !== false && pulse > 0.55 ? (pulse - 0.55) * 14 * dpr * beat : 0;
-  const cx = w / 2 + (Math.random() - 0.5) * shake, cy = h * 0.44 + (Math.random() - 0.5) * shake;
+  const R = base * (1 + pulse * 0.2 * beat);
+  const cx = w / 2 + shx, cy = h * 0.44 + shy;
 
   // Particles: drift outwards, faster with the bass.
   const far = Math.hypot(w, h) / 2;
   c.fillStyle = '#fff';
-  if (st.circleParticles !== false) for (let i = 0; i < parts.length; i++) {
+  if (state.settings.circleParticles !== false) for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
-    p.d += p.v * (1 + pulse * 9);
+    p.d += p.v * (1 + pulse * 9) * k;
     if (p.d > 1) { parts[i] = newPart(false); continue; }
     const r = R + p.d * (far - R);
     c.globalAlpha = p.o * Math.min(1, p.d * 6) * (1 - p.d * 0.6);
@@ -180,7 +209,7 @@ function drawCircle() {
   }
   c.globalAlpha = 1;
 
-  // Wave layers (back to front): accent glow, softer accent, white.
+  // Wave layers (back to front): the trail in the aura colour, then white.
   const layer = (vals, scale, fill, glow) => {
     c.beginPath();
     const pts = [];
@@ -204,8 +233,10 @@ function drawCircle() {
     c.fillStyle = fill;
     c.fill();
   };
-  c.globalAlpha = 0.55; layer(slow, 1.25, color, color);
-  c.globalAlpha = 0.8; layer(smooth, 0.95, color, '');
+  TRAIL.forEach(([late, scale, alpha], n) => {
+    c.globalAlpha = alpha;
+    layer(hist[(histAt - late + HIST) % HIST], scale, color, n ? '' : color);
+  });
   c.globalAlpha = 1; layer(smooth, 0.55, '#fff', 'rgba(255,255,255,.6)');
   c.shadowBlur = 0;
 
@@ -217,7 +248,6 @@ function drawCircle() {
   c.fillStyle = '#111';
   c.fill();
   c.clip();
-  const now = performance.now();
   const t = trans ? Math.min(1, (now - trans.at) / SPIN_MS) : 1;
   if (t >= 1) trans = null;
   // The animated cover only once the spin is over (and fading in, not popping).

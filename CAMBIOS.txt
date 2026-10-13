@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.48.1
+------------------------------------------------------------
+- Círculo: se mueve mucho más, como en los vídeos de Trap Nation y NCS. En pantallas de
+  muchos hercios (la tuya va a 360 Hz) cada golpe de bajo se apagaba varias veces más
+  rápido de lo que debía y el círculo parecía quieto; ahora se mueve igual en cualquier
+  pantalla.
+- Las ondas alrededor de la portada dejan una estela de capas, unas detrás de otras con un
+  poco de retraso, como en Trap Nation. La portada late algo más con el bajo y el temblor
+  se nota más en los golpes fuertes.
+
+------------------------------------------------------------
 v0.6.48
 ------------------------------------------------------------
 - BitChord abre más rápido: la ventana aparece al momento (en un tercio de segundo) y el
