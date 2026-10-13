@@ -9,7 +9,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { resolveStream, markRefused } from './yt.js';
+import { resolveStream, markRefused, rememberMeta } from './yt.js';
 import * as settings from './settings.js';
 import * as downloads from './downloads.js';
 import * as local from './local.js';
@@ -135,6 +135,7 @@ async function servePassthrough(src, req, res) {
 async function serveStream(videoId, req, res, meta = {}) {
   if (!/^[\w-]{11}$/.test(videoId)) return res.writeHead(400, CORS).end();
   const opts = { maxKbps: settings.maxKbps(settings.get('streamQuality')) };
+  rememberMeta(videoId, meta);
   let stream = (await sources.override(videoId, meta).catch(() => null)) || await resolveStream(videoId, opts);
   sources.noteUsed(videoId, stream);
   const { start, end, partial } = parseRange(req.headers.range, stream.size);

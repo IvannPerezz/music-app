@@ -680,7 +680,54 @@ async function resolveUncached(videoId, opts) {
 
 const recentWideFailures = [];
 
-export async function resolveStream(videoId, { fresh = false, maxKbps = 9999, prefer = 'any', itag = null } = {}) {
+// ---------------------------------------------------------------- age-restricted songs
+// Some uploads sit behind YouTube's age check ("inappropriate for some users"): it wants a signed-in,
+// age-confirmed web session, and the clients that play everything else (mobile, without cookies)
+// are refused. The same song is nearly always on YouTube Music in another upload (the album's track,
+// the official video, a remaster…) without the check: that one is played instead.
+const songMeta = new Map(); // videoId -> {title, artist, duration} (from the player or the downloads)
+const otherVersion = new Map(); // videoId -> videoId of the version that plays
+export function rememberMeta(videoId, meta) {
+  if (meta?.title) songMeta.set(videoId, { title: String(meta.title), artist: String(meta.artist || ''), duration: Number(meta.duration) || 0 });
+}
+const AGE = /inadecuado|confirma tu edad|inappropriate|confirm your age|age.?restrict/i;
+const isAgeLocked = (e) => AGE.test(String(e?.message || '')) || (e?.details || []).some((d) => AGE.test(d));
+const plain = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
+  .replace(/\([^)]*\)|\[[^\]]*\]|\s-\s.*(remaster|version|versión|live|edit|mix).*$/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+async function findOtherVersion(videoId) {
+  const m = songMeta.get(videoId);
+  if (!m) return null;
+  const title = plain(m.title), artist = plain(m.artist).split(' ')[0];
+  let list = [];
+  try { list = await searchSongs(`${m.artist} ${m.title.replace(/\([^)]*\)/g, '')}`); } catch { return null; }
+  const fits = list.filter((t) => t.id !== videoId
+    && plain(t.title) === title
+    && (!artist || (t.artists || []).some((a) => plain(a.name).includes(artist)))
+    && (!m.duration || !t.duration || Math.abs(t.duration - m.duration) <= 8));
+  return fits.map((t) => t.id);
+}
+
+export async function resolveStream(videoId, opts = {}) {
+  const alt = otherVersion.get(videoId);
+  if (alt) return asOther(await resolveOne(alt, opts));
+  try { return await resolveOne(videoId, opts); }
+  catch (e) {
+    if (e?.code === 'YT_BLOCKED' || !isAgeLocked(e)) throw e;
+    for (const id of (await findOtherVersion(videoId)) || []) {
+      try {
+        const s = await resolveOne(id, opts);
+        otherVersion.set(videoId, id);
+        console.log(`[yt] ${videoId} tiene restricción de edad: se reproduce la misma canción de otra subida (${id})`);
+        return asOther(s);
+      } catch (e2) { if (e2?.code === 'YT_BLOCKED') throw e2; }
+    }
+    throw e;
+  }
+}
+const asOther = (s) => ({ ...s, client: `${s.client} · ${tr('otra subida (la original tiene restricción de edad)')}` });
+
+async function resolveOne(videoId, { fresh = false, maxKbps = 9999, prefer = 'any', itag = null } = {}) {
   const bad = unplayable.get(videoId);
   if (bad && Date.now() - bad.at < UNPLAYABLE_TTL) throw bad.err;
   const key = `${videoId}|${maxKbps}|${prefer}|${itag || ''}`;
@@ -698,8 +745,8 @@ export async function resolveStream(videoId, { fresh = false, maxKbps = 9999, pr
 }
 
 export function streamInfo(videoId) {
-  const s = resolved.get(lastKey.get(videoId))?.stream;
-  return s ? { mime: s.mime, codec: s.codec, bitrate: s.bitrate, client: s.client, size: s.size, sampleRate: s.sampleRate, channels: s.channels, itag: s.itag, loudnessDb: s.loudnessDb } : null;
+  const s = resolved.get(lastKey.get(otherVersion.get(videoId) || videoId))?.stream;
+  return s ? { mime: s.mime, codec: s.codec, bitrate: s.bitrate, client: otherVersion.has(videoId) ? asOther(s).client : s.client, size: s.size, sampleRate: s.sampleRate, channels: s.channels, itag: s.itag, loudnessDb: s.loudnessDb } : null;
 }
 
 // ---------------------------------------------------------------- account (needs cookie)

@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { app } from 'electron';
-import { resolveStream, markRefused } from './yt.js';
+import { resolveStream, markRefused, rememberMeta } from './yt.js';
 import * as settings from './settings.js';
 import { webmToOggOpus } from './mux/webm-opus.js';
 import { tagMp4 } from './mux/mp4-tag.js';
@@ -98,6 +98,7 @@ async function run(job) {
   job.status = 'resolving'; emit();
   const format = settings.get('downloadFormat');
   const maxKbps = settings.maxKbps(settings.get('downloadQuality'));
+  rememberMeta(t.id, { title: t.title, artist: (t.artists || []).map((a) => a.name).join(', '), duration: t.duration });
   let stream = await resolveStream(t.id, { maxKbps, prefer: format === 'm4a' ? 'm4a' : 'opus', fresh: true });
   job.status = 'downloading'; emit();
   job.abort = new AbortController();

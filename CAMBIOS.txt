@@ -15,6 +15,15 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.48.2
+------------------------------------------------------------
+- Canciones con restricción de edad (como "Where Is My Mind?" de Pixies): YouTube no deja
+  sacar su audio sin una sesión con la edad confirmada, y daban error. Ahora BitChord
+  busca la misma canción en otra subida de YouTube Music sin restricción (misma artista,
+  mismo título y casi la misma duración) y reproduce esa. En los datos del audio verás
+  "otra subida (la original tiene restricción de edad)". También vale para descargas.
+
+------------------------------------------------------------
 v0.6.48.1
 ------------------------------------------------------------
 - Círculo: se mueve mucho más, como en los vídeos de Trap Nation y NCS. En pantallas de

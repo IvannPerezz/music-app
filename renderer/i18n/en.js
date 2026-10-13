@@ -1,6 +1,7 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "otra subida (la original tiene restricción de edad)": "another upload (the original is age-restricted)",
   "Los emojis de títulos, artistas y letras se ven como en el iPhone. Usa la fuente «Apple Color Emoji» instalada en Windows (si no está instalada, se ven los emojis normales de Windows).": "Emoji in titles, artists and lyrics look like on the iPhone. It uses the “Apple Color Emoji” font installed in Windows (if it isn't installed, the normal Windows emoji are shown).",
   "Emojis de Apple": "Apple emoji",
   "Nombre en Discord": "Name on Discord",
