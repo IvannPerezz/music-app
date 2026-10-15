@@ -323,8 +323,8 @@ const THEME_TEMPLATE = `/* Cambia los colores que quieras y pulsa «Vista previa
   --surface-2: #2c2c2e;
   --text: #f2f2f7;           /* texto */
   --muted: #8e8e93;          /* texto secundario */
-  --accent: #fa2d48;         /* con «Color de acento: El del tema» */
-  --accent-soft: rgba(250, 45, 72, .18);
+  --accent: #940825;         /* con «Color de acento: El del tema» */
+  --accent-soft: rgba(148, 8, 37, .18);
   --chrome: rgba(20, 20, 22, .78);
   --chrome-solid: rgba(18, 18, 20, .97); /* paneles sin efecto Mica */
   --popup: rgba(40, 40, 44, .97);
@@ -335,7 +335,7 @@ const THEME_TEMPLATE = `/* Cambia los colores que quieras y pulsa «Vista previa
 /** Colours for a theme's preview tile, read from its CSS (falls back to BitChord's). */
 function themeColors(css = '') {
   const v = (name, def) => (new RegExp(`--${name}\\s*:\\s*([^;}]+)`).exec(css)?.[1].trim()) || def;
-  return { bg: v('bg', '#0d0d0f'), surf: v('surface', '#1c1c1e'), acc: v('accent', '#fa2d48') };
+  return { bg: v('bg', '#0d0d0f'), surf: v('surface', '#1c1c1e'), acc: v('accent', '#940825') };
 }
 
 /** Modal with a CSS editor. Resolves with { name, css } or null if cancelled. */
@@ -379,7 +379,7 @@ function themeEditor(theme) {
 function themeCard() {
   const mode = state.settings.accentMode || (state.settings.dynamicAccent === false ? 'theme' : 'cover');
   const pickerRow = h(`<div class="cp-row"${mode === 'custom' ? '' : ' hidden'}><div class="set-text"><div class="set-label">${tr('Tu color')}</div><div class="set-desc">${tr('Arrastra en el cuadro para elegir saturación y brillo, en la barra de colores para el tono y en la de abajo para la transparencia. También puedes escribir el código (#RRGGBB o #RRGGBBAA).')}</div></div></div>`);
-  pickerRow.append(colorPicker(state.settings.customAccent || '#fa2d48', {
+  pickerRow.append(colorPicker(state.settings.customAccent || '#940825', {
     onChange: (hex) => applyCustomAccent(hex),
     onCommit: (hex) => saveSettings({ customAccent: hex }),
   }));

@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.51.2
+------------------------------------------------------------
+- El rojo del tema BitChord es ahora el del logo (granate, #940825) en vez del rojo claro
+  de antes: botones, interruptores y resaltados cuando el color de acento es "El del
+  tema", la miniatura del tema y el color de partida de "Personalizado".
+
+------------------------------------------------------------
 v0.6.51.1
 ------------------------------------------------------------
 - Las playlists de Spotify que solo se ven en BitChord se pueden arrastrar para cambiarlas
