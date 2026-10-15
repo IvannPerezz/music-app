@@ -3,9 +3,6 @@
 export default {
   "Los emojis de títulos, artistas y letras se ven como en el iPhone. Usa la fuente «Apple Color Emoji» instalada en Windows (si no está instalada, se ven los emojis normales de Windows).": "Emoji in titles, artists and lyrics look like on the iPhone. It uses the “Apple Color Emoji” font installed in Windows (if it isn't installed, the normal Windows emoji are shown).",
   "Emojis de Apple": "Apple emoji",
-  "Nombre en Discord": "Name on Discord",
-  "Discord pone el nombre de la «aplicación de Discord» que manda la actividad («Escuchando …»), y la que trae BitChord sale con otro nombre. Para que diga <b>Escuchando BitChord</b>: en el <a href=\"#\" data-url=\"https://discord.com/developers/applications\">portal de desarrolladores de Discord</a> pulsa <b>New Application</b>, llámala <b>BitChord</b>, acepta, y copia el <b>Application ID</b> de la página que se abre. Pégalo aquí (también puedes subir el logo de BitChord como icono de la aplicación).": "Discord shows the name of the “Discord application” that sends the activity (“Listening to …”), and the one that comes with BitChord has another name. To make it say <b>Listening to BitChord</b>: in the <a href=\"#\" data-url=\"https://discord.com/developers/applications\">Discord developer portal</a> press <b>New Application</b>, call it <b>BitChord</b>, accept, and copy the <b>Application ID</b> from the page that opens. Paste it here (you can also upload the BitChord logo as the application's icon).",
-  "Application ID (solo números)": "Application ID (numbers only)",
   "Carpeta con los archivos de SF Pro Display": "Folder with the SF Pro Display files",
   "En esa carpeta no hay archivos de SF Pro Display (.otf o .ttf).": "There are no SF Pro Display files (.otf or .ttf) in that folder.",
   "Inter (la de siempre)": "Inter (the usual one)",

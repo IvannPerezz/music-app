@@ -315,7 +315,6 @@ app.whenReady().then(async () => {
   handle('settings-set', (patch) => {
     const before = settings.get();
     const next = settings.set(patch);
-    if ('discordAppId' in patch) discord.setClientId(patch.discordAppId);
     if ('discordRpc' in patch) discord.setEnabled(!!patch.discordRpc);
     if ('language' in patch || 'region' in patch) applyYtConfig();
     if ('uiLanguage' in patch) { tray?.refresh?.(); updateThumbar(); }
@@ -512,7 +511,6 @@ app.whenReady().then(async () => {
   setTimeout(shown, 2500);
   if (settings.get('closeToTray')) createTray();
   await started;
-  discord.setClientId(settings.get('discordAppId'));
   discord.setEnabled(!!settings.get('discordRpc'));
   // Pick up whatever changed in the music folders while BitChord was closed, then keep watching.
   applyLocalWatch();

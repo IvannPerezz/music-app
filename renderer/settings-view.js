@@ -315,7 +315,6 @@ function integrations() {
 
   return card('integrations', tr('Integraciones'), 'sparkle',
     row(tr('Discord Rich Presence'), tr('Muestra en tu perfil de Discord lo que escuchas (necesita la app de Discord abierta en este PC).'), toggle('discordRpc')),
-    row(tr('Nombre en Discord'), tr('Discord pone el nombre de la «aplicación de Discord» que manda la actividad («Escuchando …»), y la que trae BitChord sale con otro nombre. Para que diga <b>Escuchando BitChord</b>: en el <a href="#" data-url="https://discord.com/developers/applications">portal de desarrolladores de Discord</a> pulsa <b>New Application</b>, llámala <b>BitChord</b>, acepta, y copia el <b>Application ID</b> de la página que se abre. Pégalo aquí (también puedes subir el logo de BitChord como icono de la aplicación).'), text('discordAppId', tr('Application ID (solo números)'))),
     row(tr('ListenBrainz'), tr('Scrobbling a <a href="#" data-url="https://listenbrainz.org/settings/">listenbrainz.org</a>. Copia tu token de la página de ajustes.'), lb),
     row(tr('Last.fm'), tr('Crea una API key gratuita en <a href="#" data-url="https://www.last.fm/api/account/create">last.fm/api</a>, pégala aquí y autoriza.'), lfm),
     row(tr('Porcentaje para scrobblear'), tr('Cuánto de la canción hay que escuchar (máximo 4 minutos).'), range('scrobblePercent', 30, 90, 5, (v) => `${v} %`)),

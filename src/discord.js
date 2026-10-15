@@ -3,11 +3,9 @@
 import net from 'node:net';
 import path from 'node:path';
 
-// Discord shows the *application's* name ("Escuchando …"), so it has to be a Discord application
-// called BitChord. The one inherited from the Android port is registered under another name: the
-// user can create their own (Ajustes → Integraciones) and its ID is used instead.
-const DEFAULT_ID = '1411019391843172514';
-let CLIENT_ID = DEFAULT_ID;
+// Discord shows the *application's* name ("Escuchando …"): this is a Discord application called
+// BitChord (Iván's, in the Discord developer portal; it works for everyone, unverified).
+const CLIENT_ID = '1557508206761091182';
 let sock = null, ready = false, connecting = false, enabled = false, pending = null, retryTimer = null;
 
 function pipePath(i) {
@@ -60,17 +58,6 @@ function close() { try { sock?.destroy(); } catch {} sock = null; ready = false;
 function send(activity) {
   if (!sock || !ready) return;
   sock.write(frame(1, { cmd: 'SET_ACTIVITY', args: { pid: process.pid, activity }, nonce: String(Date.now()) + Math.random() }));
-}
-
-/** A different Discord application (its "Application ID"): reconnects with it. */
-export function setClientId(id) {
-  const next = /^\d{15,25}$/.test(String(id || '').trim()) ? String(id).trim() : DEFAULT_ID;
-  if (next === CLIENT_ID) return;
-  CLIENT_ID = next;
-  if (!enabled) return;
-  close();
-  clearTimeout(retryTimer); retryTimer = null;
-  setTimeout(() => tryConnect(), 300);
 }
 
 export function setEnabled(on) {

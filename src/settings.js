@@ -56,7 +56,6 @@ export const DEFAULTS = {
   windowButtons: 'mac', // 'mac' (red/yellow/green, drawn by the app, on the left) | 'windows' (native)
   closeToTray: false,
   // Integrations
-  discordAppId: '1557508206761091182', // a Discord application named BitChord (empty = the built-in one, named otherwise)
   discordRpc: true,
   listenbrainzToken: '',
   lastfmApiKey: '',

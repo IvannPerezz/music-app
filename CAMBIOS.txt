@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.49.1
+------------------------------------------------------------
+- Discord: BitChord sale siempre como "Escuchando BitChord", en cualquier PC, sin tener que
+  crear nada. Se quita de Ajustes > Integraciones la opción "Nombre en Discord", que ya no
+  hace falta; queda solo el interruptor para activarlo o desactivarlo.
+
+------------------------------------------------------------
 v0.6.49
 ------------------------------------------------------------
 - Los ajustes de serie (los de una instalación nueva, o al pulsar "Restablecer") son ahora
