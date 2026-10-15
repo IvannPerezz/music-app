@@ -15,6 +15,18 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.52
+------------------------------------------------------------
+- Ajustes con las pestañas en vertical, a la izquierda, agrupadas en seis categorías:
+  Cuenta (Google e Importar de Spotify), Apariencia (Tema, Personalización y Rendimiento),
+  Reproducción (Reproducción, Ecualizador y Letras), Fuentes y biblioteca (Fuentes,
+  Descargas y Música local), Integraciones y General (General, Copia de la configuración y
+  Acerca de). Al pulsar una se ven solo sus apartados; BitChord recuerda la última que
+  abriste. En una ventana estrecha las categorías pasan a una fila arriba.
+- Los iconos de los apartados de Ajustes (y el de la categoría elegida) usan una versión
+  más clara del color de acento: con el granate del logo se veían demasiado oscuros.
+
+------------------------------------------------------------
 v0.6.51.2
 ------------------------------------------------------------
 - El rojo del tema BitChord es ahora el del logo (granate, #940825) en vez del rojo claro

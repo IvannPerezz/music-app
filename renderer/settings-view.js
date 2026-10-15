@@ -7,10 +7,15 @@ import { SPOTIFY_HOW } from './spotify-link.js';
 import { tr, LANGUAGES, uiLang, syncUiLang, locale } from './i18n.js';
 
 const QUALITY = [['low', tr('Baja (~64 kbps)')], ['normal', tr('Normal (~96 kbps)')], ['high', tr('Alta (~160 kbps)')], ['max', tr('Máxima disponible')]];
-const SECTIONS = [
-  ['account', tr('Cuenta')], ['import', tr('Importar')], ['theme', tr('Tema')], ['sidebar', tr('Personalización')], ['performance', tr('Rendimiento')],
-  ['playback', tr('Reproducción')], ['sources', tr('Fuentes')], ['eq', tr('Ecualizador')], ['lyrics', tr('Letras')], ['downloads', tr('Descargas')],
-  ['local', tr('Música local')], ['integrations', tr('Integraciones')], ['general', tr('General')], ['backup', tr('Copia')], ['about', tr('Acerca de')],
+// Ajustes is split in categories (left column); each one shows its sections (cards). Links from
+// elsewhere name a section (route.section): it opens its category and scrolls to it.
+const CATEGORIES = [
+  ['account', tr('Cuenta'), 'account', ['account', 'import']],
+  ['appearance', tr('Apariencia'), 'image', ['theme', 'sidebar', 'performance']],
+  ['playback', tr('Reproducción'), 'play', ['playback', 'eq', 'lyrics']],
+  ['library', tr('Fuentes y biblioteca'), 'library', ['sources', 'downloads', 'local']],
+  ['integrations', tr('Integraciones'), 'sparkle', ['integrations']],
+  ['general', tr('General'), 'settings', ['general', 'backup', 'about']],
 ];
 
 function row(label, desc, control) {
@@ -653,39 +658,40 @@ async function about() {
 }
 
 let providers = [];
+const BUILD = {
+  account: () => account(), import: () => importCard(), theme: () => themeCard(), sidebar: () => sidebarCard(),
+  performance: () => performanceCard(), playback: () => playback(), eq: () => equalizer(), lyrics: () => lyrics(),
+  sources: () => sourcesCard(), downloads: () => downloads(), local: () => localMusic(), integrations: () => integrations(),
+  general: () => general(), backup: () => backupCard(), about: () => about(),
+};
 export async function settingsView(route) {
   providers = await api('lyricsProviders');
   state.settings = await api('settingsGet');
   try { state.downloads = await api('downloads'); } catch {}
-  const outer = h('<div></div>');
-  const root = h('<div class="settings"></div>');
-  const bar = h('<div class="set-bar"></div>');
-  const chips = h('<div class="chips"></div>');
-  bar.append(chips);
-  const head = h(`<div class="set-head"><div class="settings"><h1 class="page-title">${tr('Ajustes')}</h1></div></div>`);
-  head.append(bar);
-  outer.append(head, root);
-  SECTIONS.forEach(([id, label]) => {
-    const c = h(`<button class="chip">${label}</button>`);
-    c.onclick = () => root.querySelector('#set-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    chips.append(c);
-  });
-  // Highlight the chip of the section being read.
-  const spy = () => {
-    if (!root.isConnected) return $('#content').removeEventListener('scroll', spy);
-    const top = $('#content').getBoundingClientRect().top + 150;
-    let cur = SECTIONS[0][0];
-    for (const [id] of SECTIONS) { const el = root.querySelector('#set-' + id); if (el && el.getBoundingClientRect().top <= top) cur = id; }
-    chips.querySelectorAll('.chip').forEach((c, i) => {
-      const on = SECTIONS[i][0] === cur;
-      if (on && !c.classList.contains('active') && (c.offsetLeft < chips.scrollLeft || c.offsetLeft + c.offsetWidth > chips.scrollLeft + chips.clientWidth)) chips.scrollTo({ left: c.offsetLeft - 40, behavior: 'smooth' });
-      c.classList.toggle('active', on);
-    });
+  const catOf = (section) => CATEGORIES.find((c) => c[3].includes(section))?.[0];
+  let cat = (route.section && catOf(route.section)) || (CATEGORIES.some((c) => c[0] === store.get('settingsCat')) ? store.get('settingsCat') : 'account');
+  const outer = h(`<div class="set-wrap"><div class="settings set-title"><h1 class="page-title">${tr('Ajustes')}</h1></div><div class="set-layout"><nav class="set-nav"></nav><div class="settings set-pane"></div></div></div>`);
+  const nav = outer.querySelector('.set-nav'), pane = outer.querySelector('.set-pane');
+  const show = async (id) => {
+    cat = id;
+    store.set('settingsCat', id);
+    nav.querySelectorAll('.set-nav-item').forEach((b) => b.classList.toggle('active', b.dataset.cat === id));
+    const cards = await Promise.all(CATEGORIES.find((c) => c[0] === id)[3].map((k) => BUILD[k]()));
+    pane.replaceChildren(...cards);
   };
-  setTimeout(() => { $('#content').addEventListener('scroll', spy, { passive: true }); spy(); }, 50);
-  chips.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && chips.scrollWidth > chips.clientWidth) { chips.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
-  root.append(account(), importCard(), themeCard(), sidebarCard(), performanceCard(), playback(), sourcesCard(), equalizer(), lyrics(), downloads(), localMusic(), integrations(), general(), backupCard(), await about());
-  root.addEventListener('click', (e) => { const a = e.target.closest('a[data-url]'); if (a) { e.preventDefault(); bc.openExternal(a.dataset.url); } });
-  if (route.section) setTimeout(() => root.querySelector('#set-' + route.section)?.scrollIntoView({ block: 'start' }), 30);
+  for (const [id, label, ic, sections] of CATEGORIES) {
+    const b = h(`<button class="set-nav-item" data-cat="${id}">${icon(ic)}<span>${esc(label)}</span></button>`);
+    b.title = sections.map((k) => ({ account: tr('Cuenta de Google'), import: tr('Importar de Spotify'), theme: tr('Tema'), sidebar: tr('Personalización'), performance: tr('Rendimiento'), playback: tr('Reproducción'), eq: tr('Ecualizador'), lyrics: tr('Letras'), sources: tr('Fuentes'), downloads: tr('Descargas'), local: tr('Música local'), integrations: tr('Integraciones'), general: tr('General'), backup: tr('Copia de la configuración'), about: tr('Acerca de') }[k])).join(' · ');
+    b.onclick = async () => {
+      if (id === cat) return;
+      route.section = null; // (a later refresh stays here)
+      await show(id);
+      $('#content').scrollTo({ top: 0 });
+    };
+    nav.append(b);
+  }
+  await show(cat);
+  outer.addEventListener('click', (e) => { const a = e.target.closest('a[data-url]'); if (a) { e.preventDefault(); bc.openExternal(a.dataset.url); } });
+  if (route.section) setTimeout(() => pane.querySelector('#set-' + route.section)?.scrollIntoView({ block: 'start' }), 30);
   return outer;
 }

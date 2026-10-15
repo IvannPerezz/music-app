@@ -327,6 +327,9 @@ await win.click('#nav-lib-playlists .nav-fold'); await win.waitForTimeout(400);
 await openSettings(); await win.waitForTimeout(900); await shot('07-settings');
 if (await win.evaluate(() => document.querySelector('#sidebar').offsetWidth > 10)) errors.push('La barra lateral no se oculta en Ajustes');
 // Custom CSS theme: "+" tile → editor → save; then back to the original BitChord theme.
+// Ajustes is split in categories (left column): Tema and Personalización are in «Apariencia».
+if ((await win.locator('.set-nav-item').count()) !== 6) errors.push('Faltan las categorías de Ajustes');
+await win.click('.set-nav-item[data-cat=appearance]'); await win.waitForTimeout(400);
 await win.click('.theme-add'); await win.waitForTimeout(300);
 await win.fill('.theme-editor textarea', ':root { --bg: #102030; --surface: #18304a; --accent: #3d9bff; --mica-rgb: 20, 40, 70; }');
 await win.fill('.theme-editor input', 'Prueba azul');
@@ -346,6 +349,7 @@ await win.click('#btn-queue'); await win.waitForTimeout(500); await shot('10-mic
 
 // Interface language: switch to English (the window reloads) and check a few texts.
 await openSettings(); await win.waitForTimeout(600);
+await win.click('.set-nav-item[data-cat=general]'); await win.waitForTimeout(400);
 await win.locator('#set-general select').first().selectOption('en');
 await win.waitForTimeout(2500);
 await win.waitForSelector('#nav-items .nav-item');
