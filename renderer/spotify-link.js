@@ -64,11 +64,12 @@ async function doSync(id, opts) {
 function row(p, st) {
   const l = st.links.find((x) => x.id === p.id);
   const busy = st.busy && st.busy.name === (l?.name ?? p.name) ? st.busy : null;
+  const where = l?.dest === 'view' ? tr('solo en BitChord') : tr('en tu YT Music');
   const info = l
     ? (busy ? tr('Actualizando… {done} de {total}', { done: busy.done, total: busy.count || '…' })
       : l.error ? `<span class="sp-err">${esc(l.error)}</span>`
       : !l.lastSync ? tr('Pendiente de la primera actualización')
-      : `${tr('{n} canciones', { n: l.count })}${l.missing ? ' · ' + tr('{n} no encontradas en YouTube Music', { n: l.missing }) : ''} · ${tr('en tu YT Music')} · ${tr('actualizada {when}', { when: ago(l.lastSync) })}`)
+      : `${tr('{n} canciones', { n: l.count })}${l.missing ? ' · ' + tr('{n} no encontradas en YouTube Music', { n: l.missing }) : ''} · ${where} · ${tr('actualizada {when}', { when: ago(l.lastSync) })}`)
     : [p.count != null ? tr('{n} canciones', { n: p.count }) : '', p.mine || p.liked || !p.owner ? '' : tr('de {owner}', { owner: esc(p.owner) })].filter(Boolean).join(' · ');
   const el = h(`<${l ? 'div' : 'label'} class="imp-pl sp-row${l ? ' linked' : ''}${!l && !S.sel.has(p.id) ? ' off' : ''}">
     ${l ? '' : `<input type="checkbox"${S.sel.has(p.id) ? ' checked' : ''}${st.busy ? ' disabled' : ''}>`}
@@ -76,10 +77,18 @@ function row(p, st) {
     <div class="imp-pl-t"><b>${esc(p.name)}</b><div class="muted small">${info}</div></div>
   </${l ? 'div' : 'label'}>`);
   if (l) {
-    if (l.target && l.lastSync) {
+    if (l.lastSync && (l.target || l.dest === 'view')) {
       const open = h(`<button class="btn ghost small">${icon('play')}${tr('Abrir')}</button>`);
-      open.onclick = () => go({ name: 'playlist', id: l.target });
+      open.onclick = () => go(l.dest === 'view' ? { name: 'spotify', id: l.id } : { name: 'playlist', id: l.target });
       el.append(open);
+    }
+    if (l.dest === 'view' && state.account) {
+      const copy = h(`<button class="icon-btn" title="${tr('Copiar a YouTube Music')}"${st.busy ? ' disabled' : ''}>${icon('importIcon')}</button>`);
+      copy.onclick = async () => {
+        try { S.status = await api('spotifyLink', p.id, l.name, 'yt'); } catch (e) { return toast(e.message, true); }
+        paint(); doSync(p.id);
+      };
+      el.append(copy);
     }
     const up = h(`<button class="icon-btn" title="${tr('Actualizar ahora')}"${st.busy ? ' disabled' : ''}>${icon('refresh')}</button>`);
     up.onclick = () => doSync(p.id, { force: true });
@@ -122,7 +131,7 @@ function connected(st) {
   }
   root.append(head);
 
-  if (!state.account) root.append(h(`<div class="set-note">${icon('info')} <span>${tr('Las copias se crean en tu cuenta de YouTube Music: inicia sesión con Google en Ajustes → Cuenta para sincronizar.')}</span></div>`));
+  if (!state.account) root.append(h(`<div class="set-note">${icon('info')} <span>${tr('Para importar a YouTube Music inicia sesión con Google en Ajustes → Cuenta. «Solo ver en BitChord» funciona sin ella.')}</span></div>`));
   root.append(h(`<h3 class="sp-title">${tr('Tus playlists de Spotify')}</h3>`));
   const list = h('<div class="imp-lists"></div>');
   const linked = new Set(st.links.map((l) => l.id));
@@ -149,19 +158,23 @@ function connected(st) {
     const free = S.lists.filter((p) => !linked.has(p.id));
     toggle.disabled = !!st.busy || !free.length;
     toggle.onclick = () => { const on = !free.every((p) => S.sel.has(p.id)); free.forEach((p) => (on ? S.sel.add(p.id) : S.sel.delete(p.id))); paint(); };
-    const go1 = h(`<button class="btn primary">${icon('refresh')}${n ? tr('Sincronizar {n} playlists', { n }) : tr('Sincronizar')}</button>`);
+    // Two ways: a copy in the YouTube Music account, or only shown in BitChord.
+    const go1 = h(`<button class="btn primary" data-dest="yt" title="${tr('Crea una copia en tu cuenta de YouTube Music que se mantiene al día con Spotify')}">${icon('importIcon')}${n ? tr('Importar {n} a YouTube Music', { n }) : tr('Importar a YouTube Music')}</button>`);
     go1.disabled = !n || !!st.busy || !state.account;
-    go1.onclick = () => syncSelected();
-    bar.append(go1, toggle);
+    go1.onclick = () => syncSelected('yt');
+    const go2 = h(`<button class="btn spotify" data-dest="view" title="${tr('Las muestra en Biblioteca y en la barra lateral sin crear nada en YouTube Music')}">${icon('queue')}${n ? tr('Solo ver {n} en BitChord', { n }) : tr('Solo ver en BitChord')}</button>`);
+    go2.disabled = !n || !!st.busy;
+    go2.onclick = () => syncSelected('view');
+    bar.append(go1, go2, toggle);
     root.append(bar);
   }
   return root;
 }
 
-async function syncSelected() {
+async function syncSelected(dest) {
   const chosen = S.lists.filter((p) => S.sel.has(p.id));
   if (!chosen.length) return;
-  try { for (const p of chosen) S.status = await api('spotifyLink', p.id, p.name); }
+  try { for (const p of chosen) S.status = await api('spotifyLink', p.id, p.name, dest); }
   catch (e) { return toast(e.message, true); }
   S.sel.clear();
   paint();

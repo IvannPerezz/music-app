@@ -15,6 +15,21 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.51
+------------------------------------------------------------
+- Spotify: ya se puede entrar con Facebook, Google o Apple. La ventana de inicio de sesión
+  se quedaba en negro porque Spotify rechazaba el idioma que BitChord le indicaba; ahora
+  carga cada página como un navegador normal.
+- Al elegir playlists de Spotify en Importar hay dos botones:
+  - "Importar a YouTube Music": como hasta ahora, se crea una copia en tu cuenta que se
+    mantiene al día con Spotify.
+  - "Solo ver en BitChord": la playlist aparece en Biblioteca > Playlists ("De Spotify")
+    y en la barra lateral, con sus canciones buscadas en YouTube Music para escucharlas,
+    pero no se crea nada en tu cuenta de YouTube Music. También se actualiza sola con
+    Spotify, tiene su botón "Actualizar desde Spotify" y, si luego la quieres en tu
+    cuenta, "Copiar a YouTube Music". No necesita la sesión de Google.
+
+------------------------------------------------------------
 v0.6.50
 ------------------------------------------------------------
 - Spotify se vincula como en la app oficial de BitChord: un botón "Iniciar sesión en

@@ -9,9 +9,12 @@ import { tr } from './i18n.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PARTITION = 'persist:spotify';
-// Same desktop-Firefox identity as the Google login (see auth.js): "Continuar con Google" on
-// Spotify's page goes through Google, which refuses embedded Chromium.
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0';
+// A plain Chrome identity for Spotify (with Firefox's, its Facebook/Google/Apple buttons answer
+// HTTP 400). Google's pages («Continuar con Google») get the desktop-Firefox one of the Google
+// login (see auth.js), since Google refuses sign-in from embedded Chromium.
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
+const GOOGLE_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0';
+const isGoogle = (url) => { try { return /(^|\.)google\.com$/.test(new URL(url).hostname); } catch { return false; } };
 const TOKEN_TTL = 40 * 60e3; // the web player's tokens last an hour
 
 let tokens = null; // { bearer, clientToken, until }
@@ -36,12 +39,14 @@ function ses() {
   const s = session.fromPartition(PARTITION);
   if (!s.__bc) {
     s.__bc = true;
-    s.setUserAgent(UA, 'es-ES,es;q=0.9,en;q=0.8');
+    s.setUserAgent(UA); // (no Accept-Language of our own: with one, Spotify's social sign-in buttons answer HTTP 400)
     s.webRequest.onBeforeRequest({ urls: ['https://api-partner.spotify.com/pathfinder/*'] }, (d, cb) => { noteOp(d); cb({}); });
     s.webRequest.onBeforeSendHeaders((d, cb) => {
       const h = { ...d.requestHeaders };
-      for (const k of Object.keys(h)) if (/^sec-ch-ua/i.test(k) || /^x-client-data$/i.test(k)) delete h[k];
-      h['User-Agent'] = UA;
+      if (isGoogle(d.url)) {
+        for (const k of Object.keys(h)) if (/^sec-ch-ua/i.test(k) || /^x-client-data$/i.test(k)) delete h[k];
+        h['User-Agent'] = GOOGLE_UA;
+      }
       // The web player's own calls carry its token: that's the one BitChord uses.
       const auth = h.Authorization || h.authorization;
       if (s.__onToken && /^Bearer /.test(auth || '') && /(^|\.)spotify\.com$/.test(new URL(d.url).hostname)) {
@@ -65,7 +70,7 @@ export function login(parent) {
     const s = ses();
     const win = new BrowserWindow({
       parent, width: 480, height: 760, title: tr('Iniciar sesión en Spotify'), autoHideMenuBar: true, backgroundColor: '#121212',
-      webPreferences: { partition: PARTITION, contextIsolation: false, sandbox: true, nodeIntegration: false, preload: path.join(__dirname, 'login-preload.cjs') },
+      webPreferences: { partition: PARTITION, contextIsolation: false, sandbox: true, nodeIntegration: false, preload: path.join(__dirname, 'spotify-login-preload.cjs') },
     });
     win.setMenu(null);
     let done = false;
@@ -76,6 +81,11 @@ export function login(parent) {
       if (!/^https:\/\/open\.spotify\.com/.test(win.webContents.getURL())) return;
       if (await signedIn()) { tokens = null; finish(true); }
     };
+    // The page's own identity follows the site it's on (see GOOGLE_UA).
+    win.webContents.on('did-start-navigation', (e) => {
+      const want = isGoogle(e.url) ? GOOGLE_UA : UA;
+      if (e.isMainFrame && !e.isSameDocument && win.webContents.getUserAgent() !== want) win.webContents.setUserAgent(want);
+    });
     win.webContents.on('did-navigate', check);
     win.webContents.on('did-finish-load', check);
     win.webContents.setWindowOpenHandler(({ url }) => { win.loadURL(url); return { action: 'deny' }; });

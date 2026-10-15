@@ -1,6 +1,7 @@
 // Spotify account link: signs in on Spotify's own page (see spotify-web.js), reads the user's
-// playlists through the web player's GraphQL API and keeps copies of them up to date in the YouTube
-// Music account. Songs are matched on YouTube Music by title, artist and album (spotify-match.js).
+// playlists through the web player's GraphQL API and either keeps copies of them up to date in the
+// YouTube Music account (dest 'yt') or just shows them in BitChord (dest 'view': nothing is created
+// in the account). Songs are matched on YouTube Music by title, artist and album (spotify-match.js).
 import fs from 'node:fs';
 import path from 'node:path';
 import { nativeImage } from 'electron';
@@ -24,7 +25,8 @@ const MOCK = process.env.BITCHORD_MOCK === '1';
 
 let file = null;
 // { user: {id, name} | null (not linked), auto, links: [link] }
-// link: { id, name, dest: 'yt', target, snapshot, matches: {spotifyTrackId: track|null}, added: [videoId], count, missing, lastSync, error }
+// link: { id, name, dest: 'yt' | 'view', target, snapshot, matches: {spotifyTrackId: track|null}, order: [spotifyTrackId] (view),
+//         added: [videoId] (yt), image, description, count, missing, lastSync, error }
 let cfg = { user: null, auto: true, links: [] };
 let deps = null;   // { yt, playlists, window, notify }
 let busy = null;
@@ -51,7 +53,7 @@ export function status() {
   return {
     connected: !!cfg.user, user: cfg.user, auto: cfg.auto !== false,
     busy: busy ? { ...busy } : null,
-    links: cfg.links.map(({ matches, added, ...l }) => l),
+    links: cfg.links.map(({ matches, added, order, ...l }) => l),
   };
 }
 const notify = () => deps?.notify?.(status());
@@ -223,14 +225,30 @@ async function updateCover(l, image) {
 
 // ---------------------------------------------------------------- links
 
-/** The copy always goes to the YouTube Music account. */
-export function link(id, name) {
+/** dest 'yt': a copy in the YouTube Music account. 'view': only shown in BitChord. A playlist only
+ *  shown can be copied later (its songs already looked up are kept). */
+export function link(id, name, dest = 'yt') {
   if (!cfg.user) throw new Error(tr('Vincula tu cuenta de Spotify primero.'));
+  dest = dest === 'view' ? 'view' : 'yt';
   let l = cfg.links.find((x) => x.id === id);
-  if (!l) cfg.links.push(l = { id, name, dest: 'yt', target: null, snapshot: null, matches: {}, added: [], count: 0, missing: 0, lastSync: 0 });
-  else l.name = name;
+  if (!l) cfg.links.push(l = { id, name, dest, target: null, snapshot: null, matches: {}, added: [], count: 0, missing: 0, lastSync: 0 });
+  else { l.name = name || l.name; if (l.dest !== dest) Object.assign(l, { dest, target: null, added: [], cover: null, lastSync: 0 }); }
   save(); notify();
   return status();
+}
+
+/** A playlist only shown in BitChord, as a playlist page (songs found on YouTube Music, in
+ *  Spotify's order). */
+export function view(id) {
+  const l = cfg.links.find((x) => x.id === id);
+  if (!l) throw new Error(tr('Esa playlist de Spotify ya no está en BitChord.'));
+  const seen = new Set();
+  const tracks = (l.order || Object.keys(l.matches)).map((sid) => l.matches[sid]).filter((t) => t && !seen.has(t.id) && seen.add(t.id));
+  return {
+    kind: 'playlist', id: 'spotify:' + id, title: l.name, subtitle: 'Spotify', description: l.description || '', thumb: l.image || '',
+    meta: l.lastSync ? [tr('{n} canciones', { n: tracks.length }), l.missing ? tr('{n} no encontradas en YouTube Music', { n: l.missing }) : ''].filter(Boolean).join(' · ') : tr('Pendiente de la primera actualización'),
+    tracks, sections: [], liked: id === LIKED, lastSync: l.lastSync, error: l.error || null,
+  };
 }
 
 export function unlink(id) {
@@ -296,7 +314,16 @@ async function syncOne(l, force) {
   for (const k of Object.keys(l.matches)) if (!ids.has(k)) delete l.matches[k]; // forget removed songs
   const seen = new Set();
   const tracks = src.map((t) => l.matches[t.sid]).filter((t) => t && !seen.has(t.id) && seen.add(t.id));
+  l.missing = src.length - src.filter((t) => l.matches[t.sid]).length;
 
+  if (l.dest === 'view') { // only shown in BitChord: nothing to write anywhere
+    l.order = src.map((t) => t.sid);
+    if (name) l.name = name;
+    if (description != null) l.description = description;
+    l.image = /^https?:\/\//.test(image || '') ? image : '';
+    Object.assign(l, { snapshot: snap, count: tracks.length, lastSync: Date.now() });
+    return;
+  }
   if (!targetOk) { // a new copy starts with Spotify's name and description
     if (name) l.name = name;
     if (description != null) l.description = description;
@@ -324,7 +351,6 @@ async function syncOne(l, force) {
   await updateCover(l, image);
   l.snapshot = snap;
   l.count = tracks.length;
-  l.missing = src.length - src.filter((t) => l.matches[t.sid]).length;
   l.lastSync = Date.now();
 }
 const clean = ({ _k, _score, feedback, ...t }) => t;

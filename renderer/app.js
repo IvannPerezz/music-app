@@ -149,10 +149,15 @@ function followNavPill(ms) {
   requestAnimationFrame(step);
 }
 async function fillPlaylistsFold(inner) {
-  const yt = state.account ? await api('accountPlaylists').catch(() => []) : [];
+  const [yt, sp] = await Promise.all([
+    state.account ? api('accountPlaylists').catch(() => []) : [],
+    api('spotifyStatus').catch(() => null),
+  ]);
   const items = sortByPlaylistOrder([
     ...(state.account && !isHiddenPlaylist('LM') ? [{ key: 'yt:LM', liked: true, title: tr('Me gusta'), route: { name: 'playlist', id: 'LM' } }] : []),
     ...yt.filter((p) => !isHiddenPlaylist(p.id)).map((p) => ({ key: 'yt:' + p.id, title: p.title, thumb: state.ytCovers[p.id] || p.thumb, route: { name: 'playlist', id: p.id } })),
+    // Spotify playlists only shown in BitChord.
+    ...(sp?.links || []).filter((l) => l.dest === 'view').map((l) => ({ key: 'sp:' + l.id, title: l.name, thumb: l.image, liked: l.id === '__liked__', route: { name: 'spotify', id: l.id } })),
   ], (x) => x.key);
   const key = JSON.stringify(items.map((x) => [x.title, x.thumb]));
   if (inner.dataset.key === key) return; // nothing changed: don't redraw (no flicker)
@@ -467,6 +472,40 @@ const views = {
       view.querySelector('.actions').append(del);
     }
     await spotifyRefreshButton(view, route.id);
+    return view;
+  },
+  // A Spotify playlist only shown in BitChord (nothing in the YouTube Music account): its songs as
+  // found on YouTube Music, refreshed from Spotify like the copies.
+  async spotify(route) {
+    const d = await api('spotifyView', route.id);
+    const view = detailView(d, tr('Playlist de Spotify · solo en BitChord'));
+    const head = view.querySelector('.detail-head');
+    if (!head.querySelector(':scope > img, :scope > .mosaic')) head.prepend(h(`<div class="mosaic empty">${icon(d.liked ? 'heartFill' : 'queue')}</div>`));
+    const label = tr('Actualizar desde Spotify');
+    const up = h(`<button class="btn spotify" title="${tr('Vuelve a leer la playlist en Spotify y busca en YouTube Music las canciones nuevas')}">${icon('refresh')}<span>${label}</span></button>`);
+    up.onclick = async () => {
+      up.disabled = true; up.classList.add('busy'); up.querySelector('span').textContent = tr('Actualizando…');
+      try {
+        const s = await api('spotifySync', route.id, { force: true });
+        const l = s.links.find((x) => x.id === route.id);
+        if (l?.error) throw new Error(l.error);
+        toast(tr('Playlist actualizada desde Spotify'));
+        refreshView(); renderSidebar();
+      } catch (e) { toast(e.message, true); up.disabled = false; up.classList.remove('busy'); up.querySelector('span').textContent = label; }
+    };
+    view.querySelector('[data-a=play]').after(up);
+    if (state.account) {
+      const copy = h(`<button class="btn ghost">${icon('importIcon')}${tr('Copiar a YouTube Music')}</button>`);
+      copy.onclick = async () => {
+        if (!(await confirmDialog(tr('Copiar a YouTube Music'), tr('Se creará «{name}» en tu cuenta de YouTube Music y se mantendrá al día con Spotify. Dejará de aparecer como playlist solo de BitChord.', { name: d.title }), { ok: tr('Copiar') }))) return;
+        try { await api('spotifyLink', route.id, d.title, 'yt'); } catch (e) { return toast(e.message, true); }
+        renderSidebar();
+        go({ name: 'spotify-import' });
+        api('spotifySync', route.id).catch((e) => toast(e.message, true));
+      };
+      view.querySelector('.actions').append(copy);
+    }
+    if (d.error) view.querySelector('.detail-head .muted').after(h(`<div class="sp-err small">${esc(d.error)}</div>`));
     return view;
   },
 
@@ -2978,6 +3017,8 @@ async function init() {
   try { state.ytCovers = await api('ytCovers'); } catch {}
   // A Spotify update can bring a playlist's cover: pick it up when it ends.
   bc.on('spotify-sync', (st) => { if (!st?.busy) api('ytCovers').then((m) => { state.ytCovers = m; renderSidebar(); }).catch(() => {}); });
+  // (A Spotify playlist on screen that just finished updating: show its songs.)
+  bc.on('spotify-sync', (st) => { if (!st?.busy && currentRoute()?.name === 'spotify' && !document.querySelector('.btn.spotify.busy')) refreshView(); });
   providerMeta = await api('lyricsProviders');
   try { state.downloads = await api('downloads'); } catch {}
   initButtons();

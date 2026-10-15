@@ -137,9 +137,10 @@ async function playlistsTab() {
   imp.onclick = () => go({ name: 'spotify-import' });
   bar.append(create, imp);
   root.append(bar);
-  const [fl, ytLists] = await Promise.all([
+  const [fl, ytLists, sp] = await Promise.all([
     api('localFolders'),
     state.account ? api('accountPlaylists').catch(() => []) : Promise.resolve([]),
+    api('spotifyStatus').catch(() => null),
   ]);
   const grid = (title, cards, style = '', sortable = false) => {
     const sec = h(`<section class="section"${style ? ` style="${style}"` : ''}>${title ? `<h2>${esc(title)}</h2>` : ''}</section>`);
@@ -166,6 +167,13 @@ async function playlistsTab() {
   if (!state.account) {
     root.append(h(`<div class="empty">${icon('queue')}<div><b>${tr('Tus playlists están en YouTube Music')}</b></div><div class="muted">${tr('Inicia sesión con Google para ver tus playlists, crear nuevas, añadirles canciones desde el menú ⋮ de cualquier canción o importar las de Spotify.')}</div></div>`));
   }
+  // Spotify playlists only shown in BitChord (see Importar).
+  const spViews = (sp?.links || []).filter((l) => l.dest === 'view');
+  if (spViews.length) grid(tr('De Spotify (solo en BitChord)'), spViews.map((l) => {
+    const c = h(`<div class="card playlist"><div class="art${l.id === '__liked__' ? ' liked' : ''}">${l.image ? `<img loading="lazy" src="${esc(l.image)}" alt="">` : icon(l.id === '__liked__' ? 'heartFill' : 'queue')}</div><div class="t ellipsis">${esc(l.name)}</div><div class="s">${l.lastSync ? tr('{n} canciones', { n: l.count }) : tr('Pendiente de la primera actualización')} · Spotify</div></div>`);
+    c.onclick = () => go({ name: 'spotify', id: l.id });
+    return c;
+  }), 'margin-top:28px');
   if (fl.length) grid(tr('Carpetas de este equipo'), fl.map((f) => folderCard(f)), 'margin-top:28px');
   return root;
 }

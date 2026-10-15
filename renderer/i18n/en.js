@@ -1,6 +1,21 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Playlist de Spotify · solo en BitChord": "Spotify playlist · only in BitChord",
+  "Actualizar desde Spotify": "Update from Spotify",
+  "Vuelve a leer la playlist en Spotify y busca en YouTube Music las canciones nuevas": "Reads the playlist from Spotify again and looks up the new songs on YouTube Music",
+  "Copiar a YouTube Music": "Copy to YouTube Music",
+  "Se creará «{name}» en tu cuenta de YouTube Music y se mantendrá al día con Spotify. Dejará de aparecer como playlist solo de BitChord.": "«{name}» will be created in your YouTube Music account and kept up to date with Spotify. It will no longer show as a BitChord-only playlist.",
+  "Copiar": "Copy",
+  "De Spotify (solo en BitChord)": "From Spotify (only in BitChord)",
+  "Importar {n} a YouTube Music": "Import {n} to YouTube Music",
+  "Importar a YouTube Music": "Import to YouTube Music",
+  "Solo ver {n} en BitChord": "Only show {n} in BitChord",
+  "Solo ver en BitChord": "Only show in BitChord",
+  "Crea una copia en tu cuenta de YouTube Music que se mantiene al día con Spotify": "Creates a copy in your YouTube Music account that stays up to date with Spotify",
+  "Las muestra en Biblioteca y en la barra lateral sin crear nada en YouTube Music": "Shows them in Library and in the sidebar without creating anything in YouTube Music",
+  "Para importar a YouTube Music inicia sesión con Google en Ajustes → Cuenta. «Solo ver en BitChord» funciona sin ella.": "To import to YouTube Music, sign in with Google in Settings → Account. «Only show in BitChord» works without it.",
+  "Esa playlist de Spotify ya no está en BitChord.": "That Spotify playlist is no longer in BitChord.",
   "Bitrate máximo del formato de audio que se pide a YouTube Music en streaming: Baja hasta 64 kbps, Normal hasta 96, Alta hasta 160 y Máxima sin límite. Se elige el mejor formato por debajo del límite, con preferencia por Opus sobre AAC.": "Maximum bitrate of the audio format requested from YouTube Music when streaming: Low up to 64 kbps, Normal up to 96, High up to 160 and Maximum without a limit. The best format under the limit is chosen, preferring Opus over AAC.",
   "El motor de audio tiene dos pletinas (Web Audio): mientras suena una, la siguiente canción se carga en la otra y arranca justo al terminar la primera, sin el hueco que deja abrir un archivo nuevo.": "The audio engine has two decks (Web Audio): while one plays, the next song loads on the other and starts right when the first ends, without the gap of opening a new file.",
   "Superpone el final de una canción y el principio de la siguiente durante los segundos elegidos (0–12): el volumen de una baja mientras sube el de la otra. Como mucho dura un tercio de la canción.": "Overlaps the end of a song with the start of the next one for the chosen seconds (0–12): one fades out while the other fades in. It lasts at most a third of the song.",
@@ -124,7 +139,6 @@ export default {
   "Copia de la configuración": "Configuration backup",
   "Exportar o importar": "Export or import",
   "Ese archivo no es una copia de configuración de BitChord.": "That file isn't a BitChord configuration backup.",
-  "Sincronizar {n} playlists": "Sync {n} playlists",
   "Importando playlist {i} de {total}": "Importing playlist {i} of {total}",
   "nunca": "never",
   "ahora mismo": "just now",
@@ -144,7 +158,6 @@ export default {
   "Actualizar ahora": "Update now",
   "Dejar de sincronizar": "Stop syncing",
   "«{name}» ya no se actualizará con Spotify. La copia que ya tienes no se borra.": "“{name}” will no longer update from Spotify. The copy you already have isn't deleted.",
-  "Sincronizar": "Sync",
   "Conectado como {name}": "Connected as {name}",
   "{n} playlists sincronizadas": "{n} synced playlists",
   "Actualizar todas": "Update all",
@@ -708,5 +721,4 @@ export default {
   "Tus playlists están en YouTube Music": "Your playlists live in YouTube Music",
   "Inicia sesión con Google para ver tus playlists, crear nuevas, añadirles canciones desde el menú ⋮ de cualquier canción o importar las de Spotify.": "Sign in with Google to see your playlists, create new ones, add songs to them from the ⋮ menu of any song or import your Spotify ones.",
   "Guarda en un archivo <b>.bitchord</b> todo lo que has personalizado: ajustes, tema y temas propios, efecto Mica y fondo, barra lateral, ecualizador, letras, visualizador, portadas de playlists y carpetas, playlists ocultas y su orden, favoritos, búsquedas recientes y las playlists vinculadas con Spotify. Llévalo a otro PC (USB, nube, correo…) e impórtalo allí.": "Saves everything you've customised in a <b>.bitchord</b> file: settings, theme and your own themes, Mica effect and background, sidebar, equalizer, lyrics, visualizer, playlist and folder covers, hidden playlists and their order, favourites, recent searches and the playlists linked with Spotify. Take it to another PC (USB, cloud, email…) and import it there.",
-  "Las copias se crean en tu cuenta de YouTube Music: inicia sesión con Google en Ajustes → Cuenta para sincronizar.": "The copies are created in your YouTube Music account: sign in with Google in Settings → Account to sync.",
 };
