@@ -1,6 +1,8 @@
 // English interface texts. Key: the Spanish text exactly as it is written in the code (tr('…'));
 // value: its translation. `node scripts/i18n-keys.mjs` (also run by npm test) lists missing ones.
 export default {
+  "Interfaz": "Interface",
+  "Fondo y efectos": "Background and effects",
   "Apariencia": "Appearance",
   "Fuentes y biblioteca": "Sources and library",
   "Tus playlists": "Your playlists",

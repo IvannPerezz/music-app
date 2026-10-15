@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.52.1
+------------------------------------------------------------
+- Ajustes > Apariencia: "Personalización" se parte en dos apartados más cortos.
+  "Interfaz": fuente, playlists ocultas, pantalla principal, barra lateral y datos de las
+  pistas locales. "Fondo y efectos": fondo animado, portadas animadas y efecto Mica.
+
+------------------------------------------------------------
 v0.6.52
 ------------------------------------------------------------
 - Ajustes con las pestañas en vertical, a la izquierda, agrupadas en seis categorías:

@@ -11,7 +11,7 @@ const QUALITY = [['low', tr('Baja (~64 kbps)')], ['normal', tr('Normal (~96 kbps
 // elsewhere name a section (route.section): it opens its category and scrolls to it.
 const CATEGORIES = [
   ['account', tr('Cuenta'), 'account', ['account', 'import']],
-  ['appearance', tr('Apariencia'), 'image', ['theme', 'sidebar', 'performance']],
+  ['appearance', tr('Apariencia'), 'image', ['theme', 'sidebar', 'effects', 'performance']],
   ['playback', tr('Reproducción'), 'play', ['playback', 'eq', 'lyrics']],
   ['library', tr('Fuentes y biblioteca'), 'library', ['sources', 'downloads', 'local']],
   ['integrations', tr('Integraciones'), 'sparkle', ['integrations']],
@@ -542,44 +542,49 @@ function sidebarCard() {
     toast(tr('SF Pro Display añadida ({n} archivos)', { n }));
     applyFont();
   });
-  return card('sidebar', tr('Personalización'), 'tune',
-    sub(tr('Fuente'), 'edit'),
-    row(tr('Emojis de Apple'), tr('Dibuja los emojis de títulos, artistas y letras con la fuente «Apple Color Emoji» si está instalada en Windows. Se carga como fuente limitada a los caracteres de emoji (unicode-range), así que el resto del texto no cambia. Sin esa fuente se ven los de Windows.'), toggle('appleEmoji')),
-    row(tr('Fuente de la aplicación'), tr('Tipografía de toda la interfaz. Inter va incluida. SF Pro Display es de Apple y no se puede distribuir, así que se usan tus archivos: la primera vez se copian de la carpeta «sf-pro-display» del Escritorio (o de la que elijas) al perfil de BitChord, y cada grosor (Light, Regular, Medium, Semibold, Bold…) se carga como una variante de la misma fuente.'), font),
-    sub(tr('Fondo animado'), 'image'),
-    h(`<div class="set-note">${tr('Detrás de la app (y en la vista de portada y letra) se dibuja la carátula que suena, muy desenfocada, en capas que se mueven despacio con animaciones CSS (o manchas con sus colores principales). Solo se mueve mientras suena música y se para con la ventana minimizada. Los cambios se ven al momento.')}</div>`),
-    row(tr('Fondo animado'), tr('Apagado, se usa el color de fondo del tema y la tarjeta gráfica no hace este trabajo.'), toggle('ambient', () => amb())),
-    row(tr('Estilo'), tr('La carátula desenfocada girando despacio, o manchas difuminadas con sus colores más destacados.'), select('ambientMode', [['cover', tr('Portada desenfocada')], ['colors', tr('Manchas de color')]], () => amb())),
-    row(tr('Intensidad del brillo'), tr('Opacidad del fondo animado sobre el color de fondo del tema.'), range('ambientIntensity', 5, 100, 1, (v) => `${v} %`, live('ambientIntensity', amb))),
-    row(tr('Desenfoque'), tr('Radio del desenfoque (filtro blur) de la carátula o las manchas. Más alto = colores más suaves y mezclados, y algo más de trabajo para la gráfica.'), range('ambientBlur', 20, 220, 5, (v) => `${v} px`, live('ambientBlur', amb))),
-    row(tr('Velocidad de movimiento'), tr('Velocidad de las animaciones del fondo. Solo se mueve mientras suena una canción; en pausa se queda quieto. 0 lo deja siempre quieto.'), range('ambientSpeed', 0, 100, 1, (v) => (v ? `${v} %` : tr('Quieto')), live('ambientSpeed', amb))),
-    row(tr('Tamaño'), tr('Escala de la carátula o de las manchas de color respecto a la ventana.'), range('ambientSize', 50, 160, 5, (v) => `${v} %`, live('ambientSize', amb))),
-    row(tr('Saturación'), tr('Filtro de saturación de los colores del fondo: 100 % es el color original, 0 % blanco y negro.'), range('ambientSaturation', 0, 250, 5, (v) => `${v} %`, live('ambientSaturation', amb))),
-    sub(tr('Portadas animadas'), 'album'),
-    row(tr('Portada animada'), tr('Si la canción tiene portada animada (un vídeo corto en bucle), se busca en Apple Music, Tidal o un índice de la comunidad y se reproduce sin sonido sobre la carátula grande de la vista de portada y letra y de la pantalla completa. Se pausa con la ventana minimizada.'), toggle('animatedCovers')),
-    sub(tr('Efecto Mica'), 'sparkle'),
-    h(`<div class="set-note">${tr('Los paneles se dibujan como cristal: lo que hay detrás se desenfoca y satura (backdrop-filter) y se tiñe con el color del tema. Se activa por separado en cada panel; apagado, el panel usa el color sólido del tema. La intensidad, el desenfoque y la saturación son comunes a todos.')}</div>`),
-    row(tr('Barra lateral izquierda'), '', toggle('micaSidebar', () => mica())),
-    row(tr('Cola (barra lateral derecha)'), '', toggle('micaQueue', () => mica())),
-    row(tr('Controles de reproducción (abajo)'), '', toggle('micaPlayer', () => mica())),
-    row(tr('Botones de pantalla completa'), tr('En la vista de portada y letra y en pantalla completa: la flecha de minimizar, la columna de botones de la derecha (letra, cola, ecualizador, ajustes, salir) y favorito, aleatorio y repetir cuando están activados.'), toggle('micaLyrics', () => mica())),
-    row(tr('Intensidad del tinte'), tr('Opacidad del color del tema sobre el cristal: más alto = más color y menos transparencia.'), range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
-    row(tr('Desenfoque del cristal'), tr('Radio del desenfoque de lo que hay detrás del cristal. 0 = cristal transparente.'), range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
-    row(tr('Saturación'), tr('Saturación de lo que se ve a través del cristal (100 % = sin cambios).'), range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
-    hiddenPlaylistsBlock(),
-    sub(tr('Pantalla principal'), 'home'),
-    h(`<div class="set-note">${tr('Inicio muestra los apartados que YouTube Music devuelve para tu cuenta. Marca los que quieres ver; se reconocen por su título, así que también puedes ocultar uno desde Inicio con «Ocultar» al pasar el ratón por él. Los apartados nuevos que añada YouTube aparecen aquí en cuanto salgan.')}</div>`),
-    homeGrid,
-    sub(tr('Barra lateral'), 'menu'),
-    row(tr('Mostrar la barra lateral'), tr('Fija; oculta y desplegada al acercar el ratón al borde izquierdo de la ventana; u oculta, con un botón junto a las flechas de navegación para abrirla.'),
-      select('sidebarMode', [['fixed', tr('Siempre visible')], ['hover', tr('Al pasar el ratón por la izquierda')], ['button', tr('Con un botón')]])),
-    h(`<div class="set-note">${tr('Elige qué aparece en la barra lateral y en qué orden (arrastra o usa las flechas). Las pestañas de Biblioteca se pueden anclar como accesos directos. <b>Ajustes</b> está siempre arriba a la derecha (junto a tu perfil), así que nunca te quedas sin forma de volver aquí.')}</div>`),
-    list,
-    row(tr('Volver a la configuración original'), tr('Devuelve los elementos y el orden de la barra lateral a los de serie.'), reset),
-    sub(tr('Datos de las pistas en «En este equipo»'), 'computer'),
-    h(`<div class="set-note">${tr('Columnas con datos técnicos de cada archivo de música local, leídos de sus etiquetas y cabeceras al indexarlo.')}</div>`),
-    info,
-  );
+  // Two sections (Apariencia shows both): the interface itself, and the background and glass effects.
+  return [
+    card('sidebar', tr('Interfaz'), 'tune',
+      sub(tr('Fuente'), 'edit'),
+      row(tr('Emojis de Apple'), tr('Dibuja los emojis de títulos, artistas y letras con la fuente «Apple Color Emoji» si está instalada en Windows. Se carga como fuente limitada a los caracteres de emoji (unicode-range), así que el resto del texto no cambia. Sin esa fuente se ven los de Windows.'), toggle('appleEmoji')),
+      row(tr('Fuente de la aplicación'), tr('Tipografía de toda la interfaz. Inter va incluida. SF Pro Display es de Apple y no se puede distribuir, así que se usan tus archivos: la primera vez se copian de la carpeta «sf-pro-display» del Escritorio (o de la que elijas) al perfil de BitChord, y cada grosor (Light, Regular, Medium, Semibold, Bold…) se carga como una variante de la misma fuente.'), font),
+      hiddenPlaylistsBlock(),
+      sub(tr('Pantalla principal'), 'home'),
+      h(`<div class="set-note">${tr('Inicio muestra los apartados que YouTube Music devuelve para tu cuenta. Marca los que quieres ver; se reconocen por su título, así que también puedes ocultar uno desde Inicio con «Ocultar» al pasar el ratón por él. Los apartados nuevos que añada YouTube aparecen aquí en cuanto salgan.')}</div>`),
+      homeGrid,
+      sub(tr('Barra lateral'), 'menu'),
+      row(tr('Mostrar la barra lateral'), tr('Fija; oculta y desplegada al acercar el ratón al borde izquierdo de la ventana; u oculta, con un botón junto a las flechas de navegación para abrirla.'),
+        select('sidebarMode', [['fixed', tr('Siempre visible')], ['hover', tr('Al pasar el ratón por la izquierda')], ['button', tr('Con un botón')]])),
+      h(`<div class="set-note">${tr('Elige qué aparece en la barra lateral y en qué orden (arrastra o usa las flechas). Las pestañas de Biblioteca se pueden anclar como accesos directos. <b>Ajustes</b> está siempre arriba a la derecha (junto a tu perfil), así que nunca te quedas sin forma de volver aquí.')}</div>`),
+      list,
+      row(tr('Volver a la configuración original'), tr('Devuelve los elementos y el orden de la barra lateral a los de serie.'), reset),
+      sub(tr('Datos de las pistas en «En este equipo»'), 'computer'),
+      h(`<div class="set-note">${tr('Columnas con datos técnicos de cada archivo de música local, leídos de sus etiquetas y cabeceras al indexarlo.')}</div>`),
+      info,
+    ),
+    card('effects', tr('Fondo y efectos'), 'image',
+      sub(tr('Fondo animado'), 'image'),
+      h(`<div class="set-note">${tr('Detrás de la app (y en la vista de portada y letra) se dibuja la carátula que suena, muy desenfocada, en capas que se mueven despacio con animaciones CSS (o manchas con sus colores principales). Solo se mueve mientras suena música y se para con la ventana minimizada. Los cambios se ven al momento.')}</div>`),
+      row(tr('Fondo animado'), tr('Apagado, se usa el color de fondo del tema y la tarjeta gráfica no hace este trabajo.'), toggle('ambient', () => amb())),
+      row(tr('Estilo'), tr('La carátula desenfocada girando despacio, o manchas difuminadas con sus colores más destacados.'), select('ambientMode', [['cover', tr('Portada desenfocada')], ['colors', tr('Manchas de color')]], () => amb())),
+      row(tr('Intensidad del brillo'), tr('Opacidad del fondo animado sobre el color de fondo del tema.'), range('ambientIntensity', 5, 100, 1, (v) => `${v} %`, live('ambientIntensity', amb))),
+      row(tr('Desenfoque'), tr('Radio del desenfoque (filtro blur) de la carátula o las manchas. Más alto = colores más suaves y mezclados, y algo más de trabajo para la gráfica.'), range('ambientBlur', 20, 220, 5, (v) => `${v} px`, live('ambientBlur', amb))),
+      row(tr('Velocidad de movimiento'), tr('Velocidad de las animaciones del fondo. Solo se mueve mientras suena una canción; en pausa se queda quieto. 0 lo deja siempre quieto.'), range('ambientSpeed', 0, 100, 1, (v) => (v ? `${v} %` : tr('Quieto')), live('ambientSpeed', amb))),
+      row(tr('Tamaño'), tr('Escala de la carátula o de las manchas de color respecto a la ventana.'), range('ambientSize', 50, 160, 5, (v) => `${v} %`, live('ambientSize', amb))),
+      row(tr('Saturación'), tr('Filtro de saturación de los colores del fondo: 100 % es el color original, 0 % blanco y negro.'), range('ambientSaturation', 0, 250, 5, (v) => `${v} %`, live('ambientSaturation', amb))),
+      sub(tr('Portadas animadas'), 'album'),
+      row(tr('Portada animada'), tr('Si la canción tiene portada animada (un vídeo corto en bucle), se busca en Apple Music, Tidal o un índice de la comunidad y se reproduce sin sonido sobre la carátula grande de la vista de portada y letra y de la pantalla completa. Se pausa con la ventana minimizada.'), toggle('animatedCovers')),
+      sub(tr('Efecto Mica'), 'sparkle'),
+      h(`<div class="set-note">${tr('Los paneles se dibujan como cristal: lo que hay detrás se desenfoca y satura (backdrop-filter) y se tiñe con el color del tema. Se activa por separado en cada panel; apagado, el panel usa el color sólido del tema. La intensidad, el desenfoque y la saturación son comunes a todos.')}</div>`),
+      row(tr('Barra lateral izquierda'), '', toggle('micaSidebar', () => mica())),
+      row(tr('Cola (barra lateral derecha)'), '', toggle('micaQueue', () => mica())),
+      row(tr('Controles de reproducción (abajo)'), '', toggle('micaPlayer', () => mica())),
+      row(tr('Botones de pantalla completa'), tr('En la vista de portada y letra y en pantalla completa: la flecha de minimizar, la columna de botones de la derecha (letra, cola, ecualizador, ajustes, salir) y favorito, aleatorio y repetir cuando están activados.'), toggle('micaLyrics', () => mica())),
+      row(tr('Intensidad del tinte'), tr('Opacidad del color del tema sobre el cristal: más alto = más color y menos transparencia.'), range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
+      row(tr('Desenfoque del cristal'), tr('Radio del desenfoque de lo que hay detrás del cristal. 0 = cristal transparente.'), range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
+      row(tr('Saturación'), tr('Saturación de lo que se ve a través del cristal (100 % = sin cambios).'), range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
+    ),
+  ];
 }
 
 function performanceCard() {
@@ -660,7 +665,7 @@ async function about() {
 let providers = [];
 const BUILD = {
   account: () => account(), import: () => importCard(), theme: () => themeCard(), sidebar: () => sidebarCard(),
-  performance: () => performanceCard(), playback: () => playback(), eq: () => equalizer(), lyrics: () => lyrics(),
+  effects: () => [], performance: () => performanceCard(), playback: () => playback(), eq: () => equalizer(), lyrics: () => lyrics(),
   sources: () => sourcesCard(), downloads: () => downloads(), local: () => localMusic(), integrations: () => integrations(),
   general: () => general(), backup: () => backupCard(), about: () => about(),
 };
@@ -677,11 +682,11 @@ export async function settingsView(route) {
     store.set('settingsCat', id);
     nav.querySelectorAll('.set-nav-item').forEach((b) => b.classList.toggle('active', b.dataset.cat === id));
     const cards = await Promise.all(CATEGORIES.find((c) => c[0] === id)[3].map((k) => BUILD[k]()));
-    pane.replaceChildren(...cards);
+    pane.replaceChildren(...cards.flat()); // (Interfaz y Fondo y efectos come from one builder)
   };
   for (const [id, label, ic, sections] of CATEGORIES) {
     const b = h(`<button class="set-nav-item" data-cat="${id}">${icon(ic)}<span>${esc(label)}</span></button>`);
-    b.title = sections.map((k) => ({ account: tr('Cuenta de Google'), import: tr('Importar de Spotify'), theme: tr('Tema'), sidebar: tr('Personalización'), performance: tr('Rendimiento'), playback: tr('Reproducción'), eq: tr('Ecualizador'), lyrics: tr('Letras'), sources: tr('Fuentes'), downloads: tr('Descargas'), local: tr('Música local'), integrations: tr('Integraciones'), general: tr('General'), backup: tr('Copia de la configuración'), about: tr('Acerca de') }[k])).join(' · ');
+    b.title = sections.map((k) => ({ account: tr('Cuenta de Google'), import: tr('Importar de Spotify'), theme: tr('Tema'), sidebar: tr('Interfaz'), effects: tr('Fondo y efectos'), performance: tr('Rendimiento'), playback: tr('Reproducción'), eq: tr('Ecualizador'), lyrics: tr('Letras'), sources: tr('Fuentes'), downloads: tr('Descargas'), local: tr('Música local'), integrations: tr('Integraciones'), general: tr('General'), backup: tr('Copia de la configuración'), about: tr('Acerca de') }[k])).join(' · ');
     b.onclick = async () => {
       if (id === cat) return;
       route.section = null; // (a later refresh stays here)
