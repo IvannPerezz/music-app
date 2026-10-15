@@ -226,12 +226,11 @@ await shot('06b-search');
 // the pinned shortcut lights up only when it's the one clicked.
 await win.evaluate(async () => { const sb = (await window.bc.settingsGet()).data.sidebar.map((x) => (x.id === 'lib:playlists' ? { ...x, on: true } : x)); await window.__bc.saveSidebar?.(sb); });
 await win.click('#nav-library'); await win.waitForTimeout(900); await shot('06-library');
-// Import → Spotify account: guide with the redirect address, connect (mock), sync a playlist.
+// Import → Spotify account: sign in (mock), sync a playlist.
 await win.evaluate(() => window.__bc.go({ name: 'spotify-import' })); await win.waitForTimeout(700);
-await win.click('.import .chip[data-tab=link]'); await win.waitForTimeout(500);
-if (!(await win.isVisible('.sp-uri code'))) errors.push('Falta la guía para vincular Spotify');
+if (await win.locator('.import .chip').count()) errors.push('Aún se puede importar el .zip de Spotify');
+if (!(await win.isVisible('.sp-how'))) errors.push('Falta la explicación de la vinculación con Spotify');
 await shot('06c-spotify-guide');
-await win.fill('.sp-connect input', '0123456789abcdef0123456789abcdef');
 await win.click('.sp-connect .btn.primary'); await win.waitForTimeout(900);
 if (await win.locator('.sp-row .seg').count()) errors.push('Aún se puede elegir «Solo BitChord» al vincular Spotify');
 await win.locator('.sp-row', { hasText: 'Rock en español' }).locator('input').check();

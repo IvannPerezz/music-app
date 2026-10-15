@@ -1,14 +1,12 @@
-// Import → «Cuenta de Spotify»: link a Spotify developer app and keep chosen playlists up to date.
+// Importar → Spotify account: sign in on Spotify's page, then keep the chosen playlists up to date.
 import { bc, icon, esc, api, toast, h, state, confirmDialog } from './core.js';
 import { go } from './app.js';
 import { tr } from './i18n.js';
 
-const S = { status: null, lists: null, loading: false, connecting: false, clientId: '', sel: new Set() };
+const S = { status: null, lists: null, loading: false, connecting: false, sel: new Set() };
 let mount = null;
 
 bc.on('spotify-sync', (st) => { S.status = st; paint(); });
-
-const DASH = 'https://developer.spotify.com/dashboard';
 
 function ago(ms) {
   if (!ms) return tr('nunca');
@@ -20,41 +18,32 @@ function ago(ms) {
   return tr('hace {n} días', { n: Math.round(hrs / 24) });
 }
 
-function guide(st) {
+/** What linking does, in plain technical terms (shown before signing in). */
+export const SPOTIFY_HOW = () => [
+  tr('<b>Inicio de sesión:</b> el botón abre la página oficial de Spotify (accounts.spotify.com) en una ventana de BitChord. Al entrar, BitChord se queda con la sesión del reproductor web de Spotify (la cookie <code>sp_dc</code>), guardada en un perfil del navegador aislado y solo en este PC. Tu contraseña no pasa por BitChord y no hace falta ninguna «app de desarrollador».'),
+  tr('<b>Lectura:</b> con esa sesión, BitChord abre en segundo plano el reproductor web (open.spotify.com), toma el token de acceso que este genera para sí mismo y consulta la misma API interna (GraphQL) que usa la web: tus playlists (también las hechas por Spotify, como los Mix diarios), sus canciones, nombre, descripción y portada, y tus «Canciones que te gustan». Solo lee: no cambia nada en tu Spotify.'),
+  tr('<b>Copia:</b> cada canción se busca en YouTube Music por título, artista y álbum, y se elige el resultado con más puntuación. La playlist se crea en tu cuenta de YouTube Music (privada, también visible en la app oficial) y la portada de Spotify se le pone en BitChord.'),
+  tr('<b>Sincronización:</b> al abrir BitChord, cada 6 horas o con «Actualizar», cada playlist vinculada se vuelve a leer: se añaden las canciones nuevas, se quitan las que borraste en Spotify (solo las que había puesto BitChord) y se copian el nombre, la descripción y la portada si cambiaron. Las canciones ya buscadas no se vuelven a buscar.'),
+];
+
+function guide() {
   const el = h(`<div class="imp-card sp-guide">
     <h2>${tr('Vincula tu cuenta de Spotify')}</h2>
-    <p class="muted">${tr('Elige qué playlists de Spotify quieres tener en BitChord: se copian a tu YouTube Music y <b>se mantienen al día solas</b>. Si añades o quitas canciones en Spotify, aquí también cambian: al abrir BitChord, cada 6 horas o cuando pulses «Actualizar».')}</p>
-    <p class="muted">${tr('Para eso Spotify pide que crees una «app de desarrollador» gratuita a tu nombre (BitChord no tiene una propia). Son cinco minutos y solo se hace una vez:')}</p>
-    <ol class="imp-help">
-      <li>${tr('Abre el <a href="#" data-url="{url}">panel de desarrollador de Spotify</a> e inicia sesión con tu cuenta de Spotify. Si es la primera vez, acepta las condiciones de desarrollador.', { url: DASH })}</li>
-      <li>${tr('Pulsa <b>Create app</b>. En <b>App name</b> y <b>App description</b> pon lo que quieras (por ejemplo «BitChord»). <b>Website</b> puede quedar vacío.')}</li>
-      <li>${tr('En <b>Redirect URIs</b> pega exactamente esta dirección y pulsa <b>Add</b>:')}
-        <div class="sp-uri"><code>${esc(st.redirectUri)}</code><button class="btn ghost small" data-copy>${tr('Copiar')}</button></div></li>
-      <li>${tr('En «Which API/SDKs are you planning to use?» marca <b>Web API</b>, acepta las condiciones y pulsa <b>Save</b>.')}</li>
-      <li>${tr('Ya dentro de tu app, abre <b>Settings</b>, copia el <b>Client ID</b> y pégalo aquí abajo. El <i>Client secret</i> no hace falta (y mejor no compartirlo).')}</li>
-      <li>${tr('Pulsa <b>Conectar con Spotify</b>. Se abrirá el navegador para que des permiso a BitChord para <b>leer tus playlists y tus canciones que te gustan</b>. Es solo lectura: BitChord no puede cambiar nada en tu Spotify.')}</li>
-    </ol>
-    <div class="sp-connect"><input class="text" placeholder="${tr('Client ID (32 letras y números)')}" spellcheck="false" value="${esc(S.clientId || st.clientId || '')}"></div>
-    <div class="set-note">${icon('info')} <span>${tr('Si Spotify dice que tu cuenta no está registrada, en tu app abre <b>User Management</b> y añade tu nombre y el correo de tu cuenta de Spotify. Spotify puede exigir que la cuenta dueña de la app tenga Premium para usar apps en modo de desarrollo. Las playlists hechas por Spotify (Mix diarios, Descubrimiento semanal…) no se pueden leer con estas apps; copia sus canciones a una playlist tuya si las quieres.')}</span></div>
+    <p class="muted">${tr('Elige qué playlists de Spotify quieres tener en BitChord: se copian a tu YouTube Music y <b>se mantienen al día solas</b>.')}</p>
+    <ul class="imp-help sp-how">${SPOTIFY_HOW().map((t) => `<li>${t}</li>`).join('')}</ul>
+    <div class="sp-connect"></div>
+    <div class="set-note">${icon('info')} <span>${tr('En la ventana de Spotify entra con tu correo y contraseña, o con el código que Spotify te manda por correo. «Continuar con Google» puede no funcionar: Google suele bloquear sus inicios de sesión dentro de otras aplicaciones.')}</span></div>
   </div>`);
-  el.querySelector('[data-copy]').onclick = async (e) => {
-    try { await navigator.clipboard.writeText(st.redirectUri); e.target.textContent = tr('Copiada'); } catch { toast(tr('No se pudo copiar'), true); }
-  };
-  const input = el.querySelector('input');
-  input.oninput = () => { S.clientId = input.value.trim(); };
   const box = el.querySelector('.sp-connect');
-  if (S.connecting) {
-    input.disabled = true;
-    const c = h(`<button class="btn ghost">${tr('Cancelar')}</button>`);
-    c.onclick = () => api('spotifyConnectCancel');
-    box.append(h(`<span class="muted sp-wait">${icon('loading')} ${tr('Esperando tu permiso en el navegador…')}</span>`), c);
-  } else {
-    const b = h(`<button class="btn primary">${icon('open')}${tr('Conectar con Spotify')}</button>`);
+  if (S.connecting) box.append(h(`<span class="muted sp-wait">${icon('loading')} ${tr('Inicia sesión en la ventana de Spotify… (ciérrala para cancelar)')}</span>`));
+  else {
+    const b = h(`<button class="btn primary spotify">${icon('open')}${tr('Iniciar sesión en Spotify')}</button>`);
     b.onclick = async () => {
-      S.clientId = input.value.trim();
       S.connecting = true; paint();
-      try { S.status = await api('spotifyConnect', S.clientId); S.lists = null; toast(tr('Spotify vinculado como {name}', { name: S.status.user?.name || '' })); }
-      catch (e) { if (e.message !== tr('Cancelado')) toast(e.message, true); }
+      try {
+        S.status = await api('spotifyConnect'); S.lists = null;
+        toast(S.status.user?.name ? tr('Spotify vinculado como {name}', { name: S.status.user.name }) : tr('Spotify vinculado'));
+      } catch (e) { if (e.message !== tr('Cancelado')) toast(e.message, true); }
       S.connecting = false; paint();
     };
     box.append(b);
@@ -80,7 +69,7 @@ function row(p, st) {
       : l.error ? `<span class="sp-err">${esc(l.error)}</span>`
       : !l.lastSync ? tr('Pendiente de la primera actualización')
       : `${tr('{n} canciones', { n: l.count })}${l.missing ? ' · ' + tr('{n} no encontradas en YouTube Music', { n: l.missing }) : ''} · ${tr('en tu YT Music')} · ${tr('actualizada {when}', { when: ago(l.lastSync) })}`)
-    : `${tr('{n} canciones', { n: p.count })}${p.mine || p.liked ? '' : ' · ' + tr('de {owner}', { owner: esc(p.owner) })}`;
+    : [p.count != null ? tr('{n} canciones', { n: p.count }) : '', p.mine || p.liked || !p.owner ? '' : tr('de {owner}', { owner: esc(p.owner) })].filter(Boolean).join(' · ');
   const el = h(`<${l ? 'div' : 'label'} class="imp-pl sp-row${l ? ' linked' : ''}${!l && !S.sel.has(p.id) ? ' off' : ''}">
     ${l ? '' : `<input type="checkbox"${S.sel.has(p.id) ? ' checked' : ''}${st.busy ? ' disabled' : ''}>`}
     <div class="sp-img">${p.image ? `<img src="${esc(p.image)}" alt="">` : icon(p.liked ? 'heartFill' : 'queue')}</div>
@@ -109,14 +98,14 @@ function row(p, st) {
 function connected(st) {
   const root = h('<div></div>');
   const head = h(`<div class="imp-card sp-head">
-    <div class="sp-who">${icon('check')}<div><b>${tr('Conectado como {name}', { name: esc(st.user?.name || '') })}</b><div class="muted small">${tr('{n} playlists sincronizadas', { n: st.links.length })}</div></div></div>
+    <div class="sp-who">${icon('check')}<div><b>${st.user?.name ? tr('Conectado como {name}', { name: esc(st.user.name) }) : tr('Sesión de Spotify iniciada')}</b><div class="muted small">${tr('{n} playlists sincronizadas', { n: st.links.length })}</div></div></div>
   </div>`);
   const all = h(`<button class="btn primary">${icon('refresh')}${tr('Actualizar todas')}</button>`);
   all.disabled = !!st.busy || !st.links.length;
   all.onclick = () => doSync(null);
   const off = h(`<button class="btn ghost">${tr('Desvincular')}</button>`);
   off.onclick = async () => {
-    if (!(await confirmDialog(tr('Desvincular Spotify'), tr('BitChord dejará de leer tu Spotify y las playlists dejarán de actualizarse. Las copias que ya tienes no se borran.'), { ok: tr('Desvincular'), danger: true }))) return;
+    if (!(await confirmDialog(tr('Desvincular Spotify'), tr('BitChord cerrará la sesión de Spotify de este PC y las playlists dejarán de actualizarse. Las copias que ya tienes no se borran.'), { ok: tr('Desvincular'), danger: true }))) return;
     S.status = await api('spotifyDisconnect'); S.lists = null; paint();
   };
   head.querySelector('.sp-who').after(h('<span class="btn-row"></span>'));
@@ -184,7 +173,7 @@ async function syncSelected() {
 function paint() {
   if (!mount?.isConnected) return;
   const st = S.status;
-  mount.replaceChildren(!st ? h(`<p class="muted">${icon('loading')}</p>`) : st.connected ? connected(st) : guide(st));
+  mount.replaceChildren(!st ? h(`<p class="muted">${icon('loading')}</p>`) : st.connected ? connected(st) : guide());
 }
 
 export function spotifyLinkView() {

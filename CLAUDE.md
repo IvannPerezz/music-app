@@ -46,7 +46,7 @@ npm run package            # carpeta portable + instalador ligero en dist/ (desc
 - `src/downloads.js` + `src/mux/*` — descargas con etiquetas y carátula (Opus/WebM y M4A).
 - `src/local.js` — música local: índice, carpetas como playlists, portadas y vigilancia de cambios (`fs.watch`).
 - `src/playlists.js` — portadas personalizadas de las playlists de YouTube Music (guardadas solo en este PC). Desde la v0.6.37 **no hay playlists propias de BitChord**: todas viven en la cuenta de YouTube Music (crear, añadir canciones, importar y sincronizar con Spotify). No las vuelvas a añadir.
-- `src/spotify-import.js` — importación del .zip de datos de Spotify.
+- Spotify (Importar): `src/spotify-web.js` (inicio de sesión en la página de Spotify con la partición `persist:spotify`, como la app oficial; el token se toma de las peticiones del reproductor web en una ventana oculta), `src/spotify-sync.js` (lee playlists con la API GraphQL interna de open.spotify.com y las copia/sincroniza en la cuenta de YouTube Music) y `src/spotify-match.js` (busca cada canción en YouTube Music). Ya no hay importación por .zip ni app de desarrollador.
 - `src/lyrics.js` — proveedores de letras. `src/sources/*` — JioSaavn y WebDAV. `src/discord.js`, `src/scrobble.js` — integraciones.
 - `src/settings.js` — `DEFAULTS` de todos los ajustes (`settings.json` en el perfil).
 - `src/mock.js` — datos de prueba para `npm run mock`/tests (no se empaqueta).

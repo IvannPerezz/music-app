@@ -1,41 +1,41 @@
-// Spotify account link: reads the user's playlists with the Spotify Web API (through a developer app
-// the user creates, Authorization Code + PKCE, no client secret) and keeps copies of them in
-// YouTube Music / BitChord up to date. Songs are matched with the same scoring as the .zip import.
-import http from 'node:http';
+// Spotify account link: signs in on Spotify's own page (see spotify-web.js), reads the user's
+// playlists through the web player's GraphQL API and keeps copies of them up to date in the YouTube
+// Music account. Songs are matched on YouTube Music by title, artist and album (spotify-match.js).
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
-import { safeStorage, nativeImage } from 'electron';
+import { nativeImage } from 'electron';
 import { tr } from './i18n.js';
-import { matchTrack } from './spotify-import.js';
+import { matchTrack } from './spotify-match.js';
+import * as web from './spotify-web.js';
 
-export const REDIRECT_PORT = 47832;
-export const REDIRECT_URI = `http://127.0.0.1:${REDIRECT_PORT}/callback`;
-const SCOPES = 'playlist-read-private playlist-read-collaborative user-library-read';
-const API = 'https://api.spotify.com/v1';
+const GQL = 'https://api-partner.spotify.com/pathfinder/v2/query';
+// Persisted queries of open.spotify.com (from the official BitChord app, October 2026). The ones the
+// web player itself uses are preferred when seen (web.seenOps), so a change on Spotify's side
+// doesn't break this.
+const OPS = {
+  libraryV3: '973e511ca44261fda7eebac8b653155e7caee3675abb4fb110cc1b8c78b091c3',
+  fetchPlaylist: '346811f856fb0b7e4f6c59f8ebea78dd081c6e2fb01b77c954b26259d5fc6763',
+  fetchLibraryTracks: '087278b20b743578a6262c2b0b4bcd20d879c503cc359a2285baf083ef944240',
+};
 const LIKED = '__liked__';
 const AUTO_EVERY = 6 * 3600e3;
 
 const MOCK = process.env.BITCHORD_MOCK === '1';
 
 let file = null;
-// { clientId, token (encrypted refresh token, base64), user: {id, name}, auto, links: [link] }
+// { user: {id, name} | null (not linked), auto, links: [link] }
 // link: { id, name, dest: 'yt', target, snapshot, matches: {spotifyTrackId: track|null}, added: [videoId], count, missing, lastSync, error }
-let cfg = { clientId: '', token: '', user: null, auto: true, links: [] };
-let access = null; // { token, until }
-let deps = null;   // { yt, playlists, openExternal, notify }
+let cfg = { user: null, auto: true, links: [] };
+let deps = null;   // { yt, playlists, window, notify }
 let busy = null;
 
 export function init(userData, d) {
   deps = d;
   file = path.join(userData, 'spotify.json');
   try { cfg = { ...cfg, ...JSON.parse(fs.readFileSync(file, 'utf8')) }; } catch {}
-  // Copies kept only in BitChord no longer exist (v0.6.37): those links now go to YouTube Music,
-  // where the copy is created on the next update.
-  let moved = 0;
-  for (const l of cfg.links) if (l.dest !== 'yt') { Object.assign(l, { dest: 'yt', target: null, snapshot: null, added: [], cover: null }); moved++; }
-  if (moved) { console.log('[spotify]', moved, 'vínculos pasan de BitChord a YouTube Music'); save(); }
-  if (MOCK && process.env.BITCHORD_MOCK_SPOTIFY === '1') cfg = { ...cfg, clientId: 'mockclient', token: 'mock', user: { id: 'iv', name: 'Iván' } };
+  // Linked with a developer app before v0.6.50: the links stay, the sign-in has to be done again.
+  if ('clientId' in cfg || 'token' in cfg) { delete cfg.clientId; delete cfg.token; cfg.user = null; save(); }
+  if (MOCK && process.env.BITCHORD_MOCK_SPOTIFY === '1') cfg = { ...cfg, user: { id: 'iv', name: 'Iván' } };
   // Auto update: a little after start, then every few hours.
   setTimeout(() => autoSync(), MOCK ? 3e9 : 45e3);
   setInterval(() => autoSync(), AUTO_EVERY).unref?.();
@@ -46,138 +46,122 @@ function save() {
   fs.writeFileSync(file + '.tmp', JSON.stringify(cfg));
   fs.renameSync(file + '.tmp', file);
 }
-const enc = (s) => (safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(s) : Buffer.from(s)).toString('base64');
-const dec = (s) => { const b = Buffer.from(s, 'base64'); return safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString(); };
 
 export function status() {
   return {
-    clientId: cfg.clientId, connected: !!cfg.token, user: cfg.user, auto: cfg.auto !== false, redirectUri: REDIRECT_URI,
+    connected: !!cfg.user, user: cfg.user, auto: cfg.auto !== false,
     busy: busy ? { ...busy } : null,
     links: cfg.links.map(({ matches, added, ...l }) => l),
   };
 }
 const notify = () => deps?.notify?.(status());
 
-// ---------------------------------------------------------------- sign in (PKCE)
-let pending = null;
+// ---------------------------------------------------------------- sign in
 
-export async function connect(clientId) {
-  clientId = String(clientId || '').trim();
-  if (!/^[0-9a-f]{32}$/i.test(clientId)) throw new Error(tr('El Client ID no parece correcto: son 32 letras y números (Spotify lo muestra en los ajustes de tu app).'));
-  cfg.clientId = clientId; save();
-  if (MOCK) { cfg.token = 'mock'; cfg.user = { id: 'iv', name: 'Iván' }; save(); notify(); return status(); }
-  pending?.close();
-  const verifier = crypto.randomBytes(48).toString('base64url');
-  const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
-  const state = crypto.randomBytes(12).toString('hex');
-  const code = await new Promise((resolve, reject) => {
-    const server = http.createServer((req, res) => {
-      const u = new URL(req.url, REDIRECT_URI);
-      if (u.pathname !== '/callback') return res.writeHead(404).end();
-      const ok = u.searchParams.get('state') === state && u.searchParams.get('code');
-      const err = u.searchParams.get('error');
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(`<!doctype html><meta charset="utf-8"><title>BitChord</title><body style="font:16px system-ui;background:#111;color:#eee;display:grid;place-items:center;height:90vh;text-align:center"><div><h2>${ok ? tr('¡Listo! BitChord ya está vinculado con Spotify.') : tr('No se ha podido vincular')}</h2><p>${ok ? tr('Puedes cerrar esta pestaña y volver a BitChord.') : esc(err || '')}</p></div>`);
-      finish();
-      if (ok) resolve(ok); else reject(new Error(err === 'access_denied' ? tr('Has cancelado el permiso en Spotify.') : tr('Spotify no ha devuelto el permiso ({e}).', { e: err || '?' })));
-    });
-    const timer = setTimeout(() => { finish(); reject(new Error(tr('Se acabó el tiempo para dar permiso en Spotify. Vuelve a intentarlo.'))); }, 5 * 60e3);
-    const finish = () => { clearTimeout(timer); server.close(); pending = null; };
-    pending = { close: () => { finish(); reject(new Error(tr('Cancelado'))); } };
-    server.on('error', (e) => { finish(); reject(new Error(tr('No se pudo abrir el puerto {port} para recibir el permiso de Spotify ({e}).', { port: REDIRECT_PORT, e: e.code || e.message }))); });
-    server.listen(REDIRECT_PORT, '127.0.0.1', () => {
-      const q = new URLSearchParams({ client_id: clientId, response_type: 'code', redirect_uri: REDIRECT_URI, scope: SCOPES, state, code_challenge_method: 'S256', code_challenge: challenge });
-      deps.openExternal('https://accounts.spotify.com/authorize?' + q);
-    });
-  });
-  await tokenRequest({ grant_type: 'authorization_code', code, redirect_uri: REDIRECT_URI, code_verifier: verifier });
-  const me = await get('/me');
-  cfg.user = { id: me.id, name: me.display_name || me.id };
+export async function connect() {
+  if (MOCK) { cfg.user = { id: 'iv', name: 'Iván' }; save(); notify(); return status(); }
+  if (!(await web.login(deps.window?.()))) throw new Error(tr('Cancelado'));
+  cfg.user = (await profile()) || { id: null, name: '' };
   save(); notify();
-  console.log('[spotify] vinculado como', cfg.user.name);
+  console.log('[spotify] sesión iniciada como', cfg.user.name || '(sin nombre)');
   return status();
 }
 
-export function cancelConnect() { pending?.close(); }
-
-export function disconnect() {
-  cfg.token = ''; cfg.user = null; access = null; save(); notify();
+export async function disconnect() {
+  await web.logout();
+  cfg.user = null; save(); notify();
   return status();
 }
 
-async function tokenRequest(params) {
-  const r = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ client_id: cfg.clientId, ...params }),
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    if (j.error === 'invalid_grant' && params.grant_type === 'refresh_token') { cfg.token = ''; save(); notify(); throw new Error(tr('Spotify ha retirado el permiso. Vuelve a vincular la cuenta en Importar.')); }
-    throw new Error(tr('Spotify ha rechazado el inicio de sesión: {e}', { e: j.error_description || j.error || r.status }));
-  }
-  access = { token: j.access_token, until: Date.now() + (j.expires_in - 60) * 1000 };
-  if (j.refresh_token) { cfg.token = enc(j.refresh_token); save(); }
-  return true;
+/** The signed-in user's name and id, from the web player's own profile query (when it ran). */
+async function profile() {
+  try {
+    await web.token({ fresh: true });
+    await sleep(6000); // the page's own queries show up in its first seconds
+    const hash = web.seenOps.get('profileAttributes');
+    if (!hash) { console.warn('[spotify] el reproductor web no pidió el perfil; sin nombre de usuario'); return null; }
+    const p = (await gql('profileAttributes', {}, hash))?.data?.me?.profile;
+    return p ? { id: p.username || p.uri?.split(':').pop() || null, name: p.name || p.username || '' } : null;
+  } catch (e) { console.warn('[spotify] perfil', e?.message || e); return null; }
 }
-
-async function accessToken() {
-  if (access && access.until > Date.now()) return access.token;
-  if (!cfg.token) throw new Error(tr('Vincula tu cuenta de Spotify primero.'));
-  await tokenRequest({ grant_type: 'refresh_token', refresh_token: dec(cfg.token) });
-  return access.token;
-}
-
-async function get(p, tries = 0) {
-  const r = await fetch(p.startsWith('http') ? p : API + p, { headers: { Authorization: 'Bearer ' + (await accessToken()) } });
-  if (r.status === 429 && tries < 3) { await sleep(Math.min(30, +r.headers.get('retry-after') || 5) * 1000); return get(p, tries + 1); }
-  if (r.status === 401 && tries < 1) { access = null; return get(p, tries + 1); }
-  if (!r.ok) {
-    const j = await r.json().catch(() => ({}));
-    const e = new Error(r.status === 403 && /user may not be registered|not registered/i.test(j.error?.message || '')
-      ? tr('Spotify dice que tu cuenta no está dada de alta en la app. En el panel de desarrollador, abre tu app → User Management y añade tu correo de Spotify.')
-      : tr('Spotify respondió {s}: {e}', { s: r.status, e: j.error?.message || r.statusText }));
-    e.status = r.status;
-    throw e;
-  }
-  return r.json();
-}
-const sleep = (ms) => new Promise((ok) => setTimeout(ok, ms));
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // ---------------------------------------------------------------- reading Spotify
+
+async function gql(operationName, variables, hash = null, tries = 0) {
+  if (!(await web.signedIn())) { cfg.user = null; save(); notify(); throw new Error(tr('La sesión de Spotify ha caducado. Vuelve a iniciar sesión en Spotify (Importar).')); }
+  const t = await web.token({ fresh: tries > 0 });
+  const r = await fetch(GQL, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + t.bearer, ...(t.clientToken ? { 'client-token': t.clientToken } : {}),
+      Accept: 'application/json', 'Content-Type': 'application/json;charset=UTF-8', 'app-platform': 'WebPlayer',
+      Origin: 'https://open.spotify.com', Referer: 'https://open.spotify.com/',
+    },
+    body: JSON.stringify({ variables, operationName, extensions: { persistedQuery: { version: 1, sha256Hash: hash || web.seenOps.get(operationName) || OPS[operationName] } } }),
+  });
+  if (r.status === 429 && tries < 3) { await sleep(Math.min(30, +r.headers.get('retry-after') || 5) * 1000); return gql(operationName, variables, hash, tries + 1); }
+  if ((r.status === 401 || r.status === 400) && tries < 1) return gql(operationName, variables, hash, tries + 1);
+  const j = await r.json().catch(() => ({}));
+  const err = j.errors?.[0]?.message;
+  if (!r.ok || err) throw new Error(tr('Spotify respondió {s}: {e}', { s: r.status, e: err || r.statusText }));
+  return j;
+}
+const sleep = (ms) => new Promise((ok) => setTimeout(ok, ms));
+
+/** Spotify lists an image's sizes in no fixed order: the widest one. */
+const largest = (images) => (images?.items?.[0]?.sources || []).slice().sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || '';
+const artistsOf = (d) => (d?.artists?.items || []).map((a) => a.profile?.name).filter(Boolean).join(', ');
+const trackOf = (d, uri) => (d?.name && (uri || d.uri) ? { sid: (uri || d.uri).split(':').pop(), title: d.name, artist: artistsOf(d), album: d.albumOfTrack?.name || '', uri: uri || d.uri } : null);
 
 /** The user's playlists (+ «Canciones que te gustan»). */
 export async function playlists() {
   if (MOCK) return mockLists();
   const out = [];
-  let next = '/me/playlists?limit=50';
-  while (next) {
-    const j = await get(next);
-    for (const p of j.items || []) if (p) out.push({ id: p.id, name: p.name, owner: p.owner?.display_name || '', mine: p.owner?.id === cfg.user?.id, count: (p.items || p.tracks)?.total ?? 0, image: p.images?.[0]?.url || '', snapshot: p.snapshot_id });
-    next = j.next;
+  for (let offset = 0; ; ) {
+    const lib = (await gql('libraryV3', {
+      filters: ['Playlists'], order: null, textFilter: '', features: ['LIKED_SONGS', 'YOUR_EPISODES_V2', 'PRERELEASES', 'EVENTS'],
+      limit: 50, offset, flatten: true, expandedFolders: [], folderUri: null, includeFoldersWhenFlattening: false,
+    }))?.data?.me?.libraryV3;
+    if (!lib) throw new Error(tr('Spotify no ha devuelto tu biblioteca.'));
+    const items = lib.items || [];
+    for (const it of items) {
+      const w = it.item, d = w?.data;
+      if (!w?._uri || d?.__typename !== 'Playlist' || !d.name) continue;
+      const owner = d.ownerV2?.data;
+      out.push({
+        id: w._uri.split(':').pop(), name: d.name, owner: owner?.name || '',
+        mine: !!cfg.user?.id && (owner?.username === cfg.user.id || owner?.uri === 'spotify:user:' + cfg.user.id),
+        count: d.content?.totalCount ?? null, image: largest(d.images),
+      });
+    }
+    offset += items.length;
+    if (!items.length || offset >= (lib.totalCount ?? 0)) break;
   }
-  let liked = 0;
-  try { liked = (await get('/me/tracks?limit=1')).total; } catch {}
+  let liked = null;
+  try { liked = (await gql('fetchLibraryTracks', { offset: 0, limit: 1 }))?.data?.me?.library?.tracks?.totalCount ?? null; } catch {}
   out.unshift({ id: LIKED, name: tr('Me gusta de Spotify'), owner: cfg.user?.name || '', mine: true, count: liked, image: '', liked: true });
   return out;
 }
 
-const trackOf = (t) => (t && t.type !== 'episode' && !t.is_local && t.name ? { sid: t.id || t.uri, title: t.name, artist: (t.artists || []).map((a) => a.name).join(', '), album: t.album?.name || '', uri: t.uri } : null);
-
 async function tracksOf(id) {
   if (MOCK) return mockTracks(id);
   const out = [];
-  let next;
-  if (id === LIKED) next = '/me/tracks?limit=50';
-  else {
-    // Newer API name first (/items), the older one (/tracks) if this account still has that.
-    try { const j = await get(`/playlists/${id}/items?limit=100`); push(j); next = j.next; return await rest(); }
-    catch (e) { if (e.status !== 404) throw e; }
-    next = `/playlists/${id}/tracks?limit=100`;
+  for (let offset = 0; ; ) {
+    let items, total;
+    if (id === LIKED) {
+      const t = (await gql('fetchLibraryTracks', { offset, limit: 100 }))?.data?.me?.library?.tracks;
+      items = t?.items || []; total = t?.totalCount ?? 0;
+      for (const it of items) { const x = trackOf(it.track?.data, it.track?._uri); if (x) out.push(x); }
+    } else {
+      const c = (await gql('fetchPlaylist', { uri: 'spotify:playlist:' + id, offset, limit: 100, enableWatchFeedEntrypoint: false }))?.data?.playlistV2?.content;
+      if (!c) throw new Error(tr('Spotify no ha devuelto esa playlist (puede que ya no exista o sea privada de otra persona).'));
+      items = c.items || []; total = c.totalCount ?? 0;
+      for (const it of items) { const d = it.itemV2?.data; if (d?.__typename === 'Track') { const x = trackOf(d); if (x) out.push(x); } }
+    }
+    offset += items.length;
+    if (!items.length || offset >= total) break;
   }
-  async function rest() { while (next) { const j = await get(next); push(j); next = j.next; } return out; }
-  function push(j) { for (const it of j.items || []) { const t = trackOf(it.item || it.track); if (t) out.push(t); } }
-  return rest();
+  return out;
 }
 
 /** Version of the playlist (changes when its songs change), its cover, name and description
@@ -188,12 +172,15 @@ async function snapshotOf(id) {
     // (The same version id even when songs are added: like Spotify's stale answers.)
     return { snap: 'mock', image: id === LIKED ? '' : 'mock:' + id, name: id === LIKED ? null : m?.name ?? null, description: id === LIKED ? null : m?.description ?? '' };
   }
-  if (id === LIKED) { const j = await get('/me/tracks?limit=1'); return { snap: `${j.total}:${j.items?.[0]?.added_at || ''}`, image: '', name: null, description: null }; }
-  const j = await get(`/playlists/${id}?fields=snapshot_id,images,name,description`);
-  // The biggest image Spotify has (its own collage, or the one you uploaded).
-  const img = (j.images || []).slice().sort((a, b) => (b.width || 0) - (a.width || 0))[0];
-  return { snap: j.snapshot_id, image: img?.url || '', name: j.name || null, description: plainText(j.description || '') };
+  if (id === LIKED) {
+    const t = (await gql('fetchLibraryTracks', { offset: 0, limit: 1 }))?.data?.me?.library?.tracks;
+    return { snap: `${t?.totalCount}:${t?.items?.[0]?.track?._uri || ''}`, image: '', name: null, description: null };
+  }
+  const p = (await gql('fetchPlaylist', { uri: 'spotify:playlist:' + id, offset: 0, limit: 1, enableWatchFeedEntrypoint: false }))?.data?.playlistV2;
+  if (!p?.name) throw new Error(tr('Spotify no ha devuelto esa playlist (puede que ya no exista o sea privada de otra persona).'));
+  return { snap: p.revisionId || '', image: largest(p.images), name: p.name, description: plainText(p.description || '') };
 }
+
 /** Spotify sends descriptions as HTML (entities, links to other playlists): keep just the text. */
 const plainText = (s) => s.replace(/<[^>]*>/g, '').replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (m, e) => {
   const named = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' }[e.toLowerCase()];
@@ -238,7 +225,7 @@ async function updateCover(l, image) {
 
 /** The copy always goes to the YouTube Music account. */
 export function link(id, name) {
-  if (!cfg.token) throw new Error(tr('Vincula tu cuenta de Spotify primero.'));
+  if (!cfg.user) throw new Error(tr('Vincula tu cuenta de Spotify primero.'));
   let l = cfg.links.find((x) => x.id === id);
   if (!l) cfg.links.push(l = { id, name, dest: 'yt', target: null, snapshot: null, matches: {}, added: [], count: 0, missing: 0, lastSync: 0 });
   else l.name = name;
@@ -272,7 +259,7 @@ export async function sync(id = null, { force = false } = {}) {
         console.error('[spotify] sync', l.name, e);
         l.error = String(e?.message || e);
         if (e?.code === 'YT_BLOCKED' || /limitado temporalmente/.test(e?.message)) { blocked = e; break; }
-        if (/retirado el permiso|Vincula tu cuenta/.test(l.error)) break;
+        if (/ha caducado|Vincula tu cuenta/.test(l.error)) break;
       }
       save();
     }
@@ -343,7 +330,7 @@ async function syncOne(l, force) {
 const clean = ({ _k, _score, feedback, ...t }) => t;
 
 async function autoSync() {
-  if (!cfg.auto || !cfg.token || !cfg.links.length || busy) return;
+  if (!cfg.auto || !cfg.user || !cfg.links.length || busy) return;
   try { await sync(null); } catch (e) { console.error('[spotify] auto', e?.message || e); }
 }
 

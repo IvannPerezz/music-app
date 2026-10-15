@@ -15,6 +15,22 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.50
+------------------------------------------------------------
+- Spotify se vincula como en la app oficial de BitChord: un botón "Iniciar sesión en
+  Spotify" abre la página de Spotify, entras con tu cuenta y listo. Ya no hace falta crear
+  una "app de desarrollador" ni pegar ningún Client ID, y se pueden copiar también las
+  playlists hechas por Spotify (Mix diarios, etc.). Las playlists que ya tenías vinculadas
+  se conservan, pero hay que volver a iniciar sesión una vez.
+- Se quita la importación por archivo .zip: queda solo la vinculación de la cuenta, que
+  además se mantiene al día sola.
+- La página de Importar y Ajustes explican, de forma técnica, qué hace la vinculación:
+  cómo se inicia sesión, de dónde se leen las playlists, cómo se buscan las canciones y
+  cómo se sincronizan.
+- Todas las descripciones de Ajustes están reescritas para explicar qué hace cada opción
+  por dentro (formatos, filtros, parámetros, dónde se guarda cada cosa...).
+
+------------------------------------------------------------
 v0.6.49.1
 ------------------------------------------------------------
 - Discord: BitChord sale siempre como "Escuchando BitChord", en cualquier PC, sin tener que

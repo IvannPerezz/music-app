@@ -54,7 +54,7 @@ const { tr } = await import('./src/i18n.js');
 // The rest (youtubei.js above all: seconds, the first time after turning the PC on) loads once the
 // window is on screen: loading it blocks this process, which also has to put the window up.
 // Calls from the window wait for it (see `wrap`).
-let yt, lyrics, startProxy, downloads, local, auth, discord, scrobble, potoken, webdav, canvas, playlists, spotify, spotifySync, backup, fonts, sources;
+let yt, lyrics, startProxy, downloads, local, auth, discord, scrobble, potoken, webdav, canvas, playlists, spotifySync, backup, fonts, sources;
 const loadModules = () => Promise.all([
   MOCK ? import('./src/mock.js') : import('./src/yt.js'),
   MOCK ? import('./src/mock.js') : import('./src/lyrics.js'),
@@ -68,14 +68,13 @@ const loadModules = () => Promise.all([
   import('./src/sources/webdav.js'),
   import('./src/canvas.js'),
   import('./src/playlists.js'),
-  import('./src/spotify-import.js'),
   import('./src/spotify-sync.js'),
   import('./src/backup.js'),
   import('./src/fonts.js'),
   import('./src/sources/index.js'),
 ]).then((m) => {
   let proxy;
-  [yt, lyrics, proxy, downloads, local, auth, discord, scrobble, potoken, webdav, canvas, playlists, spotify, spotifySync, backup, fonts, sources] = m;
+  [yt, lyrics, proxy, downloads, local, auth, discord, scrobble, potoken, webdav, canvas, playlists, spotifySync, backup, fonts, sources] = m;
   ({ startProxy } = proxy);
 }).catch((e) => {
   console.error('[inicio] no se pudo cargar BitChord', e);
@@ -279,7 +278,7 @@ app.whenReady().then(async () => {
     webdav.init(userData);
     playlists.init(userData);
     fonts.init(userData);
-    spotifySync.init(userData, { yt, playlists, openExternal: (u) => shell.openExternal(u), notify: (st) => send('spotify-sync', st) });
+    spotifySync.init(userData, { yt, playlists, window: () => win, notify: (st) => send('spotify-sync', st) });
     canvas.configure({ countryCode: app.getLocaleCountryCode() });
     yt.setBlockListener?.((st) => send('yt-status', st));
     const { port } = await startProxy({ userData });
@@ -375,16 +374,6 @@ app.whenReady().then(async () => {
   handle('yt-playlist-rename', (id, name) => yt.renameAccountPlaylist(id, name));
   handle('yt-feedback', (token) => yt.sendFeedback(token));
   handle('yt-playlist-create', (title, videoIds) => yt.createAccountPlaylist(title, videoIds || [], { description: 'Creada con BitChord' }));
-  // Spotify import
-  handle('choose-file', async (title, ext) => {
-    if (process.env.BITCHORD_TEST_FILE) return process.env.BITCHORD_TEST_FILE; // automated UI tests
-    const r = await dialog.showOpenDialog(win, { title, properties: ['openFile'], filters: [{ name: 'Datos de Spotify', extensions: ext || ['zip', 'json'] }] });
-    return r.canceled ? null : r.filePaths[0];
-  });
-  handle('spotify-parse', (file) => spotify.parse(file));
-  handle('spotify-match', (lists) => spotify.match(lists, (q) => yt.searchSongs(q), (p) => send('import-progress', { phase: 'match', ...p })));
-  handle('spotify-cancel', () => spotify.cancel());
-  handle('song-search', (q) => yt.searchSongs(q));
   // Animated cover of the big artwork (cover and lyrics view, full screen). The mock has none,
   // unless a test hands it a clip (BITCHORD_MOCK_CANVAS).
   handle('canvas-for', (t) => (!MOCK ? canvas.canvasFor(t) : process.env.BITCHORD_MOCK_CANVAS ? { url: process.env.BITCHORD_MOCK_CANVAS, source: 'prueba' } : null));
@@ -435,36 +424,13 @@ app.whenReady().then(async () => {
   handle('app-relaunch', () => { setTimeout(() => { quitting = true; app.relaunch(); app.exit(0); }, 150); return true; });
   // Spotify account link (playlists kept up to date)
   handle('spotify-status', () => spotifySync.status());
-  handle('spotify-connect', (clientId) => spotifySync.connect(clientId));
-  handle('spotify-connect-cancel', () => spotifySync.cancelConnect());
+  handle('spotify-connect', () => spotifySync.connect());
   handle('spotify-disconnect', () => spotifySync.disconnect());
   handle('spotify-playlists', () => spotifySync.playlists());
   handle('spotify-link', (id, name) => spotifySync.link(id, name));
   handle('spotify-unlink', (id) => spotifySync.unlink(id));
   handle('spotify-sync', (id, opts) => spotifySync.sync(id, opts));
   handle('spotify-auto', (on) => spotifySync.setAuto(on));
-  handle('spotify-create', async (items) => {
-    const out = [];
-    for (const [n, it] of items.entries()) {
-      const ids = it.tracks.map((t) => t.id);
-      try {
-        const id = await yt.createAccountPlaylist(it.name, ids, {
-          description: it.description || 'Importada de Spotify con BitChord',
-          onProgress: (d) => send('import-progress', { phase: 'create', index: n, total: items.length, name: it.name, done: d, count: ids.length }),
-        });
-        out.push({ name: it.name, dest: 'yt', id, count: ids.length });
-      } catch (e) {
-        console.error('[import]', it.name, e);
-        out.push({ name: it.name, dest: 'yt', error: String(e?.message || e), count: ids.length });
-        if (e?.code === 'YT_BLOCKED' || /limitado temporalmente/.test(e?.message)) {
-          // YouTube is refusing us: don't insist with the rest.
-          for (const rest of items.slice(n + 1)) out.push({ name: rest.name, dest: 'yt', error: tr('No se intentó: YouTube estaba limitando las peticiones'), count: rest.tracks.length });
-          break;
-        }
-      }
-    }
-    return out;
-  });
   // Other sources
   handle('webdav-servers', () => webdav.listServers());
   handle('webdav-add', async (cfg) => { await webdav.test(cfg); const id = webdav.addServer(cfg); rescanWebdav(); return id; });

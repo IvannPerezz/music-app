@@ -562,19 +562,13 @@ body.sb-hover .brand, body.sb-collapsed .brand { width: 112px; padding-right: 8p
 .detail-head .mosaic img { width: 100%; height: 100%; border-radius: 0; box-shadow: none; }
 
 .import { max-width: 980px; margin: 0 auto; }
-.imp-steps { display: flex; gap: 6px; flex-wrap: wrap; margin: -6px 0 20px; }
-.imp-steps span { font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.05); color: var(--muted); }
-.imp-steps span.past { color: var(--text); }
-.imp-steps span.cur { background: var(--accent); color: #fff; }
 .imp-card { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.05); border-radius: 14px; padding: 18px 22px; margin-bottom: 18px; }
 .imp-card h2 { margin: 0 0 10px; font-size: 19px; }
 .imp-help { margin: 0 0 10px; padding-left: 20px; line-height: 1.7; }
 .imp-help a, .imp-card a { color: var(--accent); }
-.imp-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .imp-lists { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
 .imp-pl { display: flex; align-items: center; gap: 14px; padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,.04); cursor: pointer; }
 .imp-pl.off { opacity: .5; }
-.imp-pl.err { box-shadow: inset 3px 0 0 #ff453a; }
 .imp-pl input { width: 17px; height: 17px; accent-color: var(--accent); }
 .imp-pl-t { flex: 1; min-width: 0; }
 .seg { display: inline-flex; padding: 3px; border-radius: 10px; background: rgba(255,255,255,.06); flex: none; }
@@ -583,28 +577,6 @@ body.sb-hover .brand, body.sb-collapsed .brand { width: 112px; padding-right: 8p
 .seg button.on { background: var(--text); color: #111; }
 .seg button:disabled { opacity: .35; cursor: not-allowed; }
 .progress.big { height: 8px; margin: 14px 0 8px; }
-.imp-summary { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-.mbadge { font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
-.mbadge.ok { background: rgba(48,209,88,.15); color: #30d158; }
-.mbadge.doubt { background: rgba(255,159,10,.15); color: #ff9f0a; }
-.mbadge.none { background: rgba(255,255,255,.08); color: var(--muted); }
-.imp-sec { border-radius: 12px; background: rgba(255,255,255,.03); margin-bottom: 8px; overflow: hidden; }
-.imp-sec header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
-.imp-sec header b { flex: none; }
-.imp-sec header .muted { flex: 1; }
-.imp-sec .chev { display: inline-grid; transition: transform .2s; transform: rotate(-90deg); }
-.imp-sec.open .chev { transform: none; }
-.imp-rows { padding: 0 8px 8px; }
-.mrow { display: grid; grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1.3fr) auto 34px 34px; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 8px; }
-.mrow:hover { background: rgba(255,255,255,.04); }
-.mrow.doubt { box-shadow: inset 3px 0 0 #ff9f0a; }
-.mrow.none { opacity: .6; }
-.msrc, .mdst > div { display: flex; flex-direction: column; min-width: 0; font-size: 13px; }
-.msrc .muted, .mdst .muted { font-size: 12px; }
-.mdst { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.mdst img { width: 38px; height: 38px; border-radius: 5px; object-fit: cover; background: var(--surface); flex: none; }
-.marrow { color: var(--muted); display: grid; }
-.marrow svg { width: 18px; height: 18px; }
 .sticky-actions { position: sticky; bottom: 0; padding: 14px 0; background: linear-gradient(transparent, var(--bg) 35%); margin-top: 8px; }
 .cover-edit { position: relative; flex: none; cursor: pointer; border-radius: 12px; }
 .cover-edit > img, .cover-edit > .mosaic { display: block; }
@@ -1611,8 +1583,6 @@ body.bg-swapping .amb-layer i, body.bg-swapping .np-bg { transition: none !impor
 #queue-list .row { padding-right: 4px; }
 
 /* Import → Spotify account link */
-.sp-uri { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; flex-wrap: wrap; }
-.sp-uri code { padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,.07); font-size: 13px; user-select: all; }
 .sp-connect { display: flex; align-items: center; gap: 10px; margin: 16px 0 14px; flex-wrap: wrap; }
 .sp-connect input { flex: 1; min-width: 260px; font-family: ui-monospace, Consolas, monospace; }
 .sp-wait { display: inline-flex; align-items: center; gap: 6px; }
@@ -1677,3 +1647,8 @@ body.fs.fs-hide-vis.fs-hide-circle .np-corner-gap { display: none; }
 .circle-panel .seg button.on { background: transparent; color: #111; }
 .circle-panel .seg-pill { position: absolute; top: 3px; bottom: 3px; left: 3px; width: 0; border-radius: 8px; background: var(--text); }
 .circle-panel.ready .seg-pill { transition: left .4s cubic-bezier(.32,.72,0,1), width .4s cubic-bezier(.32,.72,0,1); }
+
+/* Spotify link: how it works, as a list in the page and in Ajustes → Importar. */
+.sp-how { margin: 6px 0 14px; padding-left: 20px; line-height: 1.6; }
+.sp-how li + li { margin-top: 6px; }
+.set-note.sp-how { padding-left: 32px; }
