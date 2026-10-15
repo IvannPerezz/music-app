@@ -54,7 +54,6 @@ export function mountCircle(host, ctxAudio, tapNode) {
   const loop = () => { raf = requestAnimationFrame(loop); drawCircle(); };
   raf = requestAnimationFrame(loop);
 }
-export const circleMounted = () => !!canvas;
 
 export function unmountCircle() {
   cancelAnimationFrame(raf); raf = 0;

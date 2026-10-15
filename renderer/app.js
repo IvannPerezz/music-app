@@ -2546,7 +2546,6 @@ export async function applyEmoji() {
   }
   if (emojiFace) root.style.setProperty('--emoji-font', '"BitChord Emoji"');
 }
-export const appleEmojiInstalled = () => emojiFace === null ? null : !!emojiFace;
 /** Interface font: Inter (built in) or SF Pro Display from the user's files. A weight the files
  *  don't have uses the lighter one next to it (only weights very close to the heavier one take
  *  it): without an upright Semibold, the many semibold texts would otherwise all come out bold. */

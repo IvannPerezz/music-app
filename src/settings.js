@@ -14,10 +14,10 @@ export const LYRICS_PROVIDERS = [
 ];
 
 export const SIDEBAR_DEFAULT = [
-  { id: 'home', on: true }, { id: 'search', on: true }, { id: 'library', on: true },
-  { id: 'lib:playlists', on: false }, { id: 'lib:likes', on: false }, { id: 'lib:downloads', on: false }, { id: 'lib:local', on: false },
+  { id: 'search', on: true }, { id: 'home', on: true }, { id: 'library', on: true },
+  { id: 'lib:local', on: true }, { id: 'lib:playlists', on: true }, { id: 'lib:likes', on: false }, { id: 'lib:downloads', on: true },
   { id: 'lib:network', on: false }, { id: 'lib:history', on: false }, { id: 'lib:account', on: false },
-  { id: 'nowplaying', on: true }, { id: 'queue', on: true },
+  { id: 'nowplaying', on: false }, { id: 'queue', on: false },
 ];
 
 export const DEFAULTS = {
@@ -26,20 +26,20 @@ export const DEFAULTS = {
   sidebarOpen: true, // for 'button' mode
   localInfo: { format: true, bitrate: true, sampleRate: true, bitDepth: true, channels: false, size: true, year: false, genre: false, album: true, path: false },
   // Audio
-  streamQuality: 'high', // low | normal | high | max
+  streamQuality: 'max', // low | normal | high | max
   downloadQuality: 'max',
   downloadFormat: 'opus', // opus | m4a
   downloadDir: '',
-  crossfade: 0, // seconds 0-12
+  crossfade: 4, // seconds 0-12
   gapless: true,
-  automix: false,
+  automix: true,
   automixBars: 8,
   normalize: true,
   skipSilence: false,
   speed: 1,
-  eqEnabled: false,
-  eqPreset: 'flat',
-  eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  eqEnabled: true,
+  eqPreset: 'rock',
+  eqBands: [4, 3, 2, 0, -1, -1, 1, 3, 4, 4],
   preamp: 0,
   // Lyrics
   lyricsOrder: LYRICS_PROVIDERS.map((p) => p.id),
@@ -51,13 +51,13 @@ export const DEFAULTS = {
   autoplayRadio: true,
   resumeOnStart: true,
   trackCols: { num: false, thumb: true, artists: true, album: true, duration: true }, // columns of song lists (albums, playlists…)
-  playlistOrder: [], // ['yt:ID' | 'bc:ID'...] order chosen by dragging in Biblioteca -> Playlists
-  hiddenPlaylists: [], // [{ id, title }] YouTube Music playlists hidden in BitChord (ones YouTube won't delete)
+  playlistOrder: [], // ['yt:ID'…] order chosen by dragging in Biblioteca -> Playlists
+  hiddenPlaylists: [{ id: 'VLSE', title: 'Episodios para más tarde' }, { id: 'LM', title: 'Me gusta' }], // [{ id, title }] YouTube Music playlists hidden in BitChord (ones YouTube won't delete)
   windowButtons: 'mac', // 'mac' (red/yellow/green, drawn by the app, on the left) | 'windows' (native)
   closeToTray: false,
   // Integrations
-  discordAppId: '', // the user's own Discord application named BitChord (empty = the built-in one)
-  discordRpc: false,
+  discordAppId: '1557508206761091182', // a Discord application named BitChord (empty = the built-in one, named otherwise)
+  discordRpc: true,
   listenbrainzToken: '',
   lastfmApiKey: '',
   lastfmSecret: '',
@@ -65,36 +65,41 @@ export const DEFAULTS = {
   lastfmUser: '',
   scrobblePercent: 50,
   // Sources
-  sourceJioSaavn: false,
+  sourceJioSaavn: true,
   // Library
   localFolders: [],
   localWatch: true,
   theme: 'default', // 'default' (BitChord) or the id of one of customThemes
   customThemes: [], // [{ id, name, css }] made in Ajustes > Tema
   npLyricsHidden: false,
-  homeHidden: [],
+  homeHidden: ['forgotten'],
   performanceMode: false, // no glass, moving backgrounds, visualizer, animated covers or animations
   animatedCovers: true, // looping video on the big artwork when the release has one (src/canvas.js)
   ambient: true,
   ambientMode: 'cover',
-  ambientIntensity: 45,
+  ambientIntensity: 55,
   ambientBlur: 110,
-  ambientSpeed: 35,
+  ambientSpeed: 75,
   ambientSize: 100,
-  ambientSaturation: 100,
+  ambientSaturation: 125,
   micaSidebar: true,
   micaQueue: true,
   micaPlayer: true,
   micaLyrics: true,
   // MilkDrop visualizer of the cover and lyrics view.
   visualizer: false,
-  visPreset: '',
+  visPreset: 'martin - ghost city',
   visAuto: 'song', // 'song' | seconds ('30', '60') | 'off'
-  visFavorites: [], // preset names marked with the star
+  visFavorites: [ // preset names marked with the star
+    'Geiss - Color Pox (Acid Impression Mix) (color saturation remix)', '$$$ Royal - Mashup (307)', 'Zylot - Star Ornament',
+    'suksma - heretical crosscut playpen', 'flexi - jelly fish mandala',
+    'flexi - patternton, district of media, capitol of the united abstractions of fractopia', 'martin - reflections on black tiles',
+    'Flexi - alien fader', 'martin - gate to moria', 'martin - extreme heat',
+  ],
   appleEmoji: true, // Apple's emoji (when its font file is on this PC)
-  uiFont: 'default', // 'default' (Inter) | 'sf' (SF Pro Display, the user's own files)
+  uiFont: 'sf', // 'default' (Inter) | 'sf' (SF Pro Display, the user's own files; Inter while they aren't there)
   circleMode: false, // "Círculo" view (Trap Nation style), instead of cover and lyrics
-  circleGain: 1, // how strongly the aura reacts to the music
+  circleGain: 0.2, // how strongly the aura reacts to the music
   circleSize: 1,
   circlePulse: 1, // how much the cover beats with the bass
   circleParticles: true,
@@ -103,9 +108,9 @@ export const DEFAULTS = {
   circleBg: 'cover', // 'cover' (blurred cover) | 'black'
   visUseFavs: false, // "Favoritos" tab: random and automatic changes only among the favourites
   // Buttons shown in full-screen mode (Ajustes de pantalla completa, the gear in that mode).
-  fsButtons: { queue: true, eq: true, more: true, lyricsSource: true, lyricsToggle: true, like: true, shuffle: true, repeat: true, vis: true },
-  micaTint: 50,
-  micaBlur: 50,
+  fsButtons: { queue: true, eq: true, more: true, lyricsSource: true, lyricsToggle: true, like: true, shuffle: true, repeat: true, vis: true, circle: true },
+  micaTint: 30,
+  micaBlur: 30,
   micaSaturation: 190,
   dynamicAccent: true,
   accentMode: null, // 'cover' | 'theme' | 'custom' (null = from dynamicAccent)

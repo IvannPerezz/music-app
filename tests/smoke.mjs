@@ -144,12 +144,17 @@ await win.click('#np-vis-presets'); await win.waitForTimeout(500);
 const vis = await win.evaluate(() => ({ title: document.querySelector('#fs-panel h3').textContent, presets: document.querySelectorAll('.vis-item').length, checked: document.querySelectorAll('.vis-item.checked').length }));
 if (vis.title !== 'Visualizador' || vis.presets < 200 || vis.checked !== 1) errors.push('Panel del visualizador: ' + JSON.stringify(vis));
 await win.click('.vis-pick >> nth=3'); await win.waitForTimeout(1500);
-// Favourites: star two presets, then the "Favoritos" tab lists just those.
+// Favourites: star two more presets, then the "Favoritos" tab lists exactly the starred ones
+// (some come starred by default).
+const favs = () => win.evaluate(() => window.__bc.state.settings.visFavorites.length);
+const favBefore = await favs();
 for (const n of [3, 5]) { await win.hover(`.vis-item >> nth=${n}`); await win.click(`.vis-item >> nth=${n} >> .vis-fav`); await win.waitForTimeout(150); }
 await shot('02h-visualizer-presets');
+const favAfter = await favs();
+if (favAfter === favBefore) errors.push('La estrella de favoritos del visualizador no hace nada');
 await win.click('.vis-tabs [data-t=fav]'); await win.waitForTimeout(300);
 const favCount = await win.evaluate(() => document.querySelectorAll('.vis-item').length);
-if (favCount !== 2) errors.push('La pestaña de favoritos del visualizador muestra ' + favCount + ' presets en vez de 2');
+if (favCount !== favAfter) errors.push('La pestaña de favoritos del visualizador muestra ' + favCount + ' presets en vez de ' + favAfter);
 await shot('02i-visualizer-favorites');
 await win.click('.vis-tabs [data-t=all]'); await win.waitForTimeout(200);
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);

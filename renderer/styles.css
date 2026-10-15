@@ -213,8 +213,6 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .empty svg { width: 48px; height: 48px; opacity: .5; }
 .spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid rgba(255,255,255,.1); border-top-color: var(--accent); animation: spin .8s linear infinite; margin: 80px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.skeleton { background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.08), rgba(255,255,255,.04)); background-size: 200% 100%; animation: sk 1.2s infinite; border-radius: 8px; }
-@keyframes sk { to { background-position: -200% 0; } }
 
 /* ---------------------------------------------------------------- queue */
 #queue {

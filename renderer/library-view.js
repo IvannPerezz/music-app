@@ -1,5 +1,5 @@
 // Library: favourites, downloads, local files, history and the YouTube Music account library.
-import { bc, $, icon, esc, fmt, api, toast, h, state, art, likes, history, askText, saveSettings } from './core.js';
+import { bc, icon, esc, api, toast, h, state, art, likes, history, askText, saveSettings } from './core.js';
 import { trackRow, section, card, player, go, refreshView, currentRoute, sizeLabel, playlistMenu, isHiddenPlaylist, sortByPlaylistOrder, renderSidebar } from './app.js';
 import { tr } from './i18n.js';
 

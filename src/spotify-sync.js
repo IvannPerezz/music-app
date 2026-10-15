@@ -211,9 +211,8 @@ async function updateDetails(l, name, description) {
     await yt.renameAccountPlaylist(l.target, name).catch((e) => console.error('[spotify] nombre de', l.name, e?.message || e));
     l.name = name;
   }
-  // (descSynced: copies made before v0.6.38 kept BitChord's own text; they get Spotify's once.)
-  if (description != null && (description !== l.description || !l.descSynced)) {
-    try { await yt.describeAccountPlaylist(l.target, description); l.descSynced = true; }
+  if (description != null && description !== l.description) {
+    try { await yt.describeAccountPlaylist(l.target, description); }
     catch (e) { console.error('[spotify] descripción de', l.name, e?.message || e); }
     l.description = description;
   }
@@ -319,7 +318,6 @@ async function syncOne(l, force) {
   if (!l.target) {
     l.target = await yt.createAccountPlaylist(l.name, want, { description: description || '' });
     l.added = want;
-    l.descSynced = true;
   } else {
     const have = new Set(l.added || []);
     const add = want.filter((v) => !have.has(v));

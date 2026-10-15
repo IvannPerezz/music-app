@@ -1,5 +1,5 @@
 // Settings page.
-import { bc, $, $$, icon, esc, api, toast, h, state, saveSettings, art, store, confirmDialog } from './core.js';
+import { bc, $, icon, esc, api, toast, h, state, saveSettings, art, store, confirmDialog } from './core.js';
 import { eqPanel } from './eq-panel.js';
 import { applyFont, refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent, applyTheme, setThemeCss } from './app.js';
 import { colorPicker } from './color-picker.js';

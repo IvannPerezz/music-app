@@ -20,18 +20,6 @@ function ytLoad() {
   if (ytCovers) return ytCovers;
   ytCoversFile = path.join(coverDir, '..', 'yt-playlist-covers.json');
   try { ytCovers = JSON.parse(fs.readFileSync(ytCoversFile, 'utf8')) || {}; } catch { ytCovers = {}; }
-  // Before v0.6.38 a cover set on a "VL…" page was kept under that spelling: move it to the bare id.
-  let moved = false;
-  for (const [id, at] of Object.entries(ytCovers)) {
-    if (!id.startsWith('VL')) continue;
-    const old = path.join(coverDir, 'yt-' + id.replace(/[^\w-]/g, '') + '.jpg');
-    const newer = !(bare(id) in ytCovers) || ytCovers[bare(id)] < at;
-    try { if (newer && fs.existsSync(old)) fs.renameSync(old, coverPath(ytKey(id))); else fs.rmSync(old, { force: true }); } catch {}
-    delete ytCovers[id];
-    if (newer) ytCovers[bare(id)] = at;
-    moved = true;
-  }
-  if (moved) try { fs.writeFileSync(ytCoversFile, JSON.stringify(ytCovers)); } catch {}
   return ytCovers;
 }
 // YouTube writes the same playlist with or without "VL" in front: covers are kept under the bare
