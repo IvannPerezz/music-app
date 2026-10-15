@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.51.1
+------------------------------------------------------------
+- Las playlists de Spotify que solo se ven en BitChord se pueden arrastrar para cambiarlas
+  de sitio, mezcladas con las de YouTube Music, en Biblioteca > Playlists ("Tus
+  playlists"). La barra lateral sigue el mismo orden.
+
+------------------------------------------------------------
 v0.6.51
 ------------------------------------------------------------
 - Spotify: ya se puede entrar con Facebook, Google o Apple. La ventana de inicio de sesión

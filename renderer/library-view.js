@@ -150,6 +150,14 @@ async function playlistsTab() {
     root.append(sec);
     if (sortable) makeSortable(box);
   };
+  // Spotify playlists only shown in BitChord (see Importar): in the same grid, so they can be dragged
+  // among the others (the sidebar follows that order).
+  const spCards = (sp?.links || []).filter((l) => l.dest === 'view').map((l) => {
+    const c = h(`<div class="card playlist"><div class="art${l.id === '__liked__' ? ' liked' : ''}">${l.image ? `<img loading="lazy" src="${esc(l.image)}" alt="">` : icon(l.id === '__liked__' ? 'heartFill' : 'queue')}</div><div class="t ellipsis">${esc(l.name)}</div><div class="s">${l.lastSync ? tr('{n} canciones', { n: l.count }) : tr('Pendiente de la primera actualización')} · ${tr('Spotify, solo en BitChord')}</div></div>`);
+    c.dataset.key = 'sp:' + l.id;
+    c.onclick = () => go({ name: 'spotify', id: l.id });
+    return c;
+  });
   // YouTube Music playlists (the ones the app shows on the home screen too) come first.
   if (state.account) {
     const liked = h(`<div class="card playlist"><div class="art liked">${icon('heartFill')}</div><div class="t">${tr('Me gusta')}</div><div class="s">${tr('Canciones que te gustan en YouTube Music')}</div></div>`);
@@ -162,18 +170,11 @@ async function playlistsTab() {
       return c;
     });
     liked.addEventListener('contextmenu', (e) => { e.preventDefault(); playlistMenu({ kind: 'playlist', id: 'LM', title: tr('Me gusta') }, { x: e.clientX, y: e.clientY }); });
-    grid(tr('Tus playlists de YouTube Music'), sortByPlaylistOrder([...(isHiddenPlaylist('LM') ? [] : [liked]), ...ytCards], (c) => c.dataset.key), '', true);
-  }
+    grid(spCards.length ? tr('Tus playlists') : tr('Tus playlists de YouTube Music'), sortByPlaylistOrder([...(isHiddenPlaylist('LM') ? [] : [liked]), ...ytCards, ...spCards], (c) => c.dataset.key), '', true);
+  } else if (spCards.length) grid(tr('De Spotify (solo en BitChord)'), sortByPlaylistOrder(spCards, (c) => c.dataset.key), '', true);
   if (!state.account) {
     root.append(h(`<div class="empty">${icon('queue')}<div><b>${tr('Tus playlists están en YouTube Music')}</b></div><div class="muted">${tr('Inicia sesión con Google para ver tus playlists, crear nuevas, añadirles canciones desde el menú ⋮ de cualquier canción o importar las de Spotify.')}</div></div>`));
   }
-  // Spotify playlists only shown in BitChord (see Importar).
-  const spViews = (sp?.links || []).filter((l) => l.dest === 'view');
-  if (spViews.length) grid(tr('De Spotify (solo en BitChord)'), spViews.map((l) => {
-    const c = h(`<div class="card playlist"><div class="art${l.id === '__liked__' ? ' liked' : ''}">${l.image ? `<img loading="lazy" src="${esc(l.image)}" alt="">` : icon(l.id === '__liked__' ? 'heartFill' : 'queue')}</div><div class="t ellipsis">${esc(l.name)}</div><div class="s">${l.lastSync ? tr('{n} canciones', { n: l.count }) : tr('Pendiente de la primera actualización')} · Spotify</div></div>`);
-    c.onclick = () => go({ name: 'spotify', id: l.id });
-    return c;
-  }), 'margin-top:28px');
   if (fl.length) grid(tr('Carpetas de este equipo'), fl.map((f) => folderCard(f)), 'margin-top:28px');
   return root;
 }
