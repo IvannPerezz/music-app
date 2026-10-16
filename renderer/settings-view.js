@@ -692,8 +692,10 @@ export async function settingsView(route) {
     if (!animate) requestAnimationFrame(() => requestAnimationFrame(() => pill.classList.remove('no-anim')));
   };
   new ResizeObserver(() => placePill(false)).observe(nav);
-  // Changing category: the sections slide out and fade, and the new ones come in from the other
-  // side: up when the category is further down the list, down when it's further up (dir 1 / -1).
+  // Changing category, with an elastic stretch: the sections leave stretching the way they go, and
+  // the new ones arrive stretched from the other side, then shrink back with a small bounce. Up when
+  // the category is further down the list, down when it's further up (dir 1 / -1). The opacity only
+  // covers the moment of the swap.
   let seq = 0;
   const show = async (id, dir = 0) => {
     const mine = ++seq;
@@ -704,8 +706,12 @@ export async function settingsView(route) {
     if (document.body.classList.contains('perf') || matchMedia('(prefers-reduced-motion: reduce)').matches) dir = 0;
     const building = Promise.all(CATEGORIES.find((c) => c[0] === id)[3].map((k) => BUILD[k]()));
     if (dir && inner.childElementCount) {
-      await inner.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateY(${-dir * 18}px)` }],
-        { duration: 140, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished.catch(() => {});
+      inner.style.transformOrigin = dir > 0 ? 'center bottom' : 'center top'; // (the trailing edge stays, the rest stretches away)
+      await inner.animate([
+        { opacity: 1, transform: 'none' },
+        { opacity: 1, transform: `translateY(${-dir * 14}px) scaleY(1.08)`, offset: 0.6 },
+        { opacity: 0, transform: `translateY(${-dir * 30}px) scaleY(1.16)` },
+      ], { duration: 170, easing: 'cubic-bezier(.5,0,.9,.6)', fill: 'forwards' }).finished.catch(() => {});
     }
     const cards = await building;
     if (mine !== seq) return; // (another category was picked meanwhile)
@@ -713,7 +719,16 @@ export async function settingsView(route) {
     inner.replaceChildren(...cards.flat()); // (Interfaz y Fondo y efectos come from one builder)
     pane.scrollTop = 0;
     // (No fill mode: an animation still holding its end state would turn off the glass effect.)
-    if (dir) inner.animate([{ opacity: 0, transform: `translateY(${dir * 28}px)` }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    if (dir) {
+      inner.style.transformOrigin = dir > 0 ? 'center top' : 'center bottom'; // (the leading edge arrives first)
+      inner.animate([
+        { opacity: 0, transform: `translateY(${dir * 46}px) scaleY(1.18)` },
+        { opacity: 1, transform: `translateY(${dir * 12}px) scaleY(1.07)`, offset: 0.22 },
+        { opacity: 1, transform: `translateY(${-dir * 4}px) scaleY(0.985)`, offset: 0.62 },
+        { opacity: 1, transform: `translateY(${dir * 1}px) scaleY(1.004)`, offset: 0.84 },
+        { opacity: 1, transform: 'none' },
+      ], { duration: 560, easing: 'cubic-bezier(.25,.7,.3,1)' });
+    }
   };
   for (const [id, label, ic, sections] of CATEGORIES) {
     const b = h(`<button class="set-nav-item" data-cat="${id}">${icon(ic)}<span>${esc(label)}</span></button>`);
