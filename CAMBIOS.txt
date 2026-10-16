@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.52.2
+------------------------------------------------------------
+- Las categorías de Ajustes se animan igual que la barra lateral izquierda: el resaltado se
+  desliza hasta la categoría que eliges, y al pasar el ratón no sale un recuadro, solo se
+  ilumina el texto y el icono crece un poco y toma el color de acento.
+
+------------------------------------------------------------
 v0.6.52.1
 ------------------------------------------------------------
 - Ajustes > Apariencia: "Personalización" se parte en dos apartados más cortos.

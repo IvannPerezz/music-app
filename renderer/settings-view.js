@@ -677,10 +677,25 @@ export async function settingsView(route) {
   let cat = (route.section && catOf(route.section)) || (CATEGORIES.some((c) => c[0] === store.get('settingsCat')) ? store.get('settingsCat') : 'account');
   const outer = h(`<div class="set-wrap"><div class="settings set-title"><h1 class="page-title">${tr('Ajustes')}</h1></div><div class="set-layout"><nav class="set-nav"></nav><div class="settings set-pane"></div></div></div>`);
   const nav = outer.querySelector('.set-nav'), pane = outer.querySelector('.set-pane');
+  // The highlight slides to the chosen category, as in the left sidebar (its first placing, and a
+  // change of layout, without animation).
+  const pill = h('<span class="set-nav-pill"></span>');
+  nav.append(pill);
+  const placePill = (animate = true) => {
+    const cur = nav.querySelector('.set-nav-item.active');
+    if (!cur || !cur.offsetWidth) return;
+    pill.classList.toggle('no-anim', !animate);
+    pill.style.width = cur.offsetWidth + 'px'; pill.style.height = cur.offsetHeight + 'px';
+    pill.style.transform = `translate(${cur.offsetLeft}px, ${cur.offsetTop}px)`;
+    pill.classList.add('on');
+    if (!animate) requestAnimationFrame(() => requestAnimationFrame(() => pill.classList.remove('no-anim')));
+  };
+  new ResizeObserver(() => placePill(false)).observe(nav);
   const show = async (id) => {
     cat = id;
     store.set('settingsCat', id);
     nav.querySelectorAll('.set-nav-item').forEach((b) => b.classList.toggle('active', b.dataset.cat === id));
+    placePill(pill.classList.contains('on'));
     const cards = await Promise.all(CATEGORIES.find((c) => c[0] === id)[3].map((k) => BUILD[k]()));
     pane.replaceChildren(...cards.flat()); // (Interfaz y Fondo y efectos come from one builder)
   };
