@@ -723,10 +723,12 @@ export async function settingsView(route) {
       inner.style.transformOrigin = dir > 0 ? 'center top' : 'center bottom'; // (the leading edge arrives first)
       inner.animate([
         { opacity: 0, transform: `translateY(${dir * 22}px) scaleY(1.06)` },
-        { opacity: 1, transform: `translateY(${dir * 6}px) scaleY(1.025)`, offset: 0.35 },
-        { opacity: 1, transform: `translateY(${-dir * 1}px) scaleY(0.997)`, offset: 0.75 },
+        { opacity: 1, transform: `translateY(${dir * 6}px) scaleY(1.025)`, offset: 0.3 },
+        { opacity: 1, transform: `translateY(${-dir * 6}px) scaleY(0.982)`, offset: 0.55 }, // (past its place: the bounce)
+        { opacity: 1, transform: `translateY(${dir * 2}px) scaleY(1.006)`, offset: 0.76 },
+        { opacity: 1, transform: `translateY(${-dir * 0.5}px) scaleY(0.999)`, offset: 0.9 },
         { opacity: 1, transform: 'none' },
-      ], { duration: 520, easing: 'cubic-bezier(.22,1,.36,1)' });
+      ], { duration: 640, easing: 'cubic-bezier(.33,.9,.4,1)' });
     }
   };
   for (const [id, label, ic, sections] of CATEGORIES) {

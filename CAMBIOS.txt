@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.52.6
+------------------------------------------------------------
+- Ajustes: al cambiar de categoría, los ajustes que llegan tienen un pequeño rebote al
+  final: se pasan un poco de su sitio, vuelven y se asientan.
+
+------------------------------------------------------------
 v0.6.52.5
 ------------------------------------------------------------
 - Ajustes: el efecto elástico al cambiar de categoría es más suave y fino: se estira
