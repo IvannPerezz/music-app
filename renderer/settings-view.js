@@ -678,6 +678,8 @@ export async function settingsView(route) {
   const outer = h(`<div class="set-wrap"><div class="settings set-title"><h1 class="page-title">${tr('Ajustes')}</h1></div><div class="set-layout"><nav class="set-nav"></nav><div class="set-pane"><div class="settings set-inner"></div></div></div></div>`);
   // Only the sections scroll (.set-pane); the title and the categories stay put.
   const nav = outer.querySelector('.set-nav'), pane = outer.querySelector('.set-pane'), inner = outer.querySelector('.set-inner');
+  // The top edge fades only once something has scrolled under it (at the top the cards look sharp).
+  pane.addEventListener('scroll', () => pane.classList.toggle('scrolled', pane.scrollTop > 2), { passive: true });
   // The highlight slides to the chosen category, as in the left sidebar (its first placing, and a
   // change of layout, without animation).
   const pill = h('<span class="set-nav-pill"></span>');
@@ -718,17 +720,19 @@ export async function settingsView(route) {
     inner.getAnimations().forEach((a) => a.cancel());
     inner.replaceChildren(...cards.flat()); // (Interfaz y Fondo y efectos come from one builder)
     pane.scrollTop = 0;
+    pane.classList.remove('scrolled');
     // (No fill mode: an animation still holding its end state would turn off the glass effect.)
     if (dir) {
       inner.style.transformOrigin = dir > 0 ? 'center top' : 'center bottom'; // (the leading edge arrives first)
       inner.animate([
         { opacity: 0, transform: `translateY(${dir * 22}px) scaleY(1.06)` },
-        { opacity: 1, transform: `translateY(${dir * 6}px) scaleY(1.025)`, offset: 0.3 },
-        { opacity: 1, transform: `translateY(${-dir * 6}px) scaleY(0.982)`, offset: 0.55 }, // (past its place: the bounce)
-        { opacity: 1, transform: `translateY(${dir * 2}px) scaleY(1.006)`, offset: 0.76 },
-        { opacity: 1, transform: `translateY(${-dir * 0.5}px) scaleY(0.999)`, offset: 0.9 },
+        { opacity: 1, transform: `translateY(${dir * 6}px) scaleY(1.025)`, offset: 0.24 },
+        { opacity: 1, transform: `translateY(${-dir * 6}px) scaleY(0.982)`, offset: 0.43 }, // (past its place: the bounce)
+        { opacity: 1, transform: `translateY(${dir * 3.5}px) scaleY(1.009)`, offset: 0.6 },
+        { opacity: 1, transform: `translateY(${-dir * 1.6}px) scaleY(0.996)`, offset: 0.76 },
+        { opacity: 1, transform: `translateY(${dir * 0.5}px) scaleY(1.001)`, offset: 0.9 },
         { opacity: 1, transform: 'none' },
-      ], { duration: 640, easing: 'cubic-bezier(.33,.9,.4,1)' });
+      ], { duration: 860, easing: 'cubic-bezier(.3,.85,.45,1)' });
     }
   };
   for (const [id, label, ic, sections] of CATEGORIES) {

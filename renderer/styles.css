@@ -1639,8 +1639,8 @@ body.fs.fs-hide-vis.fs-hide-circle .np-corner-gap { display: none; }
 body.route-settings #content { overflow: hidden; padding-bottom: 0; display: flex; flex-direction: column; }
 body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .set-wrap .set-layout { flex: 1; min-height: 0; height: 100%; }
-.set-pane { height: 100%; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding: 6px 4px calc(48px + var(--player)); margin-top: -6px;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22px); }
+.set-pane { height: 100%; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding: 6px 4px calc(48px + var(--player)); margin-top: -6px; }
+.set-pane.scrolled { -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22px); }
 .set-pane::-webkit-scrollbar { display: none; }
 /* Same behaviour as the left sidebar: the highlight slides from one category to the next, and the
    mouse just lights up the item (its icon grows a little and takes the accent), no box. */
