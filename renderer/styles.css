@@ -476,7 +476,7 @@ details.adv summary { cursor: pointer; padding: 6px 0; }
 .folder .set-desc { flex: none; margin: 0 6px; }
 
 .prov-n svg { width: 14px; height: 14px; }
-.prov .prov-n { color: var(--accent); }
+.prov .prov-n { color: var(--accent-light); }
 
 /* ================================================================ v0.4 */
 /* equalizer pop-over */
@@ -1632,8 +1632,16 @@ body.fs.fs-hide-vis.fs-hide-circle .np-corner-gap { display: none; }
 .set-wrap { container-type: inline-size; }
 .set-title { max-width: 1110px; }
 .set-layout { display: grid; grid-template-columns: 220px minmax(0, 860px); justify-content: center; gap: 30px; align-items: start; }
-.set-layout .set-pane { margin: 0; max-width: none; min-width: 0; }
-.set-nav { position: sticky; top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.set-inner { margin: 0; max-width: none; min-width: 0; }
+.set-nav { position: relative; display: flex; flex-direction: column; gap: 4px; }
+/* In Ajustes the page itself doesn't scroll: the title and the categories stay put and only the
+   sections (.set-pane) scroll, fading out under the top edge. */
+body.route-settings #content { overflow: hidden; padding-bottom: 0; display: flex; flex-direction: column; }
+body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.set-wrap .set-layout { flex: 1; min-height: 0; height: 100%; }
+.set-pane { height: 100%; min-height: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding: 6px 4px calc(48px + var(--player)); margin-top: -6px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22px); }
+.set-pane::-webkit-scrollbar { display: none; }
 /* Same behaviour as the left sidebar: the highlight slides from one category to the next, and the
    mouse just lights up the item (its icon grows a little and takes the accent), no box. */
 .set-nav-item { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 14px; border-radius: 10px; font-weight: 600; font-size: 14.5px; text-align: left;
@@ -1648,8 +1656,10 @@ body.fs.fs-hide-vis.fs-hide-circle .np-corner-gap { display: none; }
 .set-nav-pill.on { opacity: 1; }
 .set-nav-pill.no-anim { transition: none; }
 @container (max-width: 1000px) {
-  .set-layout { grid-template-columns: minmax(0, 860px); gap: 14px; }
+  .set-layout { grid-template-columns: minmax(0, 860px); grid-template-rows: auto minmax(0, 1fr); gap: 14px; }
   .set-nav { position: relative; flex-direction: row; overflow-x: auto; scrollbar-width: none; gap: 6px; padding-bottom: 4px; }
   .set-nav-item { flex: none; height: 36px; padding: 0 12px; font-size: 13.5px; }
   .set-title { max-width: 860px; }
 }
+.set-pane .set-card { scroll-margin-top: 12px; }
+.set-wrap > .set-title { width: 100%; }

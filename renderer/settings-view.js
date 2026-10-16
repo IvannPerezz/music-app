@@ -675,8 +675,9 @@ export async function settingsView(route) {
   try { state.downloads = await api('downloads'); } catch {}
   const catOf = (section) => CATEGORIES.find((c) => c[3].includes(section))?.[0];
   let cat = (route.section && catOf(route.section)) || (CATEGORIES.some((c) => c[0] === store.get('settingsCat')) ? store.get('settingsCat') : 'account');
-  const outer = h(`<div class="set-wrap"><div class="settings set-title"><h1 class="page-title">${tr('Ajustes')}</h1></div><div class="set-layout"><nav class="set-nav"></nav><div class="settings set-pane"></div></div></div>`);
-  const nav = outer.querySelector('.set-nav'), pane = outer.querySelector('.set-pane');
+  const outer = h(`<div class="set-wrap"><div class="settings set-title"><h1 class="page-title">${tr('Ajustes')}</h1></div><div class="set-layout"><nav class="set-nav"></nav><div class="set-pane"><div class="settings set-inner"></div></div></div></div>`);
+  // Only the sections scroll (.set-pane); the title and the categories stay put.
+  const nav = outer.querySelector('.set-nav'), pane = outer.querySelector('.set-pane'), inner = outer.querySelector('.set-inner');
   // The highlight slides to the chosen category, as in the left sidebar (its first placing, and a
   // change of layout, without animation).
   const pill = h('<span class="set-nav-pill"></span>');
@@ -691,13 +692,28 @@ export async function settingsView(route) {
     if (!animate) requestAnimationFrame(() => requestAnimationFrame(() => pill.classList.remove('no-anim')));
   };
   new ResizeObserver(() => placePill(false)).observe(nav);
-  const show = async (id) => {
+  // Changing category: the sections slide out and fade, and the new ones come in from the other
+  // side: up when the category is further down the list, down when it's further up (dir 1 / -1).
+  let seq = 0;
+  const show = async (id, dir = 0) => {
+    const mine = ++seq;
     cat = id;
     store.set('settingsCat', id);
     nav.querySelectorAll('.set-nav-item').forEach((b) => b.classList.toggle('active', b.dataset.cat === id));
     placePill(pill.classList.contains('on'));
-    const cards = await Promise.all(CATEGORIES.find((c) => c[0] === id)[3].map((k) => BUILD[k]()));
-    pane.replaceChildren(...cards.flat()); // (Interfaz y Fondo y efectos come from one builder)
+    if (document.body.classList.contains('perf') || matchMedia('(prefers-reduced-motion: reduce)').matches) dir = 0;
+    const building = Promise.all(CATEGORIES.find((c) => c[0] === id)[3].map((k) => BUILD[k]()));
+    if (dir && inner.childElementCount) {
+      await inner.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateY(${-dir * 18}px)` }],
+        { duration: 140, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).finished.catch(() => {});
+    }
+    const cards = await building;
+    if (mine !== seq) return; // (another category was picked meanwhile)
+    inner.getAnimations().forEach((a) => a.cancel());
+    inner.replaceChildren(...cards.flat()); // (Interfaz y Fondo y efectos come from one builder)
+    pane.scrollTop = 0;
+    // (No fill mode: an animation still holding its end state would turn off the glass effect.)
+    if (dir) inner.animate([{ opacity: 0, transform: `translateY(${dir * 28}px)` }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
   };
   for (const [id, label, ic, sections] of CATEGORIES) {
     const b = h(`<button class="set-nav-item" data-cat="${id}">${icon(ic)}<span>${esc(label)}</span></button>`);
@@ -705,8 +721,8 @@ export async function settingsView(route) {
     b.onclick = async () => {
       if (id === cat) return;
       route.section = null; // (a later refresh stays here)
-      await show(id);
-      $('#content').scrollTo({ top: 0 });
+      const at = (c) => CATEGORIES.findIndex((x) => x[0] === c);
+      await show(id, Math.sign(at(id) - at(cat)));
     };
     nav.append(b);
   }

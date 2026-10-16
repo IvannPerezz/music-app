@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.52.3
+------------------------------------------------------------
+- Ajustes: al bajar, solo se desplazan los ajustes de la categoría; el título y la lista de
+  categorías se quedan fijos, y los ajustes se desvanecen suavemente al pasar por debajo
+  del borde de arriba.
+- Al cambiar de categoría, los ajustes salen y entran deslizándose con un fundido: hacia
+  arriba si eliges una categoría más abajo en la lista, hacia abajo si es una más arriba.
+- Los iconos de las listas de Ajustes (elementos de la barra lateral, proveedores de
+  letras) usan también el color de acento más claro.
+
+------------------------------------------------------------
 v0.6.52.2
 ------------------------------------------------------------
 - Las categorías de Ajustes se animan igual que la barra lateral izquierda: el resaltado se
