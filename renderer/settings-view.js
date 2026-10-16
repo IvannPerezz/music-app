@@ -709,9 +709,9 @@ export async function settingsView(route) {
       inner.style.transformOrigin = dir > 0 ? 'center bottom' : 'center top'; // (the trailing edge stays, the rest stretches away)
       await inner.animate([
         { opacity: 1, transform: 'none' },
-        { opacity: 1, transform: `translateY(${-dir * 14}px) scaleY(1.08)`, offset: 0.6 },
-        { opacity: 0, transform: `translateY(${-dir * 30}px) scaleY(1.16)` },
-      ], { duration: 170, easing: 'cubic-bezier(.5,0,.9,.6)', fill: 'forwards' }).finished.catch(() => {});
+        { opacity: 0.85, transform: `translateY(${-dir * 6}px) scaleY(1.02)`, offset: 0.5 },
+        { opacity: 0, transform: `translateY(${-dir * 14}px) scaleY(1.04)` },
+      ], { duration: 200, easing: 'cubic-bezier(.45,0,.55,1)', fill: 'forwards' }).finished.catch(() => {});
     }
     const cards = await building;
     if (mine !== seq) return; // (another category was picked meanwhile)
@@ -722,12 +722,11 @@ export async function settingsView(route) {
     if (dir) {
       inner.style.transformOrigin = dir > 0 ? 'center top' : 'center bottom'; // (the leading edge arrives first)
       inner.animate([
-        { opacity: 0, transform: `translateY(${dir * 46}px) scaleY(1.18)` },
-        { opacity: 1, transform: `translateY(${dir * 12}px) scaleY(1.07)`, offset: 0.22 },
-        { opacity: 1, transform: `translateY(${-dir * 4}px) scaleY(0.985)`, offset: 0.62 },
-        { opacity: 1, transform: `translateY(${dir * 1}px) scaleY(1.004)`, offset: 0.84 },
+        { opacity: 0, transform: `translateY(${dir * 22}px) scaleY(1.06)` },
+        { opacity: 1, transform: `translateY(${dir * 6}px) scaleY(1.025)`, offset: 0.35 },
+        { opacity: 1, transform: `translateY(${-dir * 1}px) scaleY(0.997)`, offset: 0.75 },
         { opacity: 1, transform: 'none' },
-      ], { duration: 560, easing: 'cubic-bezier(.25,.7,.3,1)' });
+      ], { duration: 520, easing: 'cubic-bezier(.22,1,.36,1)' });
     }
   };
   for (const [id, label, ic, sections] of CATEGORIES) {
