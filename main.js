@@ -201,6 +201,20 @@ function createWindow() {
     },
   });
   if (bounds.maximized) win.maximize();
+  // A transparent window does go full screen, but Electron neither reports it (isFullScreen() stays
+  // false) nor sends its enter/leave events, which the rest relies on: BitChord keeps that state.
+  if (rounded) {
+    let fsOn = false;
+    const nativeSet = win.setFullScreen.bind(win);
+    win.isFullScreen = () => fsOn;
+    win.setFullScreen = (on) => {
+      on = !!on;
+      if (on === fsOn) return;
+      fsOn = on;
+      nativeSet(on);
+      win.emit(on ? 'enter-full-screen' : 'leave-full-screen');
+    };
+  }
   win.once('ready-to-show', () => { win.show(); updateThumbar(); });
   brandTaskbar();
   // Full-screen mode of the cover and lyrics view (button next to the volume, or F11).
