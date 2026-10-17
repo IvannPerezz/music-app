@@ -172,13 +172,18 @@ function createTray() {
 
 function createWindow() {
   const bounds = settings.get('windowBounds') || {};
+  // With the macOS-style buttons the window has Tesela's wide rounded corners (26 px). Windows only
+  // rounds windows a little, so the window is transparent and the page draws its own corners
+  // (styles.css, html.rounded). With the native Windows buttons it stays a normal window.
+  const rounded = settings.get('windowButtons') !== 'windows';
   win = new BrowserWindow({
     width: bounds.width || 1280,
     height: bounds.height || 820,
     x: bounds.x, y: bounds.y,
     minWidth: 900,
     minHeight: 600,
-    backgroundColor: '#0d0d0f',
+    backgroundColor: rounded ? '#00000000' : '#0d0d0f',
+    transparent: rounded,
     title: 'BitChord',
     icon: path.join(__dirname, 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     titleBarStyle: 'hidden',
@@ -207,6 +212,7 @@ function createWindow() {
   win.applyWindowButtons = () => overlay(!win.isFullScreen());
   win.on('maximize', () => send('maximized', true));
   win.on('unmaximize', () => send('maximized', false));
+  win.webContents.on('did-finish-load', () => send('maximized', win.isMaximized()));
   // Minimised or hidden in the tray: Chromium stops drawing, but the page isn't told (that comes
   // with backgroundThrottling: false, which the audio needs), so a video would keep decoding.
   win.on('minimize', () => send('window-visible', false));

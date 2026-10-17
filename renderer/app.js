@@ -1883,6 +1883,7 @@ function switchFullscreen(on) {
   }
 }
 function applyFullscreen(on) {
+  document.documentElement.classList.toggle('fs-win', !!on); // (square corners in full screen)
   if (isFs() !== on) switchFullscreen(on);
   else moveFsControls(on);
   $('#btn-fs').innerHTML = icon(on ? 'fullscreenExit' : 'fullscreen');
@@ -2616,6 +2617,8 @@ export async function applyFont() {
 function applyWindowButtons() {
   const mac = (state.settings.windowButtons || 'mac') === 'mac';
   document.body.classList.toggle('mac-buttons', mac);
+  // (The window is created transparent with these buttons: see main.js.)
+  document.documentElement.classList.toggle('rounded', mac);
   $('#titlebar .traffic').hidden = !mac;
 }
 export function applyTheme() {
@@ -2908,12 +2911,18 @@ function initButtons() {
   $('#fs-panel-close').onclick = () => closeFsPanel();
   applyFsButtons();
   bc.on('fullscreen', applyFullscreen);
+  // Maximized, the window has no rounded corners. Unfocused, the window buttons turn grey (as in
+  // Tesela and macOS) unless the mouse is over them.
+  bc.on('maximized', (on) => document.documentElement.classList.toggle('win-max', !!on));
+  addEventListener('blur', () => document.body.classList.add('win-inactive'));
+  addEventListener('focus', () => document.body.classList.remove('win-inactive'));
   syncFsVolume();
   $$('#titlebar .tl').forEach((b) => (b.onclick = () => bc.windowControl(b.dataset.w)));
   // Glyphs as in macOS: ×, − and the diagonal arrows, shown when hovering the group.
-  $('#titlebar .tl-close').innerHTML = '<svg viewBox="0 0 12 12"><path d="M3.5 3.5l5 5M8.5 3.5l-5 5"/></svg>';
-  $('#titlebar .tl-min').innerHTML = '<svg viewBox="0 0 12 12"><path d="M3 6h6"/></svg>';
-  $('#titlebar .tl-max').innerHTML = '<svg viewBox="0 0 12 12"><path class="fill" d="M3.2 7.6V3.2h4.4zM8.8 4.4v4.4H4.4z"/></svg>';
+  // (Tesela's glyphs, drawn on the 13 px circle itself so they sit exactly in its middle.)
+  $('#titlebar .tl-close').innerHTML = '<svg viewBox="0 0 13 13"><path d="M4.4 4.4L8.6 8.6M8.6 4.4L4.4 8.6"/></svg>';
+  $('#titlebar .tl-min').innerHTML = '<svg viewBox="0 0 13 13"><path d="M3.5 6.5h6"/></svg>';
+  $('#titlebar .tl-max').innerHTML = '<svg viewBox="0 0 13 13"><path class="fill" d="M3.6 8.2V3.6h4.6zM9.4 4.8v4.6H4.8z"/></svg>';
   $('.brand').onclick = () => go({ name: 'home' });
   $('#sb-toggle').innerHTML = icon('menu');
   $('#sb-toggle').onclick = () => saveSettings({ sidebarOpen: !state.settings.sidebarOpen });
