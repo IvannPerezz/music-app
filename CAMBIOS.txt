@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.53.1
+------------------------------------------------------------
+- Se quitan las esquinas de 26 px: para tenerlas la ventana tenía que ser transparente, y
+  eso hacía que se viera un rectángulo oscuro detrás de las esquinas, que Windows dejara de
+  animar al minimizar, maximizar y redimensionar, y que la ventana maximizada se pudiera
+  seguir redimensionando. Vuelve a ser una ventana normal de Windows, con su redondeo y sus
+  animaciones. Los botones de ventana de Tesela se quedan.
+  Es necesario cerrar y volver a abrir BitChord para que se aplique.
+
+------------------------------------------------------------
 v0.6.53
 ------------------------------------------------------------
 - La ventana tiene las esquinas redondeadas de Tesela (26 px, con un borde fino), en vez del

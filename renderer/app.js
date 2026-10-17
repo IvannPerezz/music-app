@@ -1883,7 +1883,6 @@ function switchFullscreen(on) {
   }
 }
 function applyFullscreen(on) {
-  document.documentElement.classList.toggle('fs-win', !!on); // (square corners in full screen)
   if (isFs() !== on) switchFullscreen(on);
   else moveFsControls(on);
   $('#btn-fs').innerHTML = icon(on ? 'fullscreenExit' : 'fullscreen');
@@ -2617,8 +2616,6 @@ export async function applyFont() {
 function applyWindowButtons() {
   const mac = (state.settings.windowButtons || 'mac') === 'mac';
   document.body.classList.toggle('mac-buttons', mac);
-  // (The window is created transparent with these buttons: see main.js.)
-  document.documentElement.classList.toggle('rounded', mac);
   $('#titlebar .traffic').hidden = !mac;
 }
 export function applyTheme() {
@@ -2911,9 +2908,7 @@ function initButtons() {
   $('#fs-panel-close').onclick = () => closeFsPanel();
   applyFsButtons();
   bc.on('fullscreen', applyFullscreen);
-  // Maximized, the window has no rounded corners. Unfocused, the window buttons turn grey (as in
-  // Tesela and macOS) unless the mouse is over them.
-  bc.on('maximized', (on) => document.documentElement.classList.toggle('win-max', !!on));
+  // Unfocused, the window buttons turn grey (as in Tesela and macOS) unless the mouse is over them.
   addEventListener('blur', () => document.body.classList.add('win-inactive'));
   addEventListener('focus', () => document.body.classList.remove('win-inactive'));
   syncFsVolume();

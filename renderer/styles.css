@@ -1261,12 +1261,6 @@ body.route-settings:not(.np-open) #titlebar:has(#suggest:not([hidden])) { -webki
 .tl:active { filter: brightness(.8); }
 body.win-inactive .traffic:not(:hover) .tl { background: #4a4a4d; }
 
-/* Window corners (Tesela's): with the macOS-style buttons the window is transparent and the page
-   is cut to 26 px rounded corners, with a fine light rim. Square when maximized or full screen. */
-html.rounded { background: transparent; }
-html.rounded:not(.win-max):not(.fs-win) { clip-path: inset(0 round 26px); }
-html.rounded:not(.win-max):not(.fs-win)::after { content: ''; position: fixed; inset: 0; border-radius: 26px; pointer-events: none; z-index: 2147483647;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.09); }
 body.mac-buttons .settings-btn { margin-right: 8px; }
 
 /* Sidebar: the highlight of the current page slides to the item you pick (like the visualizer
