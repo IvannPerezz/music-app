@@ -378,7 +378,9 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .pill svg { width: 16px; height: 16px; }
 /* Synced lyrics (renderer/lyrics-view.js): the lines are moved by script (transform), everything
    else here. --d is a line's distance from the one being sung (0–6). */
-#lyrics.lyr { overflow: hidden; padding-top: 0; padding-bottom: 0; position: relative; mask-image: linear-gradient(transparent, #000 12%, #000 86%, transparent); }
+/* (The blur of a line spreads past its text: the side padding, taken back by the margin, keeps the
+   box's clipping edge away from the first letters.) */
+#lyrics.lyr { overflow: hidden; padding-top: 0; padding-bottom: 0; padding-left: 40px; margin-left: -40px; position: relative; mask-image: linear-gradient(transparent, #000 12%, #000 86%, transparent); }
 #lyrics .lyr-track { position: relative; padding: 0 0 40vh; }
 #lyrics .lyr-line {
   font-size: var(--lyr-size, 30px); font-weight: 750; line-height: 1.2; letter-spacing: -.02em;
@@ -416,12 +418,24 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 /* The look sliders (lyrics menu and Ajustes), laid out like Apple's: name and value, a note, the bar. */
 .lyr-look { display: flex; flex-direction: column; gap: 10px; }
 .lyr-look.compact { padding: 2px 6px 8px; width: 320px; max-width: calc(100vw - 40px); }
+.fs-panel-body .lyr-look.compact { width: auto; padding: 2px 0 8px; } /* (the full screen panel sets its own width) */
+.fs-panel-body { overflow-x: hidden; }
 .lyr-look-h { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 8px 4px 0; }
 .lyr-look-g { display: flex; flex-direction: column; background: rgba(255,255,255,.04); border-radius: 12px; }
 .lyr-look-r { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; cursor: default; }
 .lyr-look-r + .lyr-look-r { border-top: 1px solid rgba(255,255,255,.06); }
 .lyr-look-t { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; user-select: none; }
 .lyr-look-t b { font-weight: 600; font-size: 13.5px; }
+.lyr-look-v { display: inline-flex; align-items: center; gap: 6px; }
+.lyr-look .lyr-reset {
+  display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border-radius: 50%; flex: none;
+  color: var(--muted); background: rgba(255,255,255,.08); cursor: pointer;
+  opacity: 0; transform: scale(.4) rotate(-90deg); pointer-events: none;
+  transition: opacity .25s ease, transform .4s cubic-bezier(.3,1.5,.5,1), background .2s, color .2s;
+}
+.lyr-look .lyr-reset svg { width: 13px; height: 13px; color: inherit; }
+.lyr-look .lyr-reset.on { opacity: 1; transform: none; pointer-events: auto; }
+.lyr-look .lyr-reset:hover { background: rgba(255,255,255,.18); color: var(--text, #fff); }
 .lyr-look-t i { font-style: normal; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .lyr-look-r small { font-size: 11.5px; color: var(--muted); margin-top: -2px; }
 .lyr-look-r input { width: 100%; accent-color: var(--accent); margin-top: 2px; }

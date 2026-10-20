@@ -1,6 +1,6 @@
 // The look of the synced lyrics (glow, letter wave, blur, glide…): one set of sliders, used both in
 // the lyrics menu of the cover view (where the change is seen as it's dragged) and in Ajustes.
-import { h, esc, state, saveSettings } from './core.js';
+import { h, esc, icon, state, saveSettings } from './core.js';
 import { tr } from './i18n.js';
 import * as lyricsView from './lyrics-view.js';
 
@@ -45,22 +45,34 @@ export function lyricsLookControls({ compact = false } = {}) {
     for (const [k, label, desc, min, max, step, def, show = pct] of g.items) {
       const cur = typeof state.settings[k] === 'number' ? state.settings[k] : def;
       const row = h(`<label class="lyr-look-r">
-        <span class="lyr-look-t"><b>${esc(label)}</b><i>${esc(show(cur))}</i></span>
+        <span class="lyr-look-t"><b>${esc(label)}</b><span class="lyr-look-v"><button type="button" class="lyr-reset" title="${esc(tr('Volver al valor predeterminado'))}" tabindex="-1">${icon('refresh')}</button><i>${esc(show(cur))}</i></span></span>
         ${desc ? `<small>${esc(desc)}</small>` : ''}
         <input type="range" min="${min}" max="${max}" step="${step}" value="${cur}">
       </label>`);
-      const input = row.querySelector('input'), out = row.querySelector('i');
+      const input = row.querySelector('input'), out = row.querySelector('i'), reset = row.querySelector('.lyr-reset');
+      // The reset button shows up once the slider is away from its default.
+      const mark = () => reset.classList.toggle('on', +input.value !== def);
+      mark();
       input.oninput = () => {
         out.textContent = show(+input.value);
+        mark();
         state.settings = { ...state.settings, [k]: +input.value };
         lyricsView.style(state.settings);
       };
       input.onchange = () => saveSettings({ [k]: +input.value });
-      // Double click: back to the default value.
-      row.querySelector('.lyr-look-t').ondblclick = (e) => { e.preventDefault(); input.value = def; input.oninput(); input.onchange(); };
+      reset.onclick = (e) => { e.preventDefault(); e.stopPropagation(); input.value = def; input.oninput(); input.onchange(); };
       box.append(row);
     }
     root.append(box);
   }
+  // Coming in: headings and rows rise into place one after another (no fill mode left behind, so
+  // the panel's glass keeps working).
+  requestAnimationFrame(() => {
+    if (!root.isConnected || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    [...root.querySelectorAll('.lyr-look-h, .lyr-look-r')].forEach((el, i) => el.animate(
+      [{ opacity: 0, transform: 'translateY(14px) scale(.985)' }, { opacity: 1, transform: 'none' }],
+      { duration: 520, delay: Math.min(i, 14) * 28, easing: 'cubic-bezier(.2,.85,.25,1)', fill: 'backwards' },
+    ));
+  });
   return root;
 }

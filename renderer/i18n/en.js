@@ -756,8 +756,9 @@ export default {
   "Clave de Spicy Lyrics": "Spicy Lyrics key",
   "Spicy Lyrics pide una clave gratuita tuya: regístrate en developers.spicylyrics.org, crea una aplicación, activa el acceso de cliente permitiendo peticiones sin cabecera Origin y pega aquí la clave publicable (sl_pk_…). Además busca la canción en Spotify, así que necesita la sesión de Spotify (Importar). Musixmatch también la necesita.": "Spicy Lyrics needs a free key of your own: sign up at developers.spicylyrics.org, create an application, turn on client access allowing requests with no Origin header and paste the publishable key (sl_pk_…) here. It also looks the song up on Spotify, so it needs the Spotify session (Import). Musixmatch needs it too.",
   "Aspecto": "Appearance",
-  "Cómo se ve la letra sincronizada, al estilo de Apple Music. Los mismos controles están en el menú de la letra (Aspecto de la letra…), donde cada cambio se ve mientras arrastras. Doble clic en un nombre lo devuelve a su valor inicial.": "How the synced lyrics look, in Apple Music's style. The same controls are in the lyrics menu (Lyrics appearance…), where each change shows while you drag. Double-click a name to put it back to its default.",
   "Necesita una clave tuya y la sesión de Spotify": "Needs a key of your own and the Spotify session",
   "Palabra a palabra; algunas vienen censuradas": "Word by word; some come censored",
   "El catálogo con licencia de Spotify (necesita la sesión de Spotify)": "Spotify's licensed catalogue (needs the Spotify session)",
+  "Volver al valor predeterminado": "Back to the default value",
+  "Cómo se ve la letra sincronizada, al estilo de Apple Music. Los mismos controles están en el menú de la letra (Aspecto de la letra…), donde cada cambio se ve mientras arrastras. El botón ↺ junto al valor lo devuelve a su valor inicial.": "How the synced lyrics look, in Apple Music's style. The same controls are in the lyrics menu (Lyrics appearance…), where each change shows while you drag. The ↺ button next to a value puts it back to its default.",
 };

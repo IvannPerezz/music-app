@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.55.1
+------------------------------------------------------------
+- "Aspecto de la letra" en pantalla completa ya cabe en el panel: sin barra para desplazarse a
+  los lados ni el cuadrado blanco de la esquina de abajo.
+- Cada control tiene un botón ↺ que aparece al moverlo y lo devuelve a su valor predeterminado.
+- Al abrir "Aspecto de la letra", los controles entran uno tras otro con una animación suave.
+- Las líneas desenfocadas de la letra ya no se ven cortadas por una raya vertical en la primera
+  letra.
+
+------------------------------------------------------------
 v0.6.55
 ------------------------------------------------------------
 - Letras nuevas, al estilo de Apple Music:
