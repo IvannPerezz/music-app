@@ -96,7 +96,7 @@ const panelH = () => win.evaluate(() => document.querySelector('#fs-panel').offs
 if ((await panelH()) > 0.75) errors.push('El panel del ecualizador ocupa todo el alto');
 await win.click('#lyrics-source'); await win.waitForTimeout(500);
 pn = await panel();
-if (!pn.open || pn.title !== 'Letra' || (await panelH()) > 0.75 || pn.cornerRight > pn.panelLeft) errors.push('Panel de la letra: ' + JSON.stringify(pn));
+if (!pn.open || pn.title !== 'Letra' || (await panelH()) > 0.8 || pn.cornerRight > pn.panelLeft) errors.push('Panel de la letra: ' + JSON.stringify(pn));
 await shot('02d1-fullscreen-lyrics-source');
 const bottoms = await win.evaluate(() => ({ panel: Math.round(document.querySelector('#fs-panel').getBoundingClientRect().bottom), h: innerHeight }));
 if (bottoms.panel < bottoms.h - 30) errors.push('El panel de la letra no está abajo junto a los botones: ' + JSON.stringify(bottoms));

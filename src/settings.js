@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 export const LYRICS_PROVIDERS = [
+  { id: 'binilyrics', label: 'BiniLyrics', detail: 'Letras de Apple Music, palabra a palabra', word: true },
   { id: 'lyricsplus', label: 'LyricsPlus', detail: 'Sílaba a sílaba, en espejos comunitarios', word: true },
   { id: 'betterlyrics', label: 'BetterLyrics', detail: 'Tiempos de Apple Music, palabra a palabra', word: true },
   { id: 'simpmusic', label: 'SimpMusic', detail: 'Emparejada con el vídeo exacto', word: true },
@@ -128,9 +129,9 @@ export function load(userData) {
   try {
     const saved = JSON.parse(fs.readFileSync(file, 'utf8'));
     data = { ...DEFAULTS, ...saved, localInfo: { ...DEFAULTS.localInfo, ...(saved.localInfo || {}) } };
-    // New providers added in later versions go to the end of the saved order.
+    // New providers added in later versions take their default place in the saved order.
     const known = new Set(data.lyricsOrder);
-    for (const p of LYRICS_PROVIDERS) if (!known.has(p.id)) data.lyricsOrder.push(p.id);
+    LYRICS_PROVIDERS.forEach((p, i) => { if (!known.has(p.id)) data.lyricsOrder.splice(Math.min(i, data.lyricsOrder.length), 0, p.id); });
     data.lyricsOrder = data.lyricsOrder.filter((id) => LYRICS_PROVIDERS.some((p) => p.id === id));
     const ids = new Set(SIDEBAR_DEFAULT.map((x) => x.id));
     data.sidebar = (Array.isArray(data.sidebar) ? data.sidebar : []).filter((x) => ids.has(x.id));

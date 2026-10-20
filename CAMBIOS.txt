@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.54
+------------------------------------------------------------
+- Nuevo proveedor de letras: BiniLyrics (el que usa chroma.pw). Trae las letras de Apple
+  Music con cada palabra sincronizada, así que muchas canciones que antes solo se iluminaban
+  por líneas ahora van palabra a palabra. Se pone el primero de la lista en Ajustes →
+  Reproducción → Letras; puedes moverlo o desactivarlo como los demás.
+
+------------------------------------------------------------
 v0.6.53.1
 ------------------------------------------------------------
 - Se quitan las esquinas de 26 px: para tenerlas la ventana tenía que ser transparente, y

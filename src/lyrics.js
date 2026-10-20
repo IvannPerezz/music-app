@@ -136,13 +136,36 @@ async function unison(t) {
   return { format: 'elrc', data: d.lyrics, fallback: { format: 'lrc', data: d.lyrics } };
 }
 
+// BiniLyrics (lyrics-api.binimum.org, now served by lrc.red): Apple Music TTML, word by word for most
+// songs. The search returns every release of the song; take the one with the finest timing whose
+// title, artist and length match.
+const norm = (s) => String(s || '').toLowerCase()
+  .replace(/\s*[\(\[][^\)\]]*[\)\]]/g, '').replace(/\s+-\s+.*$/, '').replace(/\b(feat|ft)\..*$/, '')
+  .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+async function binilyrics(t) {
+  const r = await get(`https://lrc.red/api/v1?${qs({ track: t.title, artist: t.artist })}`, { json: true });
+  const title = norm(t.title), artist = norm(t.artist);
+  const rank = { word: 0, syllable: 0, line: 1 };
+  const hit = (r?.results || [])
+    .filter((x) => x.lyricsUrl && x.timing_type in rank && norm(x.track_name) === title)
+    .filter((x) => {
+      const a = norm(x.artist_name), off = t.duration && x.duration ? Math.abs(x.duration - t.duration) : 0;
+      // Some releases spell the artist in another script (カロルG): then the length alone must match.
+      return off <= 8 && (a.includes(artist) || artist.includes(a) || (t.duration && off <= 3));
+    })
+    .sort((a, b) => rank[a.timing_type] - rank[b.timing_type] || Math.abs((a.duration || 0) - t.duration) - Math.abs((b.duration || 0) - t.duration))[0];
+  if (!hit) return null;
+  const ttml = await get(hit.lyricsUrl);
+  return ttml && ttml.includes('<tt') ? { format: 'ttml', data: ttml } : null;
+}
+
 async function youtube(t) {
   const y = await ytLyrics(t.videoId);
   return y?.text ? { format: 'plain', data: y.text, credit: y.source } : null;
 }
 
 export const PROVIDERS = {
-  lrclib, kugou, simpmusic, unison, youtube, lyricsplus,
+  lrclib, kugou, simpmusic, unison, youtube, lyricsplus, binilyrics,
   betterlyrics: betterlyrics('https://lyrics-api.boidu.dev/getLyrics'),
   betterlyrics_qq: betterlyrics('https://lyrics-api.boidu.dev/qq/getLyrics'),
 };

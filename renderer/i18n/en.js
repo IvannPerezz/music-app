@@ -435,6 +435,7 @@ export default {
   "Sonoridad": "Loudness",
   "Nocturno (suave)": "Night (soft)",
   "Sílaba a sílaba, en espejos comunitarios": "Syllable by syllable, on community mirrors",
+  "Letras de Apple Music, palabra a palabra": "Apple Music lyrics, word by word",
   "Emparejada con el vídeo exacto": "Matched to the exact video",
   "Por líneas, siempre disponible": "Line by line, always available",
   "Por líneas, fuerte fuera del catálogo inglés": "Line by line, strong outside the English catalogue",
