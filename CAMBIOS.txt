@@ -15,6 +15,29 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.55
+------------------------------------------------------------
+- Letras nuevas, al estilo de Apple Music:
+  · Las líneas se deslizan con suavidad y las de abajo siguen un instante después (cascada).
+  · Cuanto más lejos de la línea que suena, más desenfocada y pequeña se ve.
+  · Cada palabra se ilumina al ritmo de la voz, sílaba a sílaba cuando la letra lo permite,
+    sube un poco y brilla; las palabras sostenidas hacen una onda letra a letra.
+  · Las voces de fondo van más pequeñas debajo, los duetos a cada lado, y en las pausas largas
+    tres puntos se van llenando hasta que vuelve la voz.
+  · La sincronización es más precisa: tiene en cuenta el retardo de la salida de audio y no
+    depende de cada cuánto actualiza el reproductor la posición.
+  · Con la rueda del ratón puedes recorrer la letra libremente (se ve nítida); a los 3 segundos
+    vuelve sola a la línea que suena.
+- "Aspecto de la letra…" en el menú de la letra: resplandor, onda de letras, desenfoque,
+  suavidad, cascada, elevación, interlineado, voces de fondo y más, con el cambio a la vista
+  mientras arrastras. Lo mismo está en Ajustes → Reproducción → Letras. Doble clic en el nombre
+  de un control lo devuelve a su valor inicial.
+- Nuevos proveedores de letras: NetEase (palabra a palabra, sin cuenta), Musixmatch (las letras
+  con licencia de Spotify) y Spicy Lyrics (necesita una clave tuya, se pega en Ajustes). Los dos
+  últimos buscan la canción en Spotify, así que necesitan la sesión de Spotify (Importar).
+- Escape ya cierra un menú aunque acabes de mover uno de sus controles deslizantes.
+
+------------------------------------------------------------
 v0.6.54
 ------------------------------------------------------------
 - Nuevo proveedor de letras: BiniLyrics (el que usa chroma.pw). Trae las letras de Apple

@@ -2,6 +2,8 @@
 // the renderer parses (it has DOMParser for TTML) and walks the user's provider order.
 
 import { ytLyrics } from './yt.js';
+import * as spotifyWeb from './spotify-web.js';
+import * as settings from './settings.js';
 
 const AGENT = 'BitChord (https://github.com/bitchord)';
 const TIMEOUT = 7000;
@@ -159,13 +161,145 @@ async function binilyrics(t) {
   return ttml && ttml.includes('<tt') ? { format: 'ttml', data: ttml } : null;
 }
 
+// NetEase Cloud Music: word by word (its "yrc" karaoke format) for a large catalogue, no account.
+// Some lyrics there come censored (words replaced by asterisks).
+const NE_HEADERS = { 'User-Agent': 'Mozilla/5.0', Referer: 'https://music.163.com/' };
+async function neGet(url) {
+  try { const r = await fetch(url, { headers: NE_HEADERS, signal: AbortSignal.timeout(TIMEOUT) }); return r.ok ? await r.json() : null; }
+  catch { return null; }
+}
+async function netease(t) {
+  const r = await neGet(`https://music.163.com/api/search/get?${qs({ s: `${t.title} ${t.artist}`, type: 1, limit: 10 })}`);
+  const title = norm(t.title), artist = norm(t.artist);
+  const song = (r?.result?.songs || []).find((x) => {
+    if (norm(x.name) !== title) return false;
+    const off = t.duration && x.duration ? Math.abs(x.duration / 1000 - t.duration) : 0;
+    const who = (x.artists || []).map((a) => norm(a.name));
+    return off <= 5 && (who.some((a) => a && (a.includes(artist) || artist.includes(a))) || (t.duration && off <= 2));
+  });
+  if (!song) return null;
+  const l = await neGet(`https://music.163.com/api/song/lyric/v1?${qs({ id: song.id, lv: -1, kv: -1, tv: -1, yv: -1 })}`);
+  const yrc = (l?.yrc?.lyric || '').split('\n').filter((x) => /^\[\d+,\d+\]/.test(x)).join('\n');
+  if (yrc) return { format: 'provider', data: yrc };
+  return l?.lrc?.lyric ? { format: 'lrc', data: l.lrc.lyric } : null;
+}
+
+// The song on Spotify (for Spotify's own lyrics and Spicy Lyrics), found with the Spotify session
+// that "Importar de Spotify" signs in. Without that session these two sources are skipped.
+const spCache = new Map();
+async function spotifyTrack(t) {
+  if (spCache.has(t.videoId)) return spCache.get(t.videoId);
+  if (!(await spotifyWeb.signedIn().catch(() => false))) return null;
+  let hit = null;
+  try {
+    const tok = await spotifyWeb.token();
+    const r = await fetch(`https://api.spotify.com/v1/search?${qs({ q: `track:${t.title} artist:${t.artist}`, type: 'track', limit: 8 })}`,
+      { headers: { Authorization: 'Bearer ' + tok.bearer, Accept: 'application/json' }, signal: AbortSignal.timeout(TIMEOUT) });
+    if (!r.ok) { console.warn('[lyrics] búsqueda en Spotify:', r.status); return null; }
+    const title = norm(t.title), artist = norm(t.artist);
+    const off = (x) => (t.duration ? Math.abs(x.duration_ms / 1000 - t.duration) : 0);
+    const byArtist = (x) => (x.artists || []).some((a) => norm(a.name).includes(artist) || artist.includes(norm(a.name)));
+    hit = ((await r.json()).tracks?.items || [])
+      .filter((x) => off(x) <= 5 && (norm(x.name) === title || byArtist(x)))
+      .sort((a, b) => (norm(b.name) === title) - (norm(a.name) === title) || byArtist(b) - byArtist(a) || off(a) - off(b))[0] || null;
+  } catch (e) { console.warn('[lyrics] búsqueda en Spotify:', e?.message); return null; }
+  const out = hit ? { id: hit.id, isrc: hit.external_ids?.isrc } : null;
+  spCache.set(t.videoId, out);
+  return out;
+}
+
+// Spotify's own lyrics (Musixmatch's licensed catalogue): mostly by lines, some by syllables.
+async function musixmatch(t) {
+  const sp = await spotifyTrack(t);
+  if (!sp) return null;
+  const tok = await spotifyWeb.token();
+  const r = await fetch(`https://spclient.wg.spotify.com/color-lyrics/v2/track/${sp.id}?format=json&vocalRemoval=false&market=from_token`, {
+    headers: { Authorization: 'Bearer ' + tok.bearer, ...(tok.clientToken ? { 'client-token': tok.clientToken } : {}), 'app-platform': 'WebPlayer', Accept: 'application/json' },
+    signal: AbortSignal.timeout(TIMEOUT),
+  }).catch(() => null);
+  if (!r?.ok) { if (r && r.status !== 404) console.warn('[lyrics] letra de Spotify:', r.status); return null; }
+  const l = (await r.json().catch(() => null))?.lyrics;
+  if (!l?.lines?.length) return null;
+  if (l.syncType === 'UNSYNCED') return { format: 'plain', data: l.lines.map((x) => x.words).join('\n') };
+  const lines = l.lines.map((x, i) => {
+    const time = +x.startTimeMs / 1000, text = String(x.words || '').trim();
+    if (!text || text === '♪') return null;
+    const next = l.lines[i + 1] ? +l.lines[i + 1].startTimeMs / 1000 : time + 5;
+    const syl = (x.syllables || []).filter((y) => y.startTimeMs != null && y.numChars > 0);
+    if (!syl.length) return { time, text };
+    // Syllables: a start time and how many characters of the line each one covers.
+    const words = [];
+    let pos = 0, open = false;
+    syl.forEach((y, k) => {
+      const piece = String(x.words).slice(pos, pos + y.numChars);
+      pos += y.numChars;
+      const start = +y.startTimeMs / 1000, end = syl[k + 1] ? +syl[k + 1].startTimeMs / 1000 : next;
+      const bit = piece.trim();
+      if (!bit) { open = false; return; }
+      const part = { start, end, len: [...bit].length };
+      const last = words[words.length - 1];
+      if (open && last && !/^\s/.test(piece)) { last.text += bit; last.end = end; last.parts.push(part); }
+      else words.push({ start, end, text: bit, parts: [part] });
+      open = !/\s$/.test(piece);
+    });
+    return words.length ? { time: Math.min(time, words[0].start), text: words.map((w) => w.text).join(' '), words } : { time, text };
+  }).filter(Boolean);
+  return lines.length ? { format: 'lines', data: lines } : null;
+}
+
+// Spicy Lyrics: needs a key of the user's own (developers.spicylyrics.org) and the song's Spotify id.
+async function spicy(t) {
+  const key = String(settings.get('spicyLyricsKey') || '').trim();
+  if (!key) return null;
+  const sp = await spotifyTrack(t);
+  if (!sp) return null;
+  const r = await fetch(`https://api.spicylyrics.org/v1/lyrics/${sp.id}`, { headers: { Authorization: 'Bearer ' + key, Accept: 'application/json' }, signal: AbortSignal.timeout(TIMEOUT) }).catch(() => null);
+  if (!r?.ok) { if (r) console.warn('[lyrics] Spicy Lyrics respondió', r.status); return null; }
+  const j = await r.json().catch(() => null);
+  const b = j?.Body || j;
+  if (!b) return null;
+  // Times are numbers whose unit the docs don't state: seconds, unless they're clearly milliseconds.
+  const stamps = (JSON.stringify(b.Content || []).match(/"(?:Start|End)Time":\s*[\d.]+/g) || []).map((m) => parseFloat(m.split(':')[1]));
+  const ms = stamps.some((v) => v > 36000);
+  const sec = (v) => (v == null ? null : ms ? +v / 1000 : +v);
+  if (b.Type === 'Static') { const text = (b.Lines || []).map((x) => x.Text).join('\n').trim(); return text ? { format: 'plain', data: text } : null; }
+  const syllWords = (syls) => {
+    const words = [];
+    let cur = null;
+    for (const y of syls || []) {
+      const text = String(y.Text || '').trim(), start = sec(y.StartTime), end = sec(y.EndTime);
+      if (!text || start == null) continue;
+      if (!cur) { cur = { start, end, text: '', parts: [] }; words.push(cur); }
+      cur.text += text; cur.end = end; cur.parts.push({ start, end, len: [...text].length });
+      if (!y.IsPartOfWord) cur = null;
+    }
+    return words;
+  };
+  const lines = [];
+  for (const c of b.Content || []) {
+    if (b.Type === 'Line') {
+      const text = String(c.Text || '').trim();
+      if (text) lines.push({ time: sec(c.StartTime), text, end: sec(c.EndTime), ...(c.OppositeAligned ? { align: 'end' } : {}) });
+      continue;
+    }
+    const words = syllWords(c.Lead?.Syllables);
+    if (!words.length) continue;
+    const line = { time: Math.min(sec(c.Lead.StartTime) ?? words[0].start, words[0].start), text: words.map((w) => w.text).join(' '), words };
+    if (c.OppositeAligned) line.align = 'end';
+    const bgw = (c.Background || []).flatMap((x) => syllWords(x.Syllables));
+    if (bgw.length) line.bg = { time: bgw[0].start, text: bgw.map((w) => w.text).join(' '), words: bgw };
+    lines.push(line);
+  }
+  return lines.length ? { format: 'lines', data: lines } : null;
+}
+
 async function youtube(t) {
   const y = await ytLyrics(t.videoId);
   return y?.text ? { format: 'plain', data: y.text, credit: y.source } : null;
 }
 
 export const PROVIDERS = {
-  lrclib, kugou, simpmusic, unison, youtube, lyricsplus, binilyrics,
+  lrclib, kugou, simpmusic, unison, youtube, lyricsplus, binilyrics, netease, musixmatch, spicy,
   betterlyrics: betterlyrics('https://lyrics-api.boidu.dev/getLyrics'),
   betterlyrics_qq: betterlyrics('https://lyrics-api.boidu.dev/qq/getLyrics'),
 };

@@ -53,7 +53,7 @@ export const fetchLyrics = async (t, provider) => {
     // word-synced sample
     return { format: 'lyricsplus', data: { lyrics: mockLines.filter(Boolean).map((text, i) => {
       const t0 = 1500 + i * 3000; const words = text.split(' ');
-      return { time: t0, duration: 2600, text, syllabus: words.map((w, k) => ({ time: t0 + k * 450, duration: 420, text: w + (k < words.length - 1 ? ' ' : '') })) };
+      return { time: t0, duration: 2600, text, syllabus: words.map((w, k) => ({ time: t0 + k * 450, duration: k === words.length - 1 ? 1300 : 420, text: w + (k < words.length - 1 ? ' ' : '') })) };
     }) } };
   }
   if (provider === 'lrclib') return { format: 'lrc', data: mockLines.map((l, i) => `[00:${String(1 + i * 3).padStart(2, '0')}.50]${l}`).join('\n') };

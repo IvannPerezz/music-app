@@ -4,11 +4,14 @@ import path from 'node:path';
 
 export const LYRICS_PROVIDERS = [
   { id: 'binilyrics', label: 'BiniLyrics', detail: 'Letras de Apple Music, palabra a palabra', word: true },
+  { id: 'spicy', label: 'Spicy Lyrics', detail: 'Necesita una clave tuya y la sesión de Spotify', word: true },
   { id: 'lyricsplus', label: 'LyricsPlus', detail: 'Sílaba a sílaba, en espejos comunitarios', word: true },
   { id: 'betterlyrics', label: 'BetterLyrics', detail: 'Tiempos de Apple Music, palabra a palabra', word: true },
   { id: 'simpmusic', label: 'SimpMusic', detail: 'Emparejada con el vídeo exacto', word: true },
   { id: 'unison', label: 'Unison', detail: 'Aportadas por la comunidad', word: true },
+  { id: 'netease', label: 'NetEase', detail: 'Palabra a palabra; algunas vienen censuradas', word: true },
   { id: 'betterlyrics_qq', label: 'BetterLyrics Portato', detail: 'Karaoke de QQ Music', word: true },
+  { id: 'musixmatch', label: 'Musixmatch', detail: 'El catálogo con licencia de Spotify (necesita la sesión de Spotify)', word: false },
   { id: 'lrclib', label: 'LRCLIB', detail: 'Por líneas, siempre disponible', word: false },
   { id: 'kugou', label: 'KuGou', detail: 'Por líneas, fuerte fuera del catálogo inglés', word: false },
   { id: 'youtube', label: 'YouTube Music', detail: 'Texto sin sincronizar de la pestaña Letra', word: false },
@@ -48,6 +51,11 @@ export const DEFAULTS = {
   lyricsWordSync: true,
   lyricsFontSize: 30,
   lyricsOffsetMs: 0,
+  spicyLyricsKey: '', // publishable key (sl_pk_...) of the user's own Spicy Lyrics app
+  // Look of the synced lyrics (Apple Music style), in % unless noted: see renderer/lyrics-look.js.
+  lyricsGlow: 200, lyricsWave: 100, lyricsBlur: 100, lyricsSmooth: 150,
+  lyricsGlowSpread: 100, lyricsFillSoft: 100, lyricsLift: 100, lyricsUnsung: 30, lyricsOtherSize: 97,
+  lyricsDistFade: 0, lyricsCascade: 100, lyricsSpacing: 100, lyricsBgSize: 62, lyricsBgBright: 80,
   // Playback behaviour
   autoplayRadio: true,
   resumeOnStart: true,

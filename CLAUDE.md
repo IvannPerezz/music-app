@@ -56,6 +56,7 @@ npm run package            # carpeta portable + instalador ligero en dist/ (desc
 - `app.js` — router (`go`, `render`, `views`), barra lateral, tarjetas/filas, reproductor, cola, letras, vista de portada y letra, menús, avisos, acento dinámico y fondo animado.
 - `core.js` — `api()`, `state`, `store` (localStorage), `toast`, utilidades. `engine.js` — motor de audio Web Audio (dos pletinas, crossfade, Automix, EQ). `analysis-worker.js` — BPM/compases para Automix.
 - `settings-view.js`, `library-view.js`, `import-view.js`, `eq-panel.js`, `color-picker.js`, `lyrics-parse.js`, `icons.js`.
+- `lyrics-view.js` — letra sincronizada estilo Apple Music: cada línea se mueve con un muelle por script (cascada, desenfoque por distancia vía `--d`), y las palabras de las líneas que suenan se rellenan, suben y brillan fotograma a fotograma; reloj interpolado en `app.js` (`lyricsTime`, resta la latencia de salida). `lyrics-look.js` — los controles de su aspecto (menú de la letra y Ajustes), en vivo.
 - `visualizer.js` + `visualizer/` — visualizador MilkDrop (Butterchurn, MIT, copiado en `visualizer/vendor/`). Va en un **iframe sandbox** servido por el proxy en `/vis/` (`src/vis-files.js`, también en el mock): Butterchurn necesita `eval` para los presets y la ventana principal no lo permite (CSP). La app le manda las muestras de audio (tomadas tras el ecualizador, `engine.tap`) por `postMessage` en cada fotograma.
 
 ## Idiomas (OBLIGATORIO para cualquier texto nuevo de la interfaz)

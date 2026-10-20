@@ -1,4 +1,5 @@
 // Settings page.
+import { lyricsLookControls } from './lyrics-look.js';
 import { bc, $, icon, esc, api, toast, h, state, saveSettings, art, store, confirmDialog } from './core.js';
 import { eqPanel } from './eq-panel.js';
 import { applyFont, refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent, applyTheme, setThemeCss } from './app.js';
@@ -184,9 +185,11 @@ function lyrics() {
   return card('lyrics', tr('Letras'), 'lyrics',
     h(`<div class="set-note">${tr('Para cada canción se pregunta a los proveedores en este orden y se usa la primera letra sincronizada que aparezca. Los marcados «palabra a palabra» dan el tiempo de cada palabra o sílaba. Arrastra para cambiar la prioridad o desactiva los que no quieras. En la vista de portada y letra puedes forzar un proveedor para la canción que suena.')}</div>`),
     list,
+    row(tr('Clave de Spicy Lyrics'), tr('Spicy Lyrics pide una clave gratuita tuya: regístrate en developers.spicylyrics.org, crea una aplicación, activa el acceso de cliente permitiendo peticiones sin cabecera Origin y pega aquí la clave publicable (sl_pk_…). Además busca la canción en Spotify, así que necesita la sesión de Spotify (Importar). Musixmatch también la necesita.'), text('spicyLyricsKey', 'sl_pk_…', { secret: true })),
     row(tr('Sincronización palabra a palabra'), tr('Si el proveedor da tiempos por palabra o sílaba (TTML o LRC mejorado), cada palabra se rellena a su ritmo; si no, se resalta la línea entera.'), toggle('lyricsWordSync')),
-    row(tr('Tamaño del texto'), tr('Tamaño de la letra en la vista de portada y letra.'), range('lyricsFontSize', 20, 48, 1, (v) => `${v} px`)),
-    row(tr('Desfase'), tr('Se suma a los tiempos de todas las letras (de −2 a +2 s): positivo si la letra va por detrás de la voz, negativo si va por delante.'), range('lyricsOffsetMs', -2000, 2000, 50, (v) => `${v > 0 ? '+' : ''}${(v / 1000).toFixed(2)} s`)),
+    h(`<div class="set-sub">${tr('Aspecto')}</div>`),
+    h(`<div class="set-note">${tr('Cómo se ve la letra sincronizada, al estilo de Apple Music. Los mismos controles están en el menú de la letra (Aspecto de la letra…), donde cada cambio se ve mientras arrastras. Doble clic en un nombre lo devuelve a su valor inicial.')}</div>`),
+    lyricsLookControls(),
   );
 }
 

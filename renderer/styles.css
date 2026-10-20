@@ -255,16 +255,6 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
   height: 100%; overflow-y: auto; padding: 38vh 0;
   mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
 }
-#lyrics .line {
-  font-size: 30px; font-weight: 750; line-height: 1.3; letter-spacing: -.4px;
-  color: rgba(255,255,255,.28); margin: 0 0 18px; cursor: pointer;
-  transition: color .35s, transform .35s, filter .35s; transform-origin: left center;
-  filter: blur(.6px);
-}
-#lyrics .line:hover { color: rgba(255,255,255,.5); }
-#lyrics .line.active { color: #fff; transform: scale(1.03); filter: none; }
-#lyrics .line.past { color: rgba(255,255,255,.4); }
-#lyrics .line.gap { font-size: 22px; }
 #lyrics .plain { white-space: pre-wrap; font-size: 22px; font-weight: 650; color: rgba(255,255,255,.8); line-height: 1.55; }
 #lyrics .src { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 24px; }
 #lyrics.unsynced { padding: 40px 0; mask-image: none; }
@@ -386,23 +376,55 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 }
 .pill:hover { background: rgba(0,0,0,.45); }
 .pill svg { width: 16px; height: 16px; }
-#lyrics .line { font-size: var(--lyr-size, 30px); }
-#lyrics .line.end { text-align: right; transform-origin: right center; }
-#lyrics .line .w { transition: transform .5s cubic-bezier(.2,.8,.2,1); display: inline-block; }
-#lyrics .line.active .w {
+/* Synced lyrics (renderer/lyrics-view.js): the lines are moved by script (transform), everything
+   else here. --d is a line's distance from the one being sung (0–6). */
+#lyrics.lyr { overflow: hidden; padding-top: 0; padding-bottom: 0; position: relative; mask-image: linear-gradient(transparent, #000 12%, #000 86%, transparent); }
+#lyrics .lyr-track { position: relative; padding: 0 0 40vh; }
+#lyrics .lyr-line {
+  font-size: var(--lyr-size, 30px); font-weight: 750; line-height: 1.2; letter-spacing: -.02em;
+  margin: 0 0 calc(var(--lyr-size, 30px) * .6 * var(--lyr-gap, 1)); cursor: pointer;
+  color: rgba(255,255,255,var(--lyr-unsung, .3));
+  filter: blur(calc(var(--d, 0) * var(--lyr-blur, .9px)));
+  opacity: calc(1 - var(--d, 0) * var(--lyr-fade, 0));
+  transition: filter .7s ease, opacity .7s ease, color .45s ease;
+  will-change: transform;
+}
+#lyrics .lyr-txt { transform: scale(var(--lyr-other, .97)); transform-origin: left center; transition: transform .7s cubic-bezier(.22,.8,.25,1); }
+#lyrics .lyr-line.end { text-align: right; }
+#lyrics .lyr-line.end .lyr-txt { transform-origin: right center; }
+#lyrics .lyr-line.on { color: #fff; }
+#lyrics .lyr-line.on .lyr-txt { transform: none; }
+#lyrics.browsing .lyr-line, #lyrics .lyr-line:hover { filter: none; opacity: 1; }
+#lyrics .lyr-line:not(.on):hover { color: rgba(255,255,255,calc(var(--lyr-unsung, .3) + .22)); }
+/* Words: filled by a gradient whose soft edge runs with --p (0 = none sung, 1 = all). The padding
+   (taken back by the margin) gives the glyphs that overhang their box a background to show. */
+#lyrics .lyr-line .w, #lyrics .lyr-line .ch { display: inline-block; white-space: pre; padding: .1em .05em; margin: -.1em -.05em; }
+#lyrics .lyr-line .w { transition: transform .6s cubic-bezier(.22,.8,.25,1), filter .5s ease; }
+#lyrics .lyr-line .ch { transition: transform .5s cubic-bezier(.22,.8,.25,1); }
+#lyrics .lyr-line.on .w, #lyrics .lyr-line.on .ch { transition: none; }
+#lyrics .lyr-line.on .w:not(.held), #lyrics .lyr-line.on .ch {
   color: transparent;
-  /* The soft edge travels from fully outside the word (p=0, nothing lit) to fully past it (p=1). */
-  background: linear-gradient(90deg, #fff calc(var(--p, 0) * 112% - 12%), rgba(255,255,255,.35) calc(var(--p, 0) * 112%));
+  background-image: linear-gradient(90deg, #fff calc(var(--p, 0) * (100% + var(--lyr-soft, 22%)) - var(--lyr-soft, 22%)), rgba(255,255,255,var(--lyr-unsung, .3)) calc(var(--p, 0) * (100% + var(--lyr-soft, 22%))));
   -webkit-background-clip: text; background-clip: text;
 }
-#lyrics .line.active .w.singing, #lyrics .line.active .w.sung { transform: translateY(-2px); }
-#lyrics .line .bgv { font-size: .62em; font-weight: 650; opacity: .75; margin-top: 4px; }
-#lyrics .line.gap .dots { display: inline-flex; gap: 8px; padding: 6px 0; }
-#lyrics .line.gap .dots i { width: 10px; height: 10px; border-radius: 50%; background: currentColor; opacity: .5; }
-#lyrics .line.gap.active .dots i { animation: dot 1.4s infinite ease-in-out; opacity: 1; color: #fff; }
-#lyrics .line.gap.active .dots i:nth-child(2) { animation-delay: .2s; }
-#lyrics .line.gap.active .dots i:nth-child(3) { animation-delay: .4s; }
-@keyframes dot { 0%, 100% { transform: scale(.7); opacity: .4; } 50% { transform: scale(1.1); opacity: 1; } }
+#lyrics .lyr-bg { font-size: calc(var(--lyr-bg-size, .62) * 1em); font-weight: 650; opacity: var(--lyr-bg-bright, .8); margin-top: .25em; }
+#lyrics .lyr-line.gap { font-size: calc(var(--lyr-size, 30px) * .7); }
+#lyrics .lyr-dots { display: inline-flex; gap: .32em; padding: .25em 0; transform-origin: left center; }
+#lyrics .lyr-dots i { width: .38em; height: .38em; border-radius: 50%; background: currentColor; opacity: .3; }
+#lyrics .lyr-line.gap.on .lyr-dots i { background: #fff; }
+#lyrics .lyr-track > .src { margin-top: 24px; }
+/* The look sliders (lyrics menu and Ajustes), laid out like Apple's: name and value, a note, the bar. */
+.lyr-look { display: flex; flex-direction: column; gap: 10px; }
+.lyr-look.compact { padding: 2px 6px 8px; width: 320px; max-width: calc(100vw - 40px); }
+.lyr-look-h { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 8px 4px 0; }
+.lyr-look-g { display: flex; flex-direction: column; background: rgba(255,255,255,.04); border-radius: 12px; }
+.lyr-look-r { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; cursor: default; }
+.lyr-look-r + .lyr-look-r { border-top: 1px solid rgba(255,255,255,.06); }
+.lyr-look-t { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; user-select: none; }
+.lyr-look-t b { font-weight: 600; font-size: 13.5px; }
+.lyr-look-t i { font-style: normal; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lyr-look-r small { font-size: 11.5px; color: var(--muted); margin-top: -2px; }
+.lyr-look-r input { width: 100%; accent-color: var(--accent); margin-top: 2px; }
 
 /* library */
 .count { align-self: center; margin-left: 6px; font-size: 13px; }
@@ -1048,7 +1070,7 @@ body.perf *, body.perf *::before, body.perf *::after {
   transition-duration: .01ms !important; transition-delay: 0s !important;
 }
 body.perf #ambient, body.perf .np-amb, body.perf .np-bg { display: none !important; }
-body.perf #lyrics .line { filter: none !important; }
+body.perf #lyrics .lyr-line { filter: none !important; }
 /* Title bar button: a Mica glass disc; green while the mode is on. no-drag: the title bar drags
    the window, and without it Windows took the click as the start of a drag. */
 #btn-perf { -webkit-app-region: no-drag; width: 34px; height: 34px; border-radius: 50%; margin-right: 4px;

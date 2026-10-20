@@ -1,5 +1,6 @@
 // Lyrics parsers (port of BitChord's LrcLib/EnhancedLrc/TtmlLyrics/KaraokeLrc/ProviderLyrics/LyricsPlus).
-// Output: [{ time, text, words?: [{start, end, text}], end?, bg?: line, align: 'start'|'end' }] — seconds.
+// Output: [{ time, text, words?: [{start, end, text, parts?: [{start, end, len}]}], end?, bg?: line, align: 'start'|'end' }] — seconds.
+// (parts: the syllables of a word, len = their number of letters.)
 
 const MIN_GAP = 5; // seconds of silence that earn a ♪ marker
 
@@ -134,14 +135,16 @@ export function parseTtml(xml) {
     }
   };
   const merge = (pieces) => {
-    const words = []; let cur = '', s = 0, e = 0, timed = false;
-    const flush = () => { const t = cur.trim(); cur = ''; if (t && timed) words.push({ start: s, end: e, text: t }); timed = false; };
+    // Syllables are joined into words; each keeps its own timing (parts) so the fill follows it.
+    const words = []; let cur = '', s = 0, e = 0, timed = false, parts = [];
+    const flush = () => { const t = cur.trim(); cur = ''; if (t && timed) words.push({ start: s, end: e, text: t, parts }); timed = false; parts = []; };
     for (const p of pieces) {
       if (p.b == null) { if (!p.t.trim()) flush(); else if (timed) cur += p.t; continue; }
       if (!p.t.trim()) continue;
       if (/^\s/.test(p.t)) flush();
       if (!cur) s = p.b;
       cur += p.t.trim(); e = p.e; timed = true;
+      parts.push({ start: p.b, end: p.e, len: [...p.t.trim()].length });
       if (/\s$/.test(p.t)) flush();
     }
     flush();
@@ -189,15 +192,16 @@ export function parseLyricsPlus(r) {
     if (line.time == null) continue;
     const t = line.time / 1000;
     const words = [];
-    let cur = '', s = 0, e = 0;
+    let cur = '', s = 0, e = 0, parts = [];
     for (const syl of line.syllabus || []) {
       if (!syl.text || !syl.text.trim() || syl.time == null) continue;
       if (!cur) s = syl.time / 1000;
       cur += syl.text.trim();
       e = (syl.time + (syl.duration || 0)) / 1000;
-      if (/\s$/.test(syl.text)) { words.push({ start: s, end: e, text: cur }); cur = ''; }
+      parts.push({ start: syl.time / 1000, end: e, len: [...syl.text.trim()].length });
+      if (/\s$/.test(syl.text)) { words.push({ start: s, end: e, text: cur, parts }); cur = ''; parts = []; }
     }
-    if (cur) words.push({ start: s, end: e, text: cur });
+    if (cur) words.push({ start: s, end: e, text: cur, parts });
     let l;
     if (words.length) l = { time: Math.min(t, words[0].start), text: words.map((w) => w.text).join(' '), words };
     else if (line.text && line.text.trim()) l = { time: t, text: line.text.trim(), end: line.duration > 0 ? t + line.duration / 1000 : undefined };
@@ -262,6 +266,7 @@ export function parseResult(res) {
     case 'elrc': out = parseEnhancedLrc(res.data); if (!out.length && res.fallback) return parseResult(res.fallback); break;
     case 'ttml': out = parseTtml(res.data); break;
     case 'lyricsplus': out = parseLyricsPlus(res.data); break;
+    case 'lines': out = withGaps((res.data || []).filter((l) => l && l.text && l.time != null).sort((a, b) => a.time - b.time)); break; // built by the main process
     case 'provider': out = parseProvider(res.data); break;
     case 'plain': return res.data?.trim() ? { synced: false, lines: [], plain: res.data.trim() } : null;
   }

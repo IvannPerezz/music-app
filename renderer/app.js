@@ -2,6 +2,8 @@
 import { bc, $, $$, icon, esc, fmt, artistNames, store, api, toast, h, state, art, proxied, streamUrl, saveSettings, likes, history, isDownloaded, askText, confirmDialog } from './core.js';
 import { Engine } from './engine.js';
 import { parseResult } from './lyrics-parse.js';
+import * as lyricsView from './lyrics-view.js';
+import { lyricsLookControls, LYRICS_LOOK } from './lyrics-look.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
@@ -2330,41 +2332,24 @@ async function loadLyrics(t, forced = null) {
 }
 const hasWordTiming = (l) => !!l?.synced && (l.lines || []).some((ln) => ln.words?.length > 1);
 
-let activeLine = -1;
-let wordEls = [];
 function renderLyrics() {
   const box = $('#lyrics');
   const l = player.lyrics;
-  activeLine = -1; wordEls = [];
   box.className = '';
   box.innerHTML = '';
-  box.style.setProperty('--lyr-size', (state.settings.lyricsFontSize || 30) + 'px');
+  lyricsView.unmount();
+  lyricsView.style(state.settings);
   const label = providerMeta.find((p) => p.id === l?.provider)?.label;
   $('#lyrics-source').innerHTML = `${icon('lyrics')}<span class="pill-label"><span>${l?.loading ? tr('Buscando letra…') : label ? label + (l.forced ? '' : ' · auto') : tr('Sin letra')}</span>${icon('chevron')}</span>`;
   $('#lyrics-source').title = tr('Fuente de la letra');
   applyLyricsHidden();
   if (!l || l.loading) { box.innerHTML = '<div class="none"><div class="spinner"></div></div>'; return; }
-  const useWords = state.settings.lyricsWordSync !== false;
   if (l.synced && l.lines?.length) {
-    l.lines.forEach((ln) => {
-      const el = h(`<div class="line${ln.gap || !ln.text ? ' gap' : ''}${ln.align === 'end' ? ' end' : ''}"></div>`);
-      const words = [];
-      if (ln.gap || !ln.text) el.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>';
-      else if (useWords && ln.words?.length) {
-        ln.words.forEach((w, k) => { const s = h(`<span class="w">${esc(w.text)}</span>`); el.append(s); if (k < ln.words.length - 1) el.append(' '); words.push(s); });
-      } else el.textContent = ln.text;
-      if (ln.bg && ln.bg.text) {
-        const bg = h(`<div class="bgv"></div>`);
-        if (useWords && ln.bg.words?.length) ln.bg.words.forEach((w, k) => { const s = h(`<span class="w">${esc(w.text)}</span>`); bg.append(s); if (k < ln.bg.words.length - 1) bg.append(' '); words.push(s); });
-        else bg.textContent = ln.bg.text;
-        el.append(bg);
-      }
-      el.onclick = () => { engine.seek(ln.time - (state.settings.lyricsOffsetMs || 0) / 1000); if (engine.paused) engine.playPause(true); };
-      wordEls.push(words);
-      box.append(el);
-    });
-    box.append(h(`<div class="src">${tr('Letra:')} ${esc(label || '')}</div>`));
-    syncLyrics(true);
+    box.classList.add('lyr');
+    const footer = h(`<div class="src">${tr('Letra:')} ${esc(label || '')}</div>`);
+    box.append(lyricsView.mount(l, { words: state.settings.lyricsWordSync !== false, footer }));
+    lyricsView.relayout(true);
+    syncLyrics();
     return;
   }
   box.classList.add('unsynced');
@@ -2372,38 +2357,30 @@ function renderLyrics() {
   box.innerHTML = `<div class="none">${tr('No hay letra disponible para esta canción')}</div>`;
 }
 
-function syncLyrics(force = false) {
-  const l = player.lyrics;
-  if (!npOpen() || !l?.synced || !l.lines?.length) return;
-  const t = engine.currentTime + (state.settings.lyricsOffsetMs || 0) / 1000 + 0.15;
-  let i = -1;
-  for (let k = 0; k < l.lines.length; k++) { if (l.lines[k].time <= t) i = k; else break; }
-  // Word-by-word fill of the active line (and its background vocals).
-  if (i >= 0 && wordEls[i]?.length) {
-    const ln = l.lines[i];
-    const all = [...(ln.words || []), ...(ln.bg?.words || [])];
-    wordEls[i].forEach((el, k) => {
-      const w = all[k];
-      if (!w) return;
-      const p = t <= w.start ? 0 : t >= w.end ? 1 : (t - w.start) / Math.max(0.05, w.end - w.start);
-      el.style.setProperty('--p', p.toFixed(3));
-      el.classList.toggle('sung', p >= 1);
-      el.classList.toggle('singing', p > 0 && p < 1);
-    });
+// The lyrics' clock: the audio position, carried forward between the element's updates (they
+// arrive in steps), minus what the sound still takes to reach the speakers, plus the user's offset.
+const lyrClock = { a: 0, raw: -1, at: 0 };
+function lyricsTime() {
+  const raw = engine.currentTime, now = performance.now();
+  if (engine.paused) { lyrClock.a = raw; lyrClock.raw = raw; lyrClock.at = now; }
+  else {
+    const guess = lyrClock.a + (now - lyrClock.at) / 1000 * (engine.cur?.audio?.playbackRate || 1);
+    if (raw !== lyrClock.raw) {
+      lyrClock.raw = raw;
+      const err = raw - guess;
+      lyrClock.a = Math.abs(err) > 0.25 ? raw : guess + err * 0.15; // a jump (seek) snaps; jitter is smoothed away
+    } else lyrClock.a = guess;
+    lyrClock.at = now;
   }
-  if (i === activeLine && !force) return;
-  if (activeLine >= 0 && wordEls[activeLine]) wordEls[activeLine].forEach((el) => { el.style.setProperty('--p', 1); el.classList.add('sung'); el.classList.remove('singing'); });
-  activeLine = i;
-  const els = $$('#lyrics .line');
-  els.forEach((el, k) => { el.classList.toggle('active', k === i); el.classList.toggle('past', k < i); });
-  const target = els[Math.max(0, i)];
-  if (target && !lyricsUserScroll) {
-    const box = $('#lyrics');
-    box.scrollTo({ top: target.offsetTop - box.clientHeight * 0.38, behavior: force ? 'auto' : 'smooth' });
-  }
+  const ctx = engine.ctx;
+  const latency = ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0;
+  return lyrClock.a - latency + (state.settings.lyricsOffsetMs || 0) / 1000;
 }
-let lyricsUserScroll = false, lyricsScrollTimer;
-$('#lyrics').addEventListener('wheel', () => { lyricsUserScroll = true; clearTimeout(lyricsScrollTimer); lyricsScrollTimer = setTimeout(() => (lyricsUserScroll = false), 3000); });
+function syncLyrics() {
+  if (!npOpen() || !player.lyrics?.synced) return;
+  lyricsView.frame(lyricsTime());
+}
+lyricsView.init($('#lyrics'), (time) => { engine.seek(time - (state.settings.lyricsOffsetMs || 0) / 1000); if (engine.paused) engine.playPause(true); });
 (function loop() { syncLyrics(); requestAnimationFrame(loop); })();
 
 function lyricsSourceMenu(anchor) {
@@ -2417,10 +2394,17 @@ function lyricsSourceMenu(anchor) {
     null,
     ...providerMeta.map((p) => ({ label: p.label, hint: p.word ? tr('palabra a palabra') : '', checked: cur?.forced === p.id, action: () => loadLyrics(t, p.id) })),
     null,
+    { icon: 'tune', label: tr('Aspecto de la letra…'), action: () => lyricsLookMenu(anchor) },
     { icon: 'settings', label: tr('Ordenar proveedores…'), action: () => go({ name: 'settings', section: 'lyrics' }) },
     null,
     { el: lyricsSliders() },
   ], anchor);
+}
+
+/** Every look setting of the lyrics, next to them, so each change is seen while dragging. */
+function lyricsLookMenu(anchor) {
+  anchor.classList.add('open');
+  openMenu([{ header: tr('Aspecto de la letra') }, { el: lyricsLookControls({ compact: true }) }], anchor);
 }
 
 /** Text size and offset of the lyrics, adjustable right from the lyrics-source menu (live). */
@@ -2438,8 +2422,7 @@ function lyricsSliders() {
     input.oninput = () => {
       out.textContent = show[k](+input.value);
       state.settings = { ...state.settings, [k]: +input.value }; // live: the lyrics follow while dragging
-      if (k === 'lyricsFontSize') $('#lyrics').style.setProperty('--lyr-size', input.value + 'px');
-      else syncLyrics(true);
+      lyricsView.style(state.settings);
     };
     input.onchange = () => saveSettings({ [k]: +input.value });
   });
@@ -2847,8 +2830,11 @@ document.addEventListener('settings', (e) => {
   if (k.includes('localInfo') && currentRoute()?.name === 'library') refreshView();
   if (k.some((x) => ['crossfade', 'gapless', 'automix', 'automixBars', 'skipSilence', 'normalize', 'speed', 'eqEnabled', 'eqBands', 'preamp'].includes(x))) applyAudioSettings();
   if (k.some((x) => x.startsWith('lyrics')) && player.current) {
-    if (k.includes('lyricsOrder') || k.includes('lyricsDisabled')) loadLyrics(player.current); else if (npOpen()) renderLyrics();
+    if (k.includes('lyricsOrder') || k.includes('lyricsDisabled')) loadLyrics(player.current);
+    else if (k.every((x) => LYRICS_LOOK.includes(x))) lyricsView.style(state.settings); // look only: no rebuild
+    else if (npOpen()) renderLyrics();
   }
+  if (k.includes('performanceMode')) lyricsView.style(state.settings);
 });
 
 // ------------------------------------------------------------------ wiring
@@ -2959,7 +2945,8 @@ function initButtons() {
   });
 
   document.addEventListener('keydown', (e) => {
-    const typing = e.target.matches('input, textarea, select');
+    // (From a slider only Escape gets through: it closes the menu it's in; arrows move the slider.)
+    const typing = e.target.matches('input, textarea, select') && !(e.key === 'Escape' && e.target.matches('input[type=range]'));
     if ((e.ctrlKey && e.key.toLowerCase() === 'f') || (e.ctrlKey && e.key.toLowerCase() === 'l')) { e.preventDefault(); searchInput.focus(); searchInput.select(); return; }
     if (e.ctrlKey && e.key === ',') { go({ name: 'settings' }); return; }
     if (typing) return;
