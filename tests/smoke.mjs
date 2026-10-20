@@ -184,6 +184,10 @@ if (sliders !== 2) errors.push('Faltan los controles de la letra en su menú: ' 
 await win.locator('#menu [data-k=lyricsFontSize]').fill('40'); await win.waitForTimeout(200);
 if (!(await win.evaluate(() => getComputedStyle(document.querySelector('#lyrics')).getPropertyValue('--lyr-size').trim() === '40px'))) errors.push('El tamaño de la letra no cambia en directo');
 await shot('02a-lyrics-menu');
+// "Aspecto de la letra…" in the window's menu: nothing wider than the menu, the ↺ buttons stay small.
+await win.locator('#menu button', { hasText: /Aspecto de la letra|Lyrics appearance/ }).click(); await win.waitForTimeout(700);
+const look = await win.evaluate(() => { const m = document.querySelector('#menu'); return { over: m.scrollWidth - m.clientWidth, btn: Math.max(...[...m.querySelectorAll('.lyr-reset')].map((b) => b.getBoundingClientRect().width)) }; });
+if (look.over > 0 || look.btn > 30) errors.push('El panel de aspecto de la letra se desborda: ' + JSON.stringify(look));
 await win.keyboard.press('Escape'); await win.waitForTimeout(200);
 // A song without lyrics: the lyrics hide by themselves.
 await win.evaluate(() => { const p = window.__bc.player; const { _k, ...cur } = p.current; p.playNext({ ...cur, id: 'mockvideo03', title: 'Paper Planes' }); p.next(); });
