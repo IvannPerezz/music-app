@@ -5,5 +5,6 @@ Start-Sleep -Milliseconds 500
 Remove-Item (Join-Path ([Environment]::GetFolderPath('Desktop')) 'BitChord.lnk') -Force
 Remove-Item (Join-Path ([Environment]::GetFolderPath('Programs')) 'BitChord.lnk') -Force
 Remove-Item (Join-Path $env:LOCALAPPDATA 'Programs\BitChord') -Recurse -Force
+Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\BitChord' -Recurse -Force
 Write-Host 'BitChord se ha desinstalado.' -ForegroundColor Green
 Start-Sleep -Seconds 2

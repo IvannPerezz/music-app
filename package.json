@@ -10,7 +10,8 @@
     "test": "node scripts/i18n-keys.mjs && node tests/smoke.mjs",
     "build:update": "node scripts/build-update.mjs",
     "deploy": "node scripts/build-update.mjs --deploy",
-    "package": "node scripts/package-win.mjs"
+    "package": "node scripts/package-win.mjs",
+    "installer": "node scripts/build-installer.mjs"
   },
   "author": "BitChord Desktop port",
   "license": "GPL-3.0-only",
