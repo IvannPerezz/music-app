@@ -18,12 +18,12 @@ function ago(ms) {
   return tr('hace {n} días', { n: Math.round(hrs / 24) });
 }
 
-/** What linking does, in plain technical terms (shown before signing in). */
+/** What linking does, in a few plain words (shown before signing in). */
 export const SPOTIFY_HOW = () => [
-  tr('<b>Inicio de sesión:</b> el botón abre la página oficial de Spotify (accounts.spotify.com) en una ventana de BitChord. Al entrar, BitChord se queda con la sesión del reproductor web de Spotify (la cookie <code>sp_dc</code>), guardada en un perfil del navegador aislado y solo en este PC. Tu contraseña no pasa por BitChord y no hace falta ninguna «app de desarrollador».'),
-  tr('<b>Lectura:</b> con esa sesión, BitChord abre en segundo plano el reproductor web (open.spotify.com), toma el token de acceso que este genera para sí mismo y consulta la misma API interna (GraphQL) que usa la web: tus playlists (también las hechas por Spotify, como los Mix diarios), sus canciones, nombre, descripción y portada, y tus «Canciones que te gustan». Solo lee: no cambia nada en tu Spotify.'),
-  tr('<b>Copia:</b> cada canción se busca en YouTube Music por título, artista y álbum, y se elige el resultado con más puntuación. La playlist se crea en tu cuenta de YouTube Music (privada, también visible en la app oficial) y la portada de Spotify se le pone en BitChord.'),
-  tr('<b>Sincronización:</b> al abrir BitChord, cada 6 horas o con «Actualizar», cada playlist vinculada se vuelve a leer: se añaden las canciones nuevas, se quitan las que borraste en Spotify (solo las que había puesto BitChord) y se copian el nombre, la descripción y la portada si cambiaron. Las canciones ya buscadas no se vuelven a buscar.'),
+  tr('<b>Inicio de sesión:</b> entras en la página oficial de Spotify. Tu contraseña no pasa por BitChord y la sesión se queda solo en este PC.'),
+  tr('<b>Lectura:</b> BitChord ve tus playlists y tus «Canciones que te gustan», pero no cambia nada en tu Spotify.'),
+  tr('<b>Copia:</b> busca cada canción en YouTube Music y crea la playlist en tu cuenta, con la portada de Spotify.'),
+  tr('<b>Al día:</b> al abrir BitChord y cada 6 horas se añaden las canciones nuevas y se quitan las que borraste en Spotify.'),
 ];
 
 function guide() {
@@ -32,7 +32,7 @@ function guide() {
     <p class="muted">${tr('Elige qué playlists de Spotify quieres tener en BitChord: se copian a tu YouTube Music y <b>se mantienen al día solas</b>.')}</p>
     <ul class="imp-help sp-how">${SPOTIFY_HOW().map((t) => `<li>${t}</li>`).join('')}</ul>
     <div class="sp-connect"></div>
-    <div class="set-note">${icon('info')} <span>${tr('En la ventana de Spotify entra con tu correo y contraseña, o con el código que Spotify te manda por correo. «Continuar con Google» puede no funcionar: Google suele bloquear sus inicios de sesión dentro de otras aplicaciones.')}</span></div>
+    <div class="set-note">${icon('info')} <span>${tr('Entra con tu correo y contraseña o con el código que te manda Spotify. «Continuar con Google» puede fallar, porque Google suele bloquear su inicio de sesión dentro de otras apps.')}</span></div>
   </div>`);
   const box = el.querySelector('.sp-connect');
   if (S.connecting) box.append(h(`<span class="muted sp-wait">${icon('loading')} ${tr('Inicia sesión en la ventana de Spotify… (ciérrala para cancelar)')}</span>`));

@@ -80,24 +80,24 @@ function card(id, title, ic, ...rows) {
 function playback() {
   const cf = range('crossfade', 0, 12, 1, (v) => (v ? `${v} s` : tr('No')));
   return card('playback', tr('Reproducción'), 'play',
-    row(tr('Calidad de streaming'), tr('Bitrate máximo del formato de audio que se pide a YouTube Music en streaming: Baja hasta 64 kbps, Normal hasta 96, Alta hasta 160 y Máxima sin límite. Se elige el mejor formato por debajo del límite, con preferencia por Opus sobre AAC.'), select('streamQuality', QUALITY)),
-    row(tr('Reproducción sin pausas (gapless)'), tr('El motor de audio tiene dos pletinas (Web Audio): mientras suena una, la siguiente canción se carga en la otra y arranca justo al terminar la primera, sin el hueco que deja abrir un archivo nuevo.'), toggle('gapless')),
-    row(tr('Fundido entre canciones'), tr('Superpone el final de una canción y el principio de la siguiente durante los segundos elegidos (0–12): el volumen de una baja mientras sube el de la otra. Como mucho dura un tercio de la canción.'), cf),
-    row(`Automix <span class="beta">Beta</span>`, tr('Transiciones tipo DJ. Un análisis en segundo plano (Web Worker) calcula el tempo (BPM), los compases y dónde empieza y acaba el sonido de cada canción. La siguiente entra en un tiempo fuerte, con su tempo igualado al de la que suena (hasta ±8 %, sin cambiar el tono) y con intercambio de graves, y luego vuelve poco a poco a su tempo. Si los tempos son muy distintos, hace una mezcla corta sin sincronizar. Sustituye al fundido.'), toggle('automix')),
-    row(tr('Duración de la mezcla'), tr('Duración de cada mezcla del Automix en compases de 4 tiempos, al tempo de la canción que suena (entre 4 y 24 segundos). Si los tempos no encajan, se usan 4 compases como mucho.'), select('automixBars', [4, 8, 16].map((n) => [n, tr('{n} compases', { n })]))),
-    row(tr('Saltar silencios'), tr('El análisis de audio detecta dónde empieza y termina el sonido de cada canción: se salta el silencio inicial (si dura más de 0,4 s) y se pasa a la siguiente al acabar el sonido, sin esperar al silencio final.'), toggle('skipSilence')),
-    row(tr('Normalizar volumen'), tr('Aplica a cada canción una ganancia según su sonoridad medida por YouTube (loudness_db): baja las que suenan por encima de la referencia y sube un poco las más flojas (entre −12 y +6 dB), para que todas suenen a un volumen parecido.'), toggle('normalize')),
-    row(tr('Velocidad de reproducción'), tr('De 0,5× a 2× con corrección de tono (preservesPitch): la canción va más rápida o más lenta sin sonar más aguda ni más grave.'), range('speed', 0.5, 2, 0.05, (v) => `${(+v).toFixed(2)}×`)),
-    row(tr('Reproducción automática'), tr('Cuando se acaba la cola, BitChord pide a YouTube Music la lista «A continuación» (la radio) de la última canción y añade esas canciones, para que la música no se pare.'), toggle('autoplayRadio')),
-    row(tr('Recordar la cola al abrir'), tr('Guarda en este equipo la cola, la canción que suena y el segundo por el que va; al abrir BitChord se recuperan en pausa, listas para seguir.'), toggle('resumeOnStart')),
+    row(tr('Calidad de streaming'), tr('Más calidad suena mejor pero gasta más datos. «Máxima» pide siempre la mejor que haya.'), select('streamQuality', QUALITY)),
+    row(tr('Reproducción sin pausas (gapless)'), tr('La siguiente canción empieza justo cuando acaba la anterior, sin silencio entre medias.'), toggle('gapless')),
+    row(tr('Fundido entre canciones'), tr('Durante estos segundos, una canción se va apagando mientras entra la siguiente.'), cf),
+    row(`Automix <span class="beta">Beta</span>`, tr('Mezcla las canciones como un DJ: ajusta el ritmo de la siguiente y la hace entrar a tiempo. Si los ritmos no se parecen, hace una mezcla corta. Sustituye al fundido.'), toggle('automix')),
+    row(tr('Duración de la mezcla'), tr('Cuánto dura cada mezcla, en compases de la canción que suena.'), select('automixBars', [4, 8, 16].map((n) => [n, tr('{n} compases', { n })]))),
+    row(tr('Saltar silencios'), tr('Se salta el silencio del principio y del final de las canciones.'), toggle('skipSilence')),
+    row(tr('Normalizar volumen'), tr('Sube o baja cada canción para que todas suenen a un volumen parecido.'), toggle('normalize')),
+    row(tr('Velocidad de reproducción'), tr('Más rápido o más lento sin que la voz cambie de tono.'), range('speed', 0.5, 2, 0.05, (v) => `${(+v).toFixed(2)}×`)),
+    row(tr('Reproducción automática'), tr('Cuando se acaba la cola, sigue con canciones parecidas a la última.'), toggle('autoplayRadio')),
+    row(tr('Recordar la cola al abrir'), tr('Al abrir BitChord, la cola y la canción vuelven a estar donde las dejaste, en pausa.'), toggle('resumeOnStart')),
   );
 }
 
 function sourcesCard() {
   const el = card('sources', tr('Fuentes de música online'), 'library',
-    h(`<div class="set-note">${tr('YouTube Music es la fuente del catálogo, la radio y las recomendaciones, y la del audio por defecto. Las fuentes que actives aquí se consultan antes: si una tiene la misma canción con suficiente seguridad, el audio sale de ella; si no, de YouTube Music.')}</div>`),
-    row(tr('YouTube Music'), tr('Catálogo completo. El audio se descarga de los servidores de YouTube (googlevideo) a través de varios clientes de su API interna, que se prueban en orden hasta que uno sirve la canción entera (el registro apunta cuál). Opus hasta ~160 kbps o AAC. Siempre activa.'), h(`<span class="badge">${tr('Principal')}</span>`)),
-    row(tr('JioSaavn'), tr('Antes de pedir el audio a YouTube, busca la canción en JioSaavn por título y artista. Solo la usa si la duración coincide (±3 s) y el parecido es alto; entonces suena en AAC de hasta 320 kbps. Si no hay coincidencia o tarda más de 4 s, se usa YouTube Music. JioSaavn solo da servicio en algunos países.'), toggle('sourceJioSaavn')),
+    h(`<div class="set-note">${tr('La música sale de YouTube Music. Si activas otra fuente y tiene la misma canción, suena desde esa.')}</div>`),
+    row(tr('YouTube Music'), tr('Todo el catálogo. Siempre activa.'), h(`<span class="badge">${tr('Principal')}</span>`)),
+    row(tr('JioSaavn'), tr('Si la canción está en JioSaavn, suena desde ahí con más calidad (AAC a 320 kbps). Solo funciona en algunos países.'), toggle('sourceJioSaavn')),
   );
   // WebDAV servers
   const list = h('<div class="folders"></div>');
@@ -129,14 +129,14 @@ function sourcesCard() {
   form.append(addBtn);
   const rescan = btn(tr('Volver a escanear'), 'ghost', 'refresh');
   rescan.onclick = async () => { toast(tr('Escaneando servidores…')); const n = (await api('webdavRescan')).length; toast(tr('{n} canciones en tus servidores', { n })); drawServers(); };
-  el.append(row(tr('Servidores WebDAV'), tr('Lee tu música de un servidor WebDAV (NAS, Nextcloud…): recorre sus carpetas con PROPFIND, toma artista, álbum y título de la ruta "Artista/Álbum/01 - Título" y usa cover.jpg o folder.jpg como carátula. El audio pasa por el servidor local de BitChord por partes, sin descargarlo entero. Aparece en Biblioteca → En red.'), rescan), list, form);
-  el.append(h(`<div class="set-note">${tr('Las fuentes "Hi‑Res" por módulos de la app móvil (plugins que extraen FLAC de servicios de pago como Tidal, Qobuz o Apple Music) no están incluidas.')}</div>`));
+  el.append(row(tr('Servidores WebDAV'), tr('Escucha la música que tengas en un NAS o en Nextcloud sin descargarla. Aparece en Biblioteca → En red.'), rescan), list, form);
+  el.append(h(`<div class="set-note">${tr('Las fuentes «Hi‑Res» de la app móvil, que sacan FLAC de servicios de pago, no están incluidas.')}</div>`));
   return el;
 }
 
 function equalizer() {
   return card('eq', tr('Ecualizador'), 'equalizer',
-    h(`<div class="set-note">${tr('10 bandas (31 Hz – 16 kHz): filtros de pico en las centrales y de estantería en los extremos, en el motor de audio, detrás del preamplificador. Se aplica a todo lo que suena, también a la música local, y el visualizador recibe el sonido ya ecualizado.')}</div>`),
+    h(`<div class="set-note">${tr('Ajusta graves, medios y agudos de todo lo que suena, también de tu música local.')}</div>`),
     eqPanel(),
   );
 }
@@ -184,12 +184,12 @@ function lyrics() {
   };
   draw();
   return card('lyrics', tr('Letras'), 'lyrics',
-    h(`<div class="set-note">${tr('Para cada canción se pregunta a los proveedores en este orden y se usa la primera letra sincronizada que aparezca. Los marcados «palabra a palabra» dan el tiempo de cada palabra o sílaba. Arrastra para cambiar la prioridad o desactiva los que no quieras. En la vista de portada y letra puedes forzar un proveedor para la canción que suena.')}</div>`),
+    h(`<div class="set-note">${tr('La letra se busca en este orden y se usa la primera sincronizada que aparezca. Arrastra para cambiar el orden o apaga los que no quieras.')}</div>`),
     list,
-    row(tr('Clave de Spicy Lyrics'), tr('Spicy Lyrics pide una clave gratuita tuya: regístrate en developers.spicylyrics.org, crea una aplicación, activa el acceso de cliente permitiendo peticiones sin cabecera Origin y pega aquí la clave publicable (sl_pk_…). Además busca la canción en Spotify, así que necesita la sesión de Spotify (Importar). Musixmatch también la necesita.'), text('spicyLyricsKey', 'sl_pk_…', { secret: true })),
-    row(tr('Sincronización palabra a palabra'), tr('Si el proveedor da tiempos por palabra o sílaba (TTML o LRC mejorado), cada palabra se rellena a su ritmo; si no, se resalta la línea entera.'), toggle('lyricsWordSync')),
+    row(tr('Clave de Spicy Lyrics'), tr('Consíguela gratis en developers.spicylyrics.org: crea una app, permite las peticiones sin «Origin» y pega aquí la clave sl_pk_. Spicy Lyrics y Musixmatch necesitan además tener Spotify vinculado.'), text('spicyLyricsKey', 'sl_pk_…', { secret: true })),
+    row(tr('Sincronización palabra a palabra'), tr('Cada palabra se ilumina al cantarse. Si la letra no lo permite, se ilumina la línea entera.'), toggle('lyricsWordSync')),
     h(`<div class="set-sub">${tr('Aspecto')}</div>`),
-    h(`<div class="set-note">${tr('Cómo se ve la letra sincronizada, al estilo de Apple Music. Los mismos controles están en el menú de la letra (Aspecto de la letra…), donde cada cambio se ve mientras arrastras. El botón ↺ junto al valor lo devuelve a su valor inicial.')}</div>`),
+    h(`<div class="set-note">${tr('Estos controles también están en el menú de la letra, donde ves el cambio mientras arrastras. El botón ↺ deja cada uno como estaba.')}</div>`),
     lyricsLookControls(),
   );
 }
@@ -200,8 +200,8 @@ function downloads() {
   change.onclick = async () => { const p = await api('chooseFolder', tr('Carpeta de descargas')); if (p) { await saveSettings({ downloadDir: p }); refreshView(); } };
   dir.append(change);
   return card('downloads', tr('Descargas'), 'download',
-    row(tr('Calidad de descarga'), tr('Bitrate máximo del audio que se descarga, independiente del de streaming. Se guarda el audio original de YouTube, sin recomprimir.'), select('downloadQuality', QUALITY)),
-    row(tr('Formato'), tr('Opus: el audio original pasado de WebM a .opus (Ogg) sin recomprimir; más calidad por tamaño. AAC (.m4a): el audio AAC original en MP4, compatible con cualquier reproductor. Los dos llevan etiquetas con título, artista, álbum, carátula y letra.'), select('downloadFormat', [['opus', 'Opus (.opus)'], ['m4a', 'AAC (.m4a)']])),
+    row(tr('Calidad de descarga'), tr('La calidad de lo que descargas. Se guarda tal cual, sin perder calidad.'), select('downloadQuality', QUALITY)),
+    row(tr('Formato'), tr('Opus ocupa menos con la misma calidad. AAC (.m4a) funciona en cualquier reproductor. Los dos llevan título, artista, carátula y letra.'), select('downloadFormat', [['opus', 'Opus (.opus)'], ['m4a', 'AAC (.m4a)']])),
     row(tr('Carpeta'), tr('Dónde se guardan los archivos descargados.'), dir),
     row(tr('Descargas'), tr('{n} canciones descargadas.', { n: state.downloads.done.length }), (() => { const b = btn(tr('Ver descargas'), 'ghost', 'library'); b.onclick = () => go({ name: 'library', tab: 'downloads' }); return b; })()),
   );
@@ -239,9 +239,9 @@ function localMusic() {
   };
   const actions = h('<div class="btn-row local-actions"></div>'); actions.append(unc, add, rescan);
   return card('local', tr('Música local'), 'computer',
-    h(`<div class="set-note">${tr('BitChord indexa las carpetas que añadas: lee las etiquetas de cada archivo (título, artista, álbum, carátula, duración y datos técnicos) y guarda el índice para no volver a leerlos. Cada carpeta es una playlist con su propia portada en Biblioteca → En este equipo y en Playlists. Formatos: MP3, M4A, FLAC, OGG, Opus, WAV…')}</div>`),
+    h(`<div class="set-note">${tr('Cada carpeta que añadas aparece como una playlist en Biblioteca → En este equipo. Vale MP3, M4A, FLAC, OGG, Opus, WAV y más.')}</div>`),
     box, actions,
-    row(tr('Actualizar automáticamente'), tr('Vigila las carpetas con los avisos de cambios del sistema de archivos de Windows: al añadir, quitar o cambiar un archivo, se vuelve a escanear solo esa carpeta a los pocos segundos. Sin cambios no gasta nada. En carpetas de red esos avisos pueden no llegar; ahí usa «Volver a escanear».'), toggle('localWatch')),
+    row(tr('Actualizar automáticamente'), tr('Si añades o quitas canciones de una carpeta, BitChord se entera solo. En carpetas de red puede que no: usa «Volver a escanear».'), toggle('localWatch')),
   );
 }
 
@@ -249,7 +249,7 @@ function importCard() {
   const link = btn(tr('Vincular cuenta de Spotify…'), 'spotify', 'open');
   link.onclick = () => go({ name: 'spotify-import' });
   return card('import', tr('Importar de Spotify'), 'importIcon',
-    row(tr('Cuenta de Spotify'), tr('Copia las playlists que elijas de Spotify (y tus «Canciones que te gustan») a tu cuenta de YouTube Music y las mantiene sincronizadas. Necesita la sesión de Google iniciada (Ajustes → Cuenta), porque las copias se crean ahí.'), link),
+    row(tr('Cuenta de Spotify'), tr('Lleva tus playlists de Spotify a YouTube Music y las mantiene al día. Necesitas haber iniciado sesión con Google.'), link),
     h(`<ul class="set-note sp-how">${SPOTIFY_HOW().map((t) => `<li>${t}</li>`).join('')}</ul>`),
   );
 }
@@ -261,7 +261,7 @@ function account() {
     el.append(h(`<div class="acct">${a.photo ? `<img src="${esc(a.photo)}" alt="">` : icon('account')}<div><b>${esc(a.name || tr('Sesión iniciada'))}</b><div class="set-desc">${esc(a.handle || 'YouTube Music')}</div></div></div>`));
     const out = btn(tr('Cerrar sesión'), 'ghost', 'logout');
     out.onclick = async () => { await api('logout'); await refreshAccount(); toast(tr('Sesión cerrada')); refreshView(); };
-    el.append(row(tr('Biblioteca y recomendaciones'), tr('Las peticiones a YouTube Music van con las cookies de tu sesión: Inicio, recomendaciones, biblioteca, «Me gusta» y playlists son los de tu cuenta, y lo que crees o cambies en BitChord se guarda en ella. Cerrar sesión borra esas cookies de este equipo.'), out));
+    el.append(row(tr('Biblioteca y recomendaciones'), tr('Ves tu inicio, tus playlists y tus «Me gusta», y lo que hagas aquí se guarda en tu cuenta. Al cerrar sesión se borran tus datos de acceso de este equipo.'), out));
   } else {
     const login = btn(tr('Iniciar sesión con Google'), 'primary', 'account');
     login.onclick = async () => {
@@ -272,9 +272,9 @@ function account() {
       } catch (e) { toast(e.message, true); }
       login.disabled = false;
     };
-    el.append(row(tr('Inicia sesión'), tr('Abre la página oficial de Google en una ventana de BitChord. Al entrar, BitChord guarda solo las cookies de YouTube, cifradas con el almacén de claves de Windows (DPAPI), y las envía en sus peticiones a YouTube Music: así ves tus playlists, «Me gusta» y recomendaciones. Tu contraseña no pasa por BitChord.'), login));
+    el.append(row(tr('Inicia sesión'), tr('Se abre la página de Google para entrar. Tu contraseña no pasa por BitChord y el acceso se guarda cifrado en este equipo.'), login));
     const manual = h(`<details class="adv"><summary>${tr('¿Google no te deja entrar? Pega la cookie a mano')}</summary>
-      <div class="set-desc">${tr('En el navegador, abre music.youtube.com con tu sesión, pulsa F12 → Red, recarga, elige cualquier petición a music.youtube.com y copia el valor de la cabecera <b>cookie</b>.')}</div>
+      <div class="set-desc">${tr('En el navegador, entra en music.youtube.com, pulsa F12 → Red, recarga y copia el valor de la cabecera <b>cookie</b> de cualquier petición.')}</div>
       <textarea class="text" rows="3" placeholder="VISITOR_INFO1_LIVE=…; SAPISID=…; …"></textarea></details>`);
     const save = btn(tr('Usar esta cookie'), 'ghost');
     save.onclick = async () => {
@@ -317,10 +317,10 @@ function integrations() {
   lfm.append(lfmBtns);
 
   return card('integrations', tr('Integraciones'), 'sparkle',
-    row(tr('Discord Rich Presence'), tr('Envía la canción que suena (título, artista, carátula y tiempo) a la app de Discord abierta en este PC por su conexión local (named pipe discord-ipc), y Discord la muestra en tu perfil como «Escuchando BitChord». No usa tu cuenta de Discord.'), toggle('discordRpc')),
-    row(tr('ListenBrainz'), tr('Envía a <a href="#" data-url="https://listenbrainz.org/settings/">listenbrainz.org</a> la canción que suena y, al pasar el porcentaje de abajo, la registra como escuchada (scrobble), con su API y tu token de usuario (está en su página de ajustes).'), lb),
-    row(tr('Last.fm'), tr('Lo mismo con Last.fm: crea una API key gratuita en <a href="#" data-url="https://www.last.fm/api/account/create">last.fm/api</a>, pégala con su «shared secret» y autoriza a BitChord en la web de Last.fm; la sesión que devuelve se guarda en este equipo.'), lfm),
-    row(tr('Porcentaje para scrobblear'), tr('Una canción cuenta como escuchada al reproducir este porcentaje de su duración o 4 minutos, lo que llegue antes (la regla de Last.fm).'), range('scrobblePercent', 30, 90, 5, (v) => `${v} %`)),
+    row(tr('Discord Rich Presence'), tr('Tu perfil de Discord muestra lo que estás escuchando. Solo hace falta tener Discord abierto en este PC.'), toggle('discordRpc')),
+    row(tr('ListenBrainz'), tr('Guarda en <a href="#" data-url="https://listenbrainz.org/settings/">ListenBrainz</a> lo que escuchas. Pega el token que aparece en sus ajustes.'), lb),
+    row(tr('Last.fm'), tr('Igual con Last.fm: crea una clave gratis en <a href="#" data-url="https://www.last.fm/api/account/create">last.fm/api</a>, pégala con su «shared secret» y autoriza a BitChord en la web.'), lfm),
+    row(tr('Porcentaje para scrobblear'), tr('Una canción cuenta como escuchada al llegar a este porcentaje o a los 4 minutos, lo que pase antes.'), range('scrobblePercent', 30, 90, 5, (v) => `${v} %`)),
   );
 }
 
@@ -352,7 +352,7 @@ function themeEditor(theme) {
   return new Promise((resolve) => {
     const m = h(`<div class="modal-back"><div class="modal theme-editor">
       <h3>${tr(theme ? 'Editar tema' : 'Nuevo tema')}</h3>
-      <p class="muted">${tr('Escribe el CSS de tu tema. Lo más fácil es cambiar los colores de la plantilla; para que se use tu <code>--accent</code>, elige «El del tema» en <b>Color de acento</b>.')}</p>
+      <p class="muted">${tr('Cambia los colores de la plantilla. Para usar tu <code>--accent</code>, elige «El del tema» en <b>Color de acento</b>.')}</p>
       <input class="text" type="text" placeholder="${tr('Nombre del tema')}" spellcheck="false">
       <textarea class="text" spellcheck="false"></textarea>
       <div class="te-err"></div>
@@ -387,7 +387,7 @@ function themeEditor(theme) {
 
 function themeCard() {
   const mode = state.settings.accentMode || (state.settings.dynamicAccent === false ? 'theme' : 'cover');
-  const pickerRow = h(`<div class="cp-row"${mode === 'custom' ? '' : ' hidden'}><div class="set-text"><div class="set-label">${tr('Tu color')}</div><div class="set-desc">${tr('Arrastra en el cuadro para elegir saturación y brillo, en la barra de colores para el tono y en la de abajo para la transparencia. También puedes escribir el código (#RRGGBB o #RRGGBBAA).')}</div></div></div>`);
+  const pickerRow = h(`<div class="cp-row"${mode === 'custom' ? '' : ' hidden'}><div class="set-text"><div class="set-label">${tr('Tu color')}</div><div class="set-desc">${tr('Elige el color arrastrando o escribe su código (#RRGGBB).')}</div></div></div>`);
   pickerRow.append(colorPicker(state.settings.customAccent || '#940825', {
     onChange: (hex) => applyCustomAccent(hex),
     onCommit: (hex) => saveSettings({ customAccent: hex }),
@@ -435,9 +435,9 @@ function themeCard() {
   };
   draw();
   return card('theme', tr('Tema'), 'sparkle',
-    h(`<div class="set-note">${tr('Un tema es una hoja de estilos CSS que se carga encima de la de BitChord: cambia sus variables de color (<code>--bg</code>, <code>--accent</code>…) o añade reglas propias. Con <b>+</b> creas uno desde una plantilla y lo pruebas con «Vista previa» antes de guardarlo. Pasa el ratón por uno tuyo para editarlo o eliminarlo.')}</div>`),
+    h(`<div class="set-note">${tr('Crea tus propios temas con <b>+</b> y pruébalos con «Vista previa» antes de guardarlos. Pasa el ratón por uno tuyo para editarlo o borrarlo.')}</div>`),
     grid,
-    row(tr('Color de acento'), tr('Color de botones, interruptores y resaltados (la variable --accent). «Según la portada» toma el color dominante de la carátula que suena y lo ajusta para que se lea bien; «El del tema», el de su CSS; «Personalizado», el que elijas.'), accentSel),
+    row(tr('Color de acento'), tr('El color de botones y resaltados. «Según la portada» lo saca de la carátula que suena.'), accentSel),
     pickerRow,
   );
 }
@@ -449,7 +449,7 @@ function hiddenPlaylistsBlock() {
     box.replaceChildren();
     const list = state.settings.hiddenPlaylists || [];
     if (!list.length) return;
-    box.append(sub(tr('Playlists ocultas'), 'queue'), h(`<div class="set-note">${tr('Playlists de tu cuenta de YouTube Music que BitChord no muestra (por ejemplo, las que YouTube no deja borrar). Solo se ocultan aquí: siguen en tu cuenta.')}</div>`));
+    box.append(sub(tr('Playlists ocultas'), 'queue'), h(`<div class="set-note">${tr('Playlists que no quieres ver aquí. Siguen en tu cuenta de YouTube Music.')}</div>`));
     for (const p of list) {
       const b = btn(tr('Mostrar'), 'ghost');
       b.onclick = async () => { await saveSettings({ hiddenPlaylists: (state.settings.hiddenPlaylists || []).filter((x) => x.id !== p.id) }); import('./app.js').then((m) => m.renderSidebar()); draw(); };
@@ -550,51 +550,51 @@ function sidebarCard() {
   return [
     card('sidebar', tr('Interfaz'), 'tune',
       sub(tr('Fuente'), 'edit'),
-      row(tr('Emojis de Apple'), tr('Dibuja los emojis de títulos, artistas y letras con la fuente «Apple Color Emoji» si está instalada en Windows. Se carga como fuente limitada a los caracteres de emoji (unicode-range), así que el resto del texto no cambia. Sin esa fuente se ven los de Windows.'), toggle('appleEmoji')),
-      row(tr('Fuente de la aplicación'), tr('Tipografía de toda la interfaz. Inter va incluida. SF Pro Display es de Apple y no se puede distribuir, así que se usan tus archivos: la primera vez se copian de la carpeta «sf-pro-display» del Escritorio (o de la que elijas) al perfil de BitChord, y cada grosor (Light, Regular, Medium, Semibold, Bold…) se carga como una variante de la misma fuente.'), font),
+      row(tr('Emojis de Apple'), tr('Usa los emojis de Apple si tienes instalada la fuente «Apple Color Emoji». Si no, se ven los de Windows.'), toggle('appleEmoji')),
+      row(tr('Fuente de la aplicación'), tr('La letra de toda la app. Para SF Pro Display hacen falta sus archivos: BitChord los coge de la carpeta «sf-pro-display» del Escritorio o de la que elijas.'), font),
       hiddenPlaylistsBlock(),
       sub(tr('Pantalla principal'), 'home'),
-      h(`<div class="set-note">${tr('Inicio muestra los apartados que YouTube Music devuelve para tu cuenta. Marca los que quieres ver; se reconocen por su título, así que también puedes ocultar uno desde Inicio con «Ocultar» al pasar el ratón por él. Los apartados nuevos que añada YouTube aparecen aquí en cuanto salgan.')}</div>`),
+      h(`<div class="set-note">${tr('Elige qué apartados quieres ver en Inicio. También puedes ocultar uno desde Inicio pasando el ratón por encima.')}</div>`),
       homeGrid,
       sub(tr('Barra lateral'), 'menu'),
-      row(tr('Mostrar la barra lateral'), tr('Fija; oculta y desplegada al acercar el ratón al borde izquierdo de la ventana; u oculta, con un botón junto a las flechas de navegación para abrirla.'),
+      row(tr('Mostrar la barra lateral'), tr('Siempre visible, oculta hasta que acercas el ratón al borde izquierdo, u oculta con un botón para abrirla.'),
         select('sidebarMode', [['fixed', tr('Siempre visible')], ['hover', tr('Al pasar el ratón por la izquierda')], ['button', tr('Con un botón')]])),
-      h(`<div class="set-note">${tr('Elige qué aparece en la barra lateral y en qué orden (arrastra o usa las flechas). Las pestañas de Biblioteca se pueden anclar como accesos directos. <b>Ajustes</b> está siempre arriba a la derecha (junto a tu perfil), así que nunca te quedas sin forma de volver aquí.')}</div>`),
+      h(`<div class="set-note">${tr('Elige qué aparece en la barra lateral y en qué orden. <b>Ajustes</b> sigue siempre arriba a la derecha, junto a tu perfil.')}</div>`),
       list,
       row(tr('Volver a la configuración original'), tr('Devuelve los elementos y el orden de la barra lateral a los de serie.'), reset),
       sub(tr('Datos de las pistas en «En este equipo»'), 'computer'),
-      h(`<div class="set-note">${tr('Columnas con datos técnicos de cada archivo de música local, leídos de sus etiquetas y cabeceras al indexarlo.')}</div>`),
+      h(`<div class="set-note">${tr('Qué información de cada archivo se muestra en tu música local.')}</div>`),
       info,
     ),
     card('effects', tr('Fondo y efectos'), 'image',
       sub(tr('Fondo animado'), 'image'),
-      h(`<div class="set-note">${tr('Detrás de la app (y en la vista de portada y letra) se dibuja la carátula que suena, muy desenfocada, en capas que se mueven despacio con animaciones CSS (o manchas con sus colores principales). Solo se mueve mientras suena música y se para con la ventana minimizada. Los cambios se ven al momento.')}</div>`),
-      row(tr('Fondo animado'), tr('Apagado, se usa el color de fondo del tema y la tarjeta gráfica no hace este trabajo.'), toggle('ambient', () => amb())),
-      row(tr('Estilo'), tr('La carátula desenfocada girando despacio, o manchas difuminadas con sus colores más destacados.'), select('ambientMode', [['cover', tr('Portada desenfocada')], ['colors', tr('Manchas de color')]], () => amb())),
-      row(tr('Intensidad del brillo'), tr('Opacidad del fondo animado sobre el color de fondo del tema.'), range('ambientIntensity', 5, 100, 1, (v) => `${v} %`, live('ambientIntensity', amb))),
-      row(tr('Desenfoque'), tr('Radio del desenfoque (filtro blur) de la carátula o las manchas. Más alto = colores más suaves y mezclados, y algo más de trabajo para la gráfica.'), range('ambientBlur', 20, 220, 5, (v) => `${v} px`, live('ambientBlur', amb))),
-      row(tr('Velocidad de movimiento'), tr('Velocidad de las animaciones del fondo. Solo se mueve mientras suena una canción; en pausa se queda quieto. 0 lo deja siempre quieto.'), range('ambientSpeed', 0, 100, 1, (v) => (v ? `${v} %` : tr('Quieto')), live('ambientSpeed', amb))),
-      row(tr('Tamaño'), tr('Escala de la carátula o de las manchas de color respecto a la ventana.'), range('ambientSize', 50, 160, 5, (v) => `${v} %`, live('ambientSize', amb))),
-      row(tr('Saturación'), tr('Filtro de saturación de los colores del fondo: 100 % es el color original, 0 % blanco y negro.'), range('ambientSaturation', 0, 250, 5, (v) => `${v} %`, live('ambientSaturation', amb))),
+      h(`<div class="set-note">${tr('La carátula que suena, muy desenfocada y moviéndose despacio detrás de la app. Se para cuando no suena nada.')}</div>`),
+      row(tr('Fondo animado'), tr('Si lo apagas, el fondo es el color del tema y la gráfica descansa.'), toggle('ambient', () => amb())),
+      row(tr('Estilo'), tr('La carátula girando despacio o manchas con sus colores.'), select('ambientMode', [['cover', tr('Portada desenfocada')], ['colors', tr('Manchas de color')]], () => amb())),
+      row(tr('Intensidad del brillo'), tr('Cuánto se ve el fondo animado.'), range('ambientIntensity', 5, 100, 1, (v) => `${v} %`, live('ambientIntensity', amb))),
+      row(tr('Desenfoque'), tr('Cuanto más alto, más suaves y mezclados los colores.'), range('ambientBlur', 20, 220, 5, (v) => `${v} px`, live('ambientBlur', amb))),
+      row(tr('Velocidad de movimiento'), tr('Lo rápido que se mueve el fondo. Con 0 se queda quieto.'), range('ambientSpeed', 0, 100, 1, (v) => (v ? `${v} %` : tr('Quieto')), live('ambientSpeed', amb))),
+      row(tr('Tamaño'), tr('El tamaño de la carátula o de las manchas de color.'), range('ambientSize', 50, 160, 5, (v) => `${v} %`, live('ambientSize', amb))),
+      row(tr('Saturación'), tr('Lo vivos que se ven los colores. Al 0 % queda en blanco y negro.'), range('ambientSaturation', 0, 250, 5, (v) => `${v} %`, live('ambientSaturation', amb))),
       sub(tr('Portadas animadas'), 'album'),
-      row(tr('Portada animada'), tr('Si la canción tiene portada animada (un vídeo corto en bucle), se busca en Apple Music, Tidal o un índice de la comunidad y se reproduce sin sonido sobre la carátula grande de la vista de portada y letra y de la pantalla completa. Se pausa con la ventana minimizada.'), toggle('animatedCovers')),
+      row(tr('Portada animada'), tr('Si la canción tiene portada animada (un vídeo corto en bucle), se ve en la vista de portada y letra y en pantalla completa.'), toggle('animatedCovers')),
       sub(tr('Efecto Mica'), 'sparkle'),
-      h(`<div class="set-note">${tr('Los paneles se dibujan como cristal: lo que hay detrás se desenfoca y satura (backdrop-filter) y se tiñe con el color del tema. Se activa por separado en cada panel; apagado, el panel usa el color sólido del tema. La intensidad, el desenfoque y la saturación son comunes a todos.')}</div>`),
+      h(`<div class="set-note">${tr('Los paneles se ven como un cristal teñido con el color del tema. Puedes activarlo en cada panel por separado.')}</div>`),
       row(tr('Barra lateral izquierda'), '', toggle('micaSidebar', () => mica())),
       row(tr('Cola (barra lateral derecha)'), '', toggle('micaQueue', () => mica())),
       row(tr('Controles de reproducción (abajo)'), '', toggle('micaPlayer', () => mica())),
-      row(tr('Botones de pantalla completa'), tr('En la vista de portada y letra y en pantalla completa: la flecha de minimizar, la columna de botones de la derecha (letra, cola, ecualizador, ajustes, salir) y favorito, aleatorio y repetir cuando están activados.'), toggle('micaLyrics', () => mica())),
-      row(tr('Intensidad del tinte'), tr('Opacidad del color del tema sobre el cristal: más alto = más color y menos transparencia.'), range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
-      row(tr('Desenfoque del cristal'), tr('Radio del desenfoque de lo que hay detrás del cristal. 0 = cristal transparente.'), range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
-      row(tr('Saturación'), tr('Saturación de lo que se ve a través del cristal (100 % = sin cambios).'), range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
+      row(tr('Botones de pantalla completa'), tr('Los botones de la vista de portada y letra y de la pantalla completa también se ven como cristal.'), toggle('micaLyrics', () => mica())),
+      row(tr('Intensidad del tinte'), tr('Cuánto color del tema lleva el cristal.'), range('micaTint', 0, 100, 1, (v) => `${v} %`, live('micaTint', mica))),
+      row(tr('Desenfoque del cristal'), tr('Cuánto se difumina lo que hay detrás. A 0 el cristal es transparente.'), range('micaBlur', 0, 120, 2, (v) => `${v} px`, live('micaBlur', mica))),
+      row(tr('Saturación'), tr('Lo vivos que se ven los colores a través del cristal.'), range('micaSaturation', 100, 300, 5, (v) => `${v} %`, live('micaSaturation', mica))),
     ),
   ];
 }
 
 function performanceCard() {
   return card('performance', tr('Rendimiento'), 'speed',
-    h(`<div class="set-note">${tr('El modo rendimiento quita lo que más gasta de la tarjeta gráfica y del procesador: para equipos modestos, portátiles con batería o para jugar mientras escuchas música. También se activa con el botón del velocímetro, arriba a la derecha junto a tu foto.')}</div>`),
-    row(tr('Modo rendimiento'), tr('Mientras está activo: los paneles pasan a color sólido (sin backdrop-filter), se quitan el fondo animado y el fondo difuminado de la vista de portada y letra, se apagan el visualizador, el círculo y las portadas animadas, y las animaciones de la interfaz son instantáneas. Tus ajustes no cambian: al desactivarlo vuelve todo como estaba.'), toggle('performanceMode')),
+    h(`<div class="set-note">${tr('Quita los efectos que más gastan, para equipos modestos, portátiles con batería o para jugar mientras escuchas música. También tienes el botón del velocímetro, arriba a la derecha.')}</div>`),
+    row(tr('Modo rendimiento'), tr('Se quitan los fondos animados, el cristal, el visualizador y las animaciones. Tus ajustes no se pierden: al desactivarlo todo vuelve como estaba.'), toggle('performanceMode')),
   );
 }
 
@@ -608,12 +608,12 @@ function general() {
     setTimeout(() => location.reload(), 300);
   });
   return card('general', tr('General'), 'settings',
-    row(tr('Idioma de la interfaz'), tr('Idioma de los menús, botones y textos de BitChord (aparte del de YouTube Music). Los textos se cargan al abrir la ventana, así que al cambiarlo se recarga (la música se pausa un momento).'), langSel),
-    row(tr('Botones de la ventana'), tr('Los botones de minimizar, maximizar y cerrar: los círculos de colores de macOS (los dibuja BitChord) o los nativos de Windows. La ventana se crea con unos u otros, así que BitChord se reinicia al cambiarlo.'), select('windowButtons', [['mac', tr('Estilo macOS')], ['windows', tr('Estilo Windows')]])),
-    row(tr('Cerrar a la bandeja del sistema'), tr('Al cerrar la ventana, BitChord se oculta en la bandeja del sistema (junto al reloj) y la música sigue. Para salir del todo: clic derecho en su icono → Salir.'), toggle('closeToTray')),
-    row(tr('Idioma de YouTube Music'), tr('Idioma (parámetro hl) con el que se piden los datos a YouTube Music: títulos de los apartados, géneros y recomendaciones.'), select('language', [['es', 'Español'], ['en', 'English'], ['pt', 'Português'], ['fr', 'Français'], ['de', 'Deutsch'], ['it', 'Italiano']])),
-    row(tr('País'), tr('País (parámetro gl) que se envía a YouTube Music: cambia las listas de éxitos, las recomendaciones y qué canciones están disponibles.'), select('region', [['ES', tr('España')], ['MX', tr('México')], ['AR', 'Argentina'], ['CO', 'Colombia'], ['CL', 'Chile'], ['PE', tr('Perú')], ['US', tr('Estados Unidos')], ['GB', tr('Reino Unido')]])),
-    row(tr('Historial de reproducción'), tr('Canciones escuchadas, guardadas solo en este equipo (las usa «Escuchado recientemente»). No borra el historial de tu cuenta de YouTube.'), (() => { const b = btn(tr('Borrar historial'), 'ghost', 'trash'); b.onclick = () => { localStorage.setItem('bc.history', '[]'); toast(tr('Historial borrado')); }; return b; })()),
+    row(tr('Idioma de la interfaz'), tr('El idioma de la app (el de YouTube Music se elige aparte). Al cambiarlo, la ventana se recarga.'), langSel),
+    row(tr('Botones de la ventana'), tr('Los círculos de colores de macOS o los botones de Windows. BitChord se reinicia al cambiarlo.'), select('windowButtons', [['mac', tr('Estilo macOS')], ['windows', tr('Estilo Windows')]])),
+    row(tr('Cerrar a la bandeja del sistema'), tr('Al cerrar la ventana, la música sigue y BitChord se queda junto al reloj. Para salir del todo: clic derecho en su icono → Salir.'), toggle('closeToTray')),
+    row(tr('Idioma de YouTube Music'), tr('El idioma de los títulos y recomendaciones de YouTube Music.'), select('language', [['es', 'Español'], ['en', 'English'], ['pt', 'Português'], ['fr', 'Français'], ['de', 'Deutsch'], ['it', 'Italiano']])),
+    row(tr('País'), tr('Cambia las listas de éxitos, las recomendaciones y qué canciones están disponibles.'), select('region', [['ES', tr('España')], ['MX', tr('México')], ['AR', 'Argentina'], ['CO', 'Colombia'], ['CL', 'Chile'], ['PE', tr('Perú')], ['US', tr('Estados Unidos')], ['GB', tr('Reino Unido')]])),
+    row(tr('Historial de reproducción'), tr('Las canciones que has escuchado en este equipo. No toca el historial de tu cuenta de YouTube.'), (() => { const b = btn(tr('Borrar historial'), 'ghost', 'trash'); b.onclick = () => { localStorage.setItem('bc.history', '[]'); toast(tr('Historial borrado')); }; return b; })()),
   );
 }
 
@@ -649,9 +649,9 @@ function backupCard() {
   const box = h('<span class="btn-row"></span>');
   box.append(exp, imp);
   return card('backup', tr('Copia de la configuración'), 'folder',
-    h(`<div class="set-note">${icon('info')} <span>${tr('Guarda en un archivo <b>.bitchord</b> todo lo que has personalizado: ajustes, tema y temas propios, efecto Mica y fondo, barra lateral, ecualizador, letras, visualizador, portadas de playlists y carpetas, playlists ocultas y su orden, favoritos, búsquedas recientes y las playlists vinculadas con Spotify. Llévalo a otro PC (USB, nube, correo…) e impórtalo allí.')}</span></div>`),
-    row(tr('Exportar o importar'), tr('Exporta un archivo .bitchord (un .zip) con los ajustes, los datos guardados de la interfaz, las portadas personalizadas y las playlists vinculadas con Spotify. Al importarlo se sustituye la configuración de este equipo y BitChord se reinicia.'), box),
-    h(`<div class="set-note">${tr('No se incluyen las sesiones (Google, Spotify, Last.fm ni ListenBrainz): van cifradas solo para este equipo, así que en el otro hay que volver a iniciarlas. Tampoco las canciones descargadas ni la música local, que son archivos.')}</div>`),
+    h(`<div class="set-note">${icon('info')} <span>${tr('Guarda todo lo que has personalizado en un archivo <b>.bitchord</b> para llevártelo a otro PC.')}</span></div>`),
+    row(tr('Exportar o importar'), tr('Al importarlo se sustituye la configuración de este equipo y BitChord se reinicia.'), box),
+    h(`<div class="set-note">${tr('No incluye tus sesiones (Google, Spotify, Last.fm…) ni tu música: en el otro PC tendrás que volver a entrar.')}</div>`),
   );
 }
 
@@ -663,9 +663,9 @@ async function about() {
   now.onclick = async () => { now.disabled = true; try { await checkForUpdates({ manual: true }); } finally { now.disabled = false; } };
   return card('about', tr('Acerca de'), 'info',
     h(`<div class="set-note">BitChord Desktop ${esc(i.version)} — ${tr('port para Windows de')} <a href="#" data-url="https://github.com/kushagrasinghx/BitChord">BitChord</a> (GPL-3.0). Electron ${esc(i.electron)} · Chromium ${esc(i.chrome)}.<br>${tr('No está afiliado a YouTube ni a Google.')}</div>`),
-    row(tr('Buscar actualizaciones al abrir'), tr('Al abrir BitChord se mira en GitHub (github.com/IvannPerezz/music-app) si hay una versión nueva; si la hay, aparece un aviso con sus novedades y un botón que la descarga, comprueba que el archivo es el publicado y la instala, cerrando y volviendo a abrir BitChord.'), toggle('updateCheck')),
-    row(tr('Buscar actualizaciones'), tr('Mira ahora mismo si hay una versión nueva, aunque antes la hayas omitido.'), now),
-    row(tr('Registro de diagnóstico'), tr('Archivo de texto (bitchord.log, en la carpeta del perfil) donde BitChord apunta lo que hace: por qué cliente sale cada canción, errores, sincronizaciones… Si algo falla, es lo primero que hay que mirar.'), log),
+    row(tr('Buscar actualizaciones al abrir'), tr('Al abrir BitChord, mira si hay una versión nueva y te avisa con sus novedades. Se descarga e instala con un clic.'), toggle('updateCheck')),
+    row(tr('Buscar actualizaciones'), tr('Mira ahora si hay una versión nueva, aunque la hayas omitido.'), now),
+    row(tr('Registro de diagnóstico'), tr('Un archivo donde BitChord apunta lo que va haciendo. Si algo falla, es lo primero que hay que mirar.'), log),
     h(`<div class="set-note keys"><b>${tr('Atajos')}</b><br>${tr('Espacio play/pausa · Ctrl+←/→ anterior/siguiente · ←/→ ±5 s · ↑/↓ volumen · E ecualizador · L letra · Q cola · V visualizador · S aleatorio · R repetir · M silenciar · F favorito · F11 pantalla completa · Ctrl+F buscar · Ctrl+, ajustes')}</div>`),
   );
 }
