@@ -1,5 +1,6 @@
 // Settings page.
 import { lyricsLookControls } from './lyrics-look.js';
+import { checkForUpdates } from './update-dialog.js';
 import { bc, $, icon, esc, api, toast, h, state, saveSettings, art, store, confirmDialog } from './core.js';
 import { eqPanel } from './eq-panel.js';
 import { applyFont, refreshAccount, refreshView, go, SIDEBAR_ITEMS, applyCustomAccent, applyTheme, setThemeCss } from './app.js';
@@ -658,8 +659,12 @@ async function about() {
   const i = await bc.appInfo();
   const log = btn(tr('Abrir registro'), 'ghost', 'folder');
   log.onclick = () => bc.openLog();
+  const now = btn(tr('Buscar ahora'), 'ghost', 'refresh');
+  now.onclick = async () => { now.disabled = true; try { await checkForUpdates({ manual: true }); } finally { now.disabled = false; } };
   return card('about', tr('Acerca de'), 'info',
     h(`<div class="set-note">BitChord Desktop ${esc(i.version)} — ${tr('port para Windows de')} <a href="#" data-url="https://github.com/kushagrasinghx/BitChord">BitChord</a> (GPL-3.0). Electron ${esc(i.electron)} · Chromium ${esc(i.chrome)}.<br>${tr('No está afiliado a YouTube ni a Google.')}</div>`),
+    row(tr('Buscar actualizaciones al abrir'), tr('Al abrir BitChord se mira en GitHub (github.com/IvannPerezz/music-app) si hay una versión nueva; si la hay, aparece un aviso con sus novedades y un botón que la descarga, comprueba que el archivo es el publicado y la instala, cerrando y volviendo a abrir BitChord.'), toggle('updateCheck')),
+    row(tr('Buscar actualizaciones'), tr('Mira ahora mismo si hay una versión nueva, aunque antes la hayas omitido.'), now),
     row(tr('Registro de diagnóstico'), tr('Archivo de texto (bitchord.log, en la carpeta del perfil) donde BitChord apunta lo que hace: por qué cliente sale cada canción, errores, sincronizaciones… Si algo falla, es lo primero que hay que mirar.'), log),
     h(`<div class="set-note keys"><b>${tr('Atajos')}</b><br>${tr('Espacio play/pausa · Ctrl+←/→ anterior/siguiente · ←/→ ±5 s · ↑/↓ volumen · E ecualizador · L letra · Q cola · V visualizador · S aleatorio · R repetir · M silenciar · F favorito · F11 pantalla completa · Ctrl+F buscar · Ctrl+, ajustes')}</div>`),
   );

@@ -2,6 +2,7 @@
 // que viene con Windows). Lleva dentro la app completa (payload.zip) y la instala sin internet en
 // %LOCALAPPDATA%\Programs\BitChord, como installer/instalar.ps1: accesos directos, entrada en
 // "Aplicaciones instaladas" y abre BitChord al terminar. Los ajustes (%APPDATA%\BitChord) no se tocan.
+// Con --auto (lo lanza el actualizador de BitChord) empieza solo y se cierra al acabar.
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -18,8 +19,11 @@ using Microsoft.Win32;
 static class Setup {
   static readonly string Dest = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\BitChord");
 
+  static bool Auto;
+
   [STAThread]
-  static void Main() {
+  static void Main(string[] args) {
+    Auto = Array.Exists(args, (a) => a.Equals("--auto", StringComparison.OrdinalIgnoreCase));
     Application.EnableVisualStyles();
     var version = Assembly.GetExecutingAssembly().GetName().Version;
     var form = new Form {
@@ -45,6 +49,7 @@ static class Setup {
             status.Text = "Listo. BitChord está en el Escritorio y en el menú Inicio.";
             Process.Start(new ProcessStartInfo(Path.Combine(Dest, "BitChord.exe")) { WorkingDirectory = Dest });
             btn.Text = "Cerrar"; btn.Enabled = true; btn.Click += (s2, e2) => form.Close();
+            if (Auto) { var t = new System.Windows.Forms.Timer { Interval = 1500 }; t.Tick += (s3, e3) => form.Close(); t.Start(); }
           }));
         } catch (Exception ex) {
           form.BeginInvoke((Action)(() => {
@@ -54,12 +59,14 @@ static class Setup {
         }
       }) { IsBackground = true }.Start();
     };
+    if (Auto) form.Shown += (s, e) => btn.PerformClick();
     Application.Run(form);
   }
 
   static void Install(Action<int, string> progress) {
     progress(0, "Cerrando BitChord si estaba abierto...");
-    foreach (var p in Process.GetProcessesByName("BitChord")) { try { p.Kill(); p.WaitForExit(5000); } catch { } }
+    // (From the updater, BitChord is closing by itself: give it a moment to save before forcing it.)
+    foreach (var p in Process.GetProcessesByName("BitChord")) { try { if (!Auto || !p.WaitForExit(10000)) { p.Kill(); p.WaitForExit(5000); } } catch { } }
     Thread.Sleep(500);
 
     progress(0, "Preparando la carpeta...");

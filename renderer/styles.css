@@ -1708,3 +1708,22 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 }
 .set-pane .set-card { scroll-margin-top: 12px; }
 .set-wrap > .set-title { width: 100%; }
+
+/* Update dialog (renderer/update-dialog.js): it zooms in by script, with a bounce. */
+.modal.mica.upd { width: min(480px, calc(100vw - 32px)); animation: none; padding: 22px; }
+.upd-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.upd-head img { width: 54px; height: 54px; border-radius: 13px; flex: none; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+.upd-head h3 { margin: 0 0 3px; }
+.upd-ver { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.upd-notes { max-height: min(260px, 40vh); overflow-y: auto; background: rgba(0,0,0,.14); border: 1px solid rgba(255,255,255,.06); border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.5; }
+.upd-notes ul { margin: 0; padding-left: 18px; }
+.upd-notes li + li { margin-top: 5px; }
+.upd-notes li.sub { list-style: none; margin-left: 4px; color: var(--muted); }
+.upd-notes li.sub::before { content: '·'; margin: 0 7px 0 -11px; }
+.upd-notes p { margin: 0; }
+.upd-progress { margin-bottom: 16px; }
+.upd-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
+.upd-bar i { display: block; height: 100%; background: var(--accent-light, var(--accent)); transform: scaleX(0); transform-origin: left center; transition: transform .25s ease; border-radius: 3px; }
+.upd-status { font-size: 12.5px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.upd-status.err { color: #ff8a8a; }
+.upd-buttons .upd-skip { margin-right: auto; }

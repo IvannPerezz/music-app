@@ -422,6 +422,17 @@ app.whenReady().then(async () => {
     return local;
   });
   handle('app-relaunch', () => { setTimeout(() => { quitting = true; app.relaunch(); app.exit(0); }, 150); return true; });
+  // Updates from GitHub releases (src/updater.js, loaded only when asked).
+  const updater = () => import('./src/updater.js');
+  handle('update-check', async () => (await updater()).check(VERSION));
+  handle('update-download', async () => (await updater()).download((got, total) => win?.webContents.send('update-progress', { got, total })));
+  handle('update-cancel', async () => (await updater()).cancel());
+  handle('update-install', async () => {
+    (await updater()).install();
+    // The installer waits for BitChord to be gone before replacing it.
+    setTimeout(() => { quitting = true; app.quit(); }, 400);
+    return true;
+  });
   // Spotify account link (playlists kept up to date)
   handle('spotify-status', () => spotifySync.status());
   handle('spotify-connect', () => spotifySync.connect());

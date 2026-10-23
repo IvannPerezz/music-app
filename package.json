@@ -1,6 +1,6 @@
 {
   "name": "bitchord-desktop",
-  "version": "0.6.55.2",
+  "version": "0.6.56",
   "description": "BitChord para Windows — cliente de YouTube Music (port de escritorio de BitChord)",
   "main": "loader.js",
   "scripts": {
@@ -11,7 +11,8 @@
     "build:update": "node scripts/build-update.mjs",
     "deploy": "node scripts/build-update.mjs --deploy",
     "package": "node scripts/package-win.mjs",
-    "installer": "node scripts/build-installer.mjs"
+    "installer": "node scripts/build-installer.mjs",
+    "release": "node scripts/release.mjs"
   },
   "author": "BitChord Desktop port",
   "license": "GPL-3.0-only",

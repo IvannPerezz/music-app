@@ -13,6 +13,8 @@ npm test                   # prueba de humo de la interfaz (Playwright) → test
 npm run build:update       # empaqueta dist/update.bin
 npm run deploy             # empaqueta y lo deja en la instalación de Iván como actualización
 npm run package            # carpeta portable + instalador ligero en dist/ (descarga Electron)
+npm run installer          # BitChord-Instalar-<versión>.exe en la raíz: instalador de un solo archivo, sin internet
+npm run release            # publica la versión como release de GitHub (repo público IvannPerezz/music-app) con su .exe
 ```
 
 ## Cómo se entrega una versión (OBLIGATORIO en cada cambio, por pequeño que sea)
@@ -22,6 +24,7 @@ npm run package            # carpeta portable + instalador ligero en dist/ (desc
 2. Añade una entrada **arriba del todo** en `CAMBIOS.txt` (encima de la versión anterior, mismo formato con las líneas de guiones), en español y pensada para el usuario, no técnica.
 3. `npm test` y revisa las capturas si tocaste la interfaz.
 4. `npm run deploy`. Al cerrar y abrir BitChord, la versión se instala sola.
+5. Commit y push, y después `npm run release`: publica la versión (instalador + su entrada de `CAMBIOS.txt` como notas) para que las demás instalaciones la encuentren al abrir BitChord.
 
 ### Sistema de actualización (no romperlo)
 - `loader.js` es el `main` del paquete. Al arrancar, si existe `resources\update.bin`, lo renombra a `resources\app-<tiempo>.asar`, escribe ese nombre en `resources\current.txt` y carga `main.js` desde ahí. Si la versión nueva falla al importar, vacía `current.txt` y arranca la de `app.asar`.
@@ -47,6 +50,7 @@ npm run package            # carpeta portable + instalador ligero en dist/ (desc
 - `src/local.js` — música local: índice, carpetas como playlists, portadas y vigilancia de cambios (`fs.watch`).
 - `src/playlists.js` — portadas personalizadas de las playlists de YouTube Music (guardadas solo en este PC). Desde la v0.6.37 **no hay playlists propias de BitChord**: todas viven en la cuenta de YouTube Music (crear, añadir canciones, importar y sincronizar con Spotify). No las vuelvas a añadir.
 - Spotify (Importar): `src/spotify-web.js` (inicio de sesión en la página de Spotify con la partición `persist:spotify`, como la app oficial; el token se toma de las peticiones del reproductor web en una ventana oculta), `src/spotify-sync.js` (lee playlists con la API GraphQL interna de open.spotify.com y las copia/sincroniza en la cuenta de YouTube Music) y `src/spotify-match.js` (busca cada canción en YouTube Music). Ya no hay importación por .zip ni app de desarrollador.
+- `src/updater.js` — actualizaciones: mira la última release de `IvannPerezz/music-app` (repo **público**; el código vive ahí también), descarga su `.exe` a la carpeta temporal, lo comprueba con el SHA-256 que publica GitHub y lo lanza con `--auto` (el instalador, `scripts/setup/Setup.cs`, espera a que BitChord se cierre, instala y lo vuelve a abrir). El cuadro está en `renderer/update-dialog.js`. Con `BITCHORD_MOCK_UPDATE=1` el mock ofrece una versión falsa para probarlo.
 - `src/lyrics.js` — proveedores de letras. `src/sources/*` — JioSaavn y WebDAV. `src/discord.js`, `src/scrobble.js` — integraciones.
 - `src/settings.js` — `DEFAULTS` de todos los ajustes (`settings.json` en el perfil).
 - `src/mock.js` — datos de prueba para `npm run mock`/tests (no se empaqueta).

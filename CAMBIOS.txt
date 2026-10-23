@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.56
+------------------------------------------------------------
+- BitChord busca actualizaciones solo: al abrirlo mira en GitHub si hay una versión nueva y, si
+  la hay, aparece un aviso con sus novedades. "Descargar e instalar" la descarga (con barra de
+  progreso), comprueba que el archivo es exactamente el publicado, cierra BitChord, instala la
+  versión nueva y lo vuelve a abrir. También puedes dejarla para más tarde u omitir esa versión.
+- En Ajustes → General → Acerca de: "Buscar actualizaciones al abrir" (se puede desactivar) y
+  "Buscar ahora".
+
+------------------------------------------------------------
 v0.6.55.2
 ------------------------------------------------------------
 - "Aspecto de la letra" en la ventana normal: el botón ↺ vuelve a ser un círculo pequeño junto

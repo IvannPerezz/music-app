@@ -51,6 +51,8 @@ export const DEFAULTS = {
   lyricsWordSync: true,
   lyricsFontSize: 30,
   lyricsOffsetMs: 0,
+  updateCheck: true, // look for a new version on GitHub when BitChord opens
+  updateSkip: '', // a version the user chose to skip
   spicyLyricsKey: '', // publishable key (sl_pk_...) of the user's own Spicy Lyrics app
   // Look of the synced lyrics (Apple Music style), in % unless noted: see renderer/lyrics-look.js.
   lyricsGlow: 200, lyricsWave: 100, lyricsBlur: 100, lyricsSmooth: 150,

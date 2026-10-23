@@ -4,6 +4,7 @@ import { Engine } from './engine.js';
 import { parseResult } from './lyrics-parse.js';
 import * as lyricsView from './lyrics-view.js';
 import { lyricsLookControls, LYRICS_LOOK } from './lyrics-look.js';
+import { checkForUpdates } from './update-dialog.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
@@ -3040,6 +3041,8 @@ async function init() {
   const unlock = () => { engine.resume(); document.removeEventListener('pointerdown', unlock); document.removeEventListener('keydown', unlock); };
   document.addEventListener('pointerdown', unlock);
   document.addEventListener('keydown', unlock);
+  // A new version on GitHub? (a few seconds in, once the start-up work is done)
+  if (state.settings.updateCheck !== false) setTimeout(() => checkForUpdates(), 4000);
 }
 
 // Dragging and dropping like in any program: covers and links aren't picked up as web images
