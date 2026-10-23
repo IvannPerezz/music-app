@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.56.4
+------------------------------------------------------------
+- Versión de prueba del actualizador: no cambia nada. Sirve para comprobar que el aviso de
+  versión nueva descarga, instala y vuelve a abrir BitChord.
+
+------------------------------------------------------------
 v0.6.56.3
 ------------------------------------------------------------
 - Arreglada la instalación de actualizaciones desde el aviso: el instalador fallaba con «The
