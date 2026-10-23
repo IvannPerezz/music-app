@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.56.7
+------------------------------------------------------------
+- Las letras de Spicy Lyrics muestran debajo quién las subió y quién las sincronizó, con enlace
+  a su perfil, como piden sus condiciones.
+- Los pasos para conseguir la clave de Spicy Lyrics explican qué poner en «Project URL».
+
+------------------------------------------------------------
 v0.6.56.6
 ------------------------------------------------------------
 - En Ajustes → Reproducción → Letras, bajo "Clave de Spicy Lyrics", hay un desplegable "Cómo

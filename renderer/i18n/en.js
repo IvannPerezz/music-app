@@ -786,10 +786,12 @@ export default {
   "Para las letras de Spicy Lyrics, que suelen ir palabra a palabra. Es gratis.": "For Spicy Lyrics lyrics, which are usually word by word. It's free.",
   "Cómo conseguir la clave": "How to get the key",
   "Entra en <a href=\"#\" data-url=\"https://developers.spicylyrics.org/dashboard\">developers.spicylyrics.org</a> e inicia sesión (o crea una cuenta).": "Go to <a href=\"#\" data-url=\"https://developers.spicylyrics.org/dashboard\">developers.spicylyrics.org</a> and sign in (or create an account).",
-  "En el panel, crea una aplicación. El nombre da igual, por ejemplo «BitChord».": "In the dashboard, create an application. The name doesn't matter, «BitChord» for example.",
+  "En el panel, crea una aplicación. El nombre da igual (por ejemplo «BitChord») y en «Project URL» pon <code>https://github.com/IvannPerezz/music-app</code>. Acepta las condiciones.": "In the dashboard, create an application. The name doesn't matter («BitChord» for example) and in «Project URL» put <code>https://github.com/IvannPerezz/music-app</code>. Accept the terms.",
   "Ábrela y activa el acceso de cliente («client access»).": "Open it and turn on client access.",
   "Añade un origen permitido cualquiera, por ejemplo <code>https://example.com</code>. Sin uno no te da la clave, aunque BitChord no lo usa.": "Add any allowed origin, <code>https://example.com</code> for example. Without one it won't give you the key, even though BitChord doesn't use it.",
   "Activa también las peticiones sin cabecera Origin (la opción para apps de escritorio) y confírmalo.": "Also turn on requests without an Origin header (the option for desktop apps) and confirm it.",
   "Copia la clave que empieza por <code>sl_pk_</code> y pégala aquí arriba.": "Copy the key that starts with <code>sl_pk_</code> and paste it above.",
   "Spicy Lyrics busca cada canción en Spotify, así que también necesitas tener Spotify vinculado (Ajustes → Cuenta → Importar de Spotify).": "Spicy Lyrics looks each song up on Spotify, so you also need Spotify linked (Settings → Account → Import from Spotify).",
+  "subida por": "uploaded by",
+  "sincronizada por": "synced by",
 };

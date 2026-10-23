@@ -259,11 +259,16 @@ export function parseProvider(raw) {
 
 /** {format, data} from the main process → { synced, lines, plain, word } | null */
 export function parseResult(res) {
+  const r = parseInner(res);
+  if (r && res?.attribution) r.attribution = res.attribution;
+  return r;
+}
+function parseInner(res) {
   if (!res) return null;
   let out = null;
   switch (res.format) {
     case 'lrc': out = parseLrc(res.data); break;
-    case 'elrc': out = parseEnhancedLrc(res.data); if (!out.length && res.fallback) return parseResult(res.fallback); break;
+    case 'elrc': out = parseEnhancedLrc(res.data); if (!out.length && res.fallback) return parseInner(res.fallback); break;
     case 'ttml': out = parseTtml(res.data); break;
     case 'lyricsplus': out = parseLyricsPlus(res.data); break;
     case 'lines': out = withGaps((res.data || []).filter((l) => l && l.text && l.time != null).sort((a, b) => a.time - b.time)); break; // built by the main process

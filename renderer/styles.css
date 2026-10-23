@@ -1743,3 +1743,4 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 .set-steps p { margin: 6px 0 0; }
 .set-steps code { font-size: 12px; background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; }
 .set-steps a { color: var(--accent-light, var(--accent)); }
+#lyrics .src a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }

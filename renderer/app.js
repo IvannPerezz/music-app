@@ -2347,16 +2347,25 @@ function renderLyrics() {
   if (!l || l.loading) { box.innerHTML = '<div class="none"><div class="spinner"></div></div>'; return; }
   if (l.synced && l.lines?.length) {
     box.classList.add('lyr');
-    const footer = h(`<div class="src">${tr('Letra:')} ${esc(label || '')}</div>`);
+    const footer = h(`<div class="src">${tr('Letra:')} ${esc(label || '')}${creditHtml(l.attribution)}</div>`);
     box.append(lyricsView.mount(l, { words: state.settings.lyricsWordSync !== false, footer }));
     lyricsView.relayout(true);
     syncLyrics();
     return;
   }
   box.classList.add('unsynced');
-  if (l.plain) { box.append(h(`<div class="plain">${esc(l.plain)}</div>`)); box.append(h(`<div class="src">${tr('Letra:')} ${esc(label || '')} · ${tr('sin sincronizar')}</div>`)); return; }
+  if (l.plain) { box.append(h(`<div class="plain">${esc(l.plain)}</div>`)); box.append(h(`<div class="src">${tr('Letra:')} ${esc(label || '')} · ${tr('sin sincronizar')}${creditHtml(l.attribution)}</div>`)); return; }
   box.innerHTML = `<div class="none">${tr('No hay letra disponible para esta canción')}</div>`;
 }
+
+/** Who to credit for these lyrics, as the provider gives it (Spicy Lyrics: source, uploader, maker). */
+function creditHtml(a) {
+  if (!a) return '';
+  const link = (u) => (u.url ? `<a href="#" data-url="${esc(u.url)}">${esc(u.name)}</a>` : esc(u.name));
+  const src = a.source && a.source !== 'spicy_lyrics' ? ` (${esc(a.source.replace(/_/g, ' '))})` : '';
+  return src + (a.uploader ? ` · ${tr('subida por')} ${link(a.uploader)}` : '') + (a.maker ? ` · ${tr('sincronizada por')} ${link(a.maker)}` : '');
+}
+$('#lyrics').addEventListener('click', (e) => { const a = e.target.closest('a[data-url]'); if (a) { e.preventDefault(); e.stopPropagation(); bc.openExternal(a.dataset.url); } });
 
 // The lyrics' clock: the audio position, carried forward between the element's updates (they
 // arrive in steps), minus what the sound still takes to reach the speakers, plus the user's offset.

@@ -189,7 +189,7 @@ function lyrics() {
         row(tr('Clave de Spicy Lyrics'), tr('Para las letras de Spicy Lyrics, que suelen ir palabra a palabra. Es gratis.'), text('spicyLyricsKey', 'sl_pk_…', { secret: true })),
     h(`<details class="set-steps"><summary>${tr('Cómo conseguir la clave')}</summary><ol>${[
       tr('Entra en <a href="#" data-url="https://developers.spicylyrics.org/dashboard">developers.spicylyrics.org</a> e inicia sesión (o crea una cuenta).'),
-      tr('En el panel, crea una aplicación. El nombre da igual, por ejemplo «BitChord».'),
+      tr('En el panel, crea una aplicación. El nombre da igual (por ejemplo «BitChord») y en «Project URL» pon <code>https://github.com/IvannPerezz/music-app</code>. Acepta las condiciones.'),
       tr('Ábrela y activa el acceso de cliente («client access»).'),
       tr('Añade un origen permitido cualquiera, por ejemplo <code>https://example.com</code>. Sin uno no te da la clave, aunque BitChord no lo usa.'),
       tr('Activa también las peticiones sin cabecera Origin (la opción para apps de escritorio) y confírmalo.'),

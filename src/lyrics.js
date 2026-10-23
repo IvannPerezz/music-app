@@ -276,11 +276,14 @@ async function spicy(t) {
   const j = await r.json().catch(() => null);
   const b = j?.Body || j;
   if (!b) return null;
+  // Their terms: always name the source and, when given, credit and link who uploaded and who made the sync.
+  const who = (u) => (u?.username ? { name: u.username, url: u.url || '' } : null);
+  const attribution = { source: b.source || '', via: b.source_via || '', uploader: who(b.UploadAttribution?.Uploader), maker: who(b.UploadAttribution?.Maker) };
   // Times are numbers whose unit the docs don't state: seconds, unless they're clearly milliseconds.
   const stamps = (JSON.stringify(b.Content || []).match(/"(?:Start|End)Time":\s*[\d.]+/g) || []).map((m) => parseFloat(m.split(':')[1]));
   const ms = stamps.some((v) => v > 36000);
   const sec = (v) => (v == null ? null : ms ? +v / 1000 : +v);
-  if (b.Type === 'Static') { const text = (b.Lines || []).map((x) => x.Text).join('\n').trim(); return text ? { format: 'plain', data: text } : null; }
+  if (b.Type === 'Static') { const text = (b.Lines || []).map((x) => x.Text).join('\n').trim(); return text ? { format: 'plain', data: text, attribution } : null; }
   const syllWords = (syls) => {
     const words = [];
     let cur = null;
@@ -308,7 +311,7 @@ async function spicy(t) {
     if (bgw.length) line.bg = { time: bgw[0].start, text: bgw.map((w) => w.text).join(' '), words: bgw };
     lines.push(line);
   }
-  return lines.length ? { format: 'lines', data: lines } : null;
+  return lines.length ? { format: 'lines', data: lines, attribution } : null;
 }
 
 async function youtube(t) {

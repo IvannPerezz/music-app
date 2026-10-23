@@ -49,6 +49,11 @@ export const rate = async () => true;
 const mockLines = ['Bajo la luz de neón', 'la ciudad se queda en calma', 'y tu voz en la canción', 'me devuelve el alma', '', 'Cruzamos la avenida', 'sin mirar atrás', 'la noche está encendida', 'y no hay nada más'];
 export const fetchLyrics = async (t, provider) => {
   if (/Paper Planes/.test(t?.title || '')) return null; // a song without lyrics (tests)
+  // (BITCHORD_MOCK_SPICY=1: a Spicy Lyrics answer with its attribution, to see the credit.)
+  if (provider === 'spicy' && process.env.BITCHORD_MOCK_SPICY) {
+    return { format: 'lines', attribution: { source: 'spicy_lyrics', via: '', uploader: { name: 'subidor', url: 'https://example.com/u' }, maker: { name: 'sincronizador', url: 'https://example.com/m' } },
+      data: mockLines.filter(Boolean).map((text, i) => ({ time: 1.5 + i * 3, text, words: text.split(' ').map((w, k) => ({ start: 1.5 + i * 3 + k * 0.45, end: 1.5 + i * 3 + k * 0.45 + 0.42, text: w })) })) };
+  }
   if (provider === 'lyricsplus') {
     // word-synced sample
     return { format: 'lyricsplus', data: { lyrics: mockLines.filter(Boolean).map((text, i) => {
