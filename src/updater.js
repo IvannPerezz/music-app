@@ -89,7 +89,8 @@ export function cancel() { aborter?.abort(); return true; }
 export function install() {
   if (!ready || !fs.existsSync(ready)) throw new Error(tr('Descarga antes la actualización.'));
   if (process.env.BITCHORD_MOCK) { console.log('[update] (prueba) se ejecutaría', ready); return true; }
-  const p = spawn(ready, ['--auto'], { detached: true, stdio: 'ignore', windowsHide: false });
+  // (From the temp folder: started from BitChord's own folder, it couldn't empty it.)
+  const p = spawn(ready, ['--auto'], { cwd: path.dirname(ready), detached: true, stdio: 'ignore', windowsHide: false });
   p.unref();
   console.log('[update] instalador lanzado:', ready);
   return true;

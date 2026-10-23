@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.56.3
+------------------------------------------------------------
+- Arreglada la instalación de actualizaciones desde el aviso: el instalador fallaba con «The
+  process cannot access the file …\Programs\BitChord» porque, al lanzarlo BitChord, se quedaba
+  «dentro» de la carpeta que tenía que vaciar. Si te pasó, BitChord quedó sin instalar: descarga
+  BitChord-Instalar-0.6.56.3.exe de la página de versiones y ábrelo una vez.
+
+------------------------------------------------------------
 v0.6.56.2
 ------------------------------------------------------------
 - Las explicaciones de Ajustes son más cortas y fáciles de entender: dicen para qué sirve cada

@@ -17,13 +17,21 @@ using Microsoft.Win32;
 [assembly: AssemblyProduct("BitChord")]
 
 static class Setup {
-  static readonly string Dest = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\BitChord");
+  static string Dest = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\BitChord");
 
-  static bool Auto;
+  static bool Auto, Test;
 
   [STAThread]
   static void Main(string[] args) {
     Auto = Array.Exists(args, (a) => a.Equals("--auto", StringComparison.OrdinalIgnoreCase));
+    // (Tests only: --test --dest=<folder> installs there without touching shortcuts, the registry,
+    // running copies of BitChord or launching it.)
+    Test = Array.Exists(args, (a) => a.Equals("--test", StringComparison.OrdinalIgnoreCase));
+    var destArg = Array.Find(args, (a) => a.StartsWith("--dest=", StringComparison.OrdinalIgnoreCase));
+    if (Test && destArg != null) Dest = Path.GetFullPath(destArg.Substring(7));
+    // Started by BitChord's updater, this process inherits BitChord's working folder: its install
+    // folder. Windows won't remove a folder some process is "standing in", so step out of it first.
+    try { Directory.SetCurrentDirectory(Path.GetTempPath()); } catch { }
     Application.EnableVisualStyles();
     var version = Assembly.GetExecutingAssembly().GetName().Version;
     var form = new Form {
@@ -47,7 +55,7 @@ static class Setup {
           Install((done, text) => form.BeginInvoke((Action)(() => { bar.Value = Math.Min(1000, done); status.Text = text; })));
           form.BeginInvoke((Action)(() => {
             status.Text = "Listo. BitChord está en el Escritorio y en el menú Inicio.";
-            Process.Start(new ProcessStartInfo(Path.Combine(Dest, "BitChord.exe")) { WorkingDirectory = Dest });
+            if (!Test) Process.Start(new ProcessStartInfo(Path.Combine(Dest, "BitChord.exe")) { WorkingDirectory = Dest });
             btn.Text = "Cerrar"; btn.Enabled = true; btn.Click += (s2, e2) => form.Close();
             if (Auto) { var t = new System.Windows.Forms.Timer { Interval = 1500 }; t.Tick += (s3, e3) => form.Close(); t.Start(); }
           }));
@@ -66,18 +74,22 @@ static class Setup {
   static void Install(Action<int, string> progress) {
     progress(0, "Cerrando BitChord si estaba abierto...");
     // (From the updater, BitChord is closing by itself: give it a moment to save before forcing it.)
-    foreach (var p in Process.GetProcessesByName("BitChord")) { try { if (!Auto || !p.WaitForExit(10000)) { p.Kill(); p.WaitForExit(5000); } } catch { } }
+    if (!Test) foreach (var p in Process.GetProcessesByName("BitChord")) { try { if (!Auto || !p.WaitForExit(10000)) { p.Kill(); p.WaitForExit(5000); } } catch { } }
     Thread.Sleep(500);
 
     progress(0, "Preparando la carpeta...");
-    if (Directory.Exists(Dest)) {
-      for (int i = 0; ; i++) {
-        try { Directory.Delete(Dest, true); break; }
-        catch (IOException) { if (i == 10) throw; Thread.Sleep(500); }
-        catch (UnauthorizedAccessException) { if (i == 10) throw; Thread.Sleep(500); }
-      }
-    }
+    // The folder is emptied rather than removed: emptying it doesn't depend on nobody else having
+    // it open (Explorer, a console...), only on its files being free.
     Directory.CreateDirectory(Dest);
+    for (int i = 0; ; i++) {
+      try {
+        foreach (var f in Directory.GetFiles(Dest)) { File.SetAttributes(f, FileAttributes.Normal); File.Delete(f); }
+        foreach (var d in Directory.GetDirectories(Dest)) Directory.Delete(d, true);
+        break;
+      }
+      catch (IOException) { if (i == 20) throw; Thread.Sleep(500); }
+      catch (UnauthorizedAccessException) { if (i == 20) throw; Thread.Sleep(500); }
+    }
 
     using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("payload.zip"))
     using (var zip = new ZipArchive(stream, ZipArchiveMode.Read)) {
@@ -97,6 +109,7 @@ static class Setup {
     progress(1000, "Creando accesos directos...");
     var exe = Path.Combine(Dest, "BitChord.exe");
     var ico = Path.Combine(Dest, "BitChord.ico");
+    if (Test) return;
     Shortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "BitChord.lnk"), exe, ico);
     Shortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "BitChord.lnk"), exe, ico);
 
