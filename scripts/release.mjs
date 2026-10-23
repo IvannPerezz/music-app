@@ -13,13 +13,35 @@ const v = pkg.version;
 const tag = 'v' + v;
 const gh = (...args) => execFileSync('gh', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
+// A version's entry in CAMBIOS.txt: everything between its dashed header and the next version's.
+const log = fs.readFileSync(path.join(root, 'CAMBIOS.txt'), 'utf8').replace(/\r\n/g, '\n');
+const DASHES = '-'.repeat(60);
+function notesFor(t) {
+  const head = `${DASHES}\n${t}\n${DASHES}\n`;
+  const at = log.indexOf(head);
+  if (at < 0) return null;
+  const rest = log.slice(at + head.length);
+  const next = rest.search(/^-{20,}\nv\d/m);
+  return (next >= 0 ? rest.slice(0, next) : rest).trim();
+}
+
+// npm run release -- --fix-notes v0.6.56 v0.6.56.1 …: only rewrites the notes of published releases.
+const fix = process.argv.indexOf('--fix-notes');
+if (fix >= 0) {
+  for (const t of process.argv.slice(fix + 1)) {
+    const n = notesFor(t);
+    if (!n) { console.error(`No encuentro la entrada de ${t} en CAMBIOS.txt.`); continue; }
+    const f = path.join(os.tmpdir(), `bitchord-notes-${t}.md`);
+    fs.writeFileSync(f, n);
+    try { gh('release', 'edit', t, '--repo', REPO, '--notes-file', f); console.log(`Notas de ${t} corregidas.`); } finally { fs.rmSync(f, { force: true }); }
+  }
+  process.exit(0);
+}
+
 try { gh('release', 'view', tag, '--repo', REPO); console.error(`La release ${tag} ya existe en ${REPO}.`); process.exit(1); } catch {}
 
-// This version's entry in CAMBIOS.txt (between its dashed header and the next version's).
-const log = fs.readFileSync(path.join(root, 'CAMBIOS.txt'), 'utf8').replace(/\r\n/g, '\n');
-const m = new RegExp(`^-{20,}\\n${tag.replace(/\./g, '\\.')}\\n-{20,}\\n([\\s\\S]*?)(?=\\n-{20,}\\nv\\d|$)`, 'm').exec(log);
-if (!m) { console.error(`No encuentro la entrada de ${tag} en CAMBIOS.txt.`); process.exit(1); }
-const notes = m[1].trim();
+const notes = notesFor(tag);
+if (!notes) { console.error(`No encuentro la entrada de ${tag} en CAMBIOS.txt.`); process.exit(1); }
 
 execFileSync(process.execPath, [path.join(root, 'scripts', 'build-installer.mjs')], { cwd: root, stdio: 'inherit' });
 const exe = path.join(root, `BitChord-Instalar-${v}.exe`);

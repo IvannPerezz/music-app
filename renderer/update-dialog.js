@@ -32,6 +32,12 @@ function notesHtml(text) {
   return items.length ? `<ul>${items.map((t) => `<li${t.startsWith('· ') ? ' class="sub"' : ''}>${esc(t.replace(/^· /, ''))}</li>`).join('')}</ul>` : `<p class="muted">${esc(tr('Sin notas para esta versión.'))}</p>`;
 }
 
+/** Every version since the installed one, newest first; with more than one, each under its number. */
+function changesHtml(changes) {
+  if (changes.length === 1) return notesHtml(changes[0].notes);
+  return changes.map((c) => `<div class="upd-v">v${esc(c.version)}</div>${notesHtml(c.notes)}`).join('');
+}
+
 function showDialog(info) {
   if (open) return;
   const m = h(`<div class="modal-back fade upd-back"><div class="modal mica upd">
@@ -40,7 +46,7 @@ function showDialog(info) {
       <div><h3>${esc(tr('Hay una versión nueva de BitChord'))}</h3>
       <div class="muted upd-ver">v${esc(info.version)} · ${esc(tr('tienes la v{v}', { v: info.current }))}${info.size ? ` · ${mb(info.size)} MB` : ''}</div></div>
     </div>
-    <div class="upd-notes">${notesHtml(info.notes)}</div>
+    <div class="upd-notes">${changesHtml(info.changes || [{ version: info.version, notes: info.notes }])}</div>
     <div class="upd-progress" hidden><div class="upd-bar"><i></i></div><div class="upd-status muted"></div></div>
     <div class="btn-row upd-buttons">
       <button class="btn ghost small upd-skip" data-a="skip">${esc(tr('Omitir esta versión'))}</button>
