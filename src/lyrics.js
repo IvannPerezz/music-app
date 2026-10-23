@@ -187,23 +187,41 @@ async function netease(t) {
 // The song on Spotify (for Spotify's own lyrics and Spicy Lyrics), found with the Spotify session
 // that "Importar de Spotify" signs in. Without that session these two sources are skipped.
 const spCache = new Map();
+// The web player's own search (GraphQL "searchTopResultsList"): Spotify's public search API
+// answers 429 to the web player's token. The query's hash is the one the web player itself was seen
+// using, or else the one it used in October 2026.
+const SEARCH_HASH = 'dd78eaff943eba629ed70ee25517b9cea0dcaa41193e2592ae2727660b21892c';
 async function spotifyTrack(t) {
   if (spCache.has(t.videoId)) return spCache.get(t.videoId);
   if (!(await spotifyWeb.signedIn().catch(() => false))) return null;
   let hit = null;
   try {
     const tok = await spotifyWeb.token();
-    const r = await fetch(`https://api.spotify.com/v1/search?${qs({ q: `track:${t.title} artist:${t.artist}`, type: 'track', limit: 8 })}`,
-      { headers: { Authorization: 'Bearer ' + tok.bearer, Accept: 'application/json' }, signal: AbortSignal.timeout(TIMEOUT) });
+    const r = await fetch('https://api-partner.spotify.com/pathfinder/v2/query', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + tok.bearer, ...(tok.clientToken ? { 'client-token': tok.clientToken } : {}), 'app-platform': 'WebPlayer',
+        Accept: 'application/json', 'Content-Type': 'application/json;charset=UTF-8', Origin: 'https://open.spotify.com', Referer: 'https://open.spotify.com/',
+      },
+      body: JSON.stringify({
+        operationName: 'searchTopResultsList',
+        variables: { query: `${t.title} ${t.artist}`, limit: 10, offset: 0, numberOfTopResults: 10, includeArtistHasConcertsField: false, includeAudiobooks: false, includeAuthors: false, includePreReleases: false, includeAlbumPreReleases: false, includeEpisodeContentRatingsV2: false, isPrefix: null, sectionFilters: ['GENERIC'] },
+        extensions: { persistedQuery: { version: 1, sha256Hash: spotifyWeb.seenOps.get('searchTopResultsList') || SEARCH_HASH } },
+      }),
+      signal: AbortSignal.timeout(TIMEOUT),
+    });
     if (!r.ok) { console.warn('[lyrics] búsqueda en Spotify:', r.status); return null; }
+    const sv = (await r.json())?.data?.searchV2;
+    const found = [...(sv?.topResultsV2?.itemsV2 || []), ...(sv?.tracksV2?.items || [])]
+      .map((x) => x.item?.data).filter((d) => d?.__typename === 'Track' && d.id)
+      .map((d) => ({ id: d.id, name: d.name, artists: (d.artists?.items || []).map((a) => a.profile?.name || ''), secs: (d.duration?.totalMilliseconds || 0) / 1000 }));
     const title = norm(t.title), artist = norm(t.artist);
-    const off = (x) => (t.duration ? Math.abs(x.duration_ms / 1000 - t.duration) : 0);
-    const byArtist = (x) => (x.artists || []).some((a) => norm(a.name).includes(artist) || artist.includes(norm(a.name)));
-    hit = ((await r.json()).tracks?.items || [])
-      .filter((x) => off(x) <= 5 && (norm(x.name) === title || byArtist(x)))
+    const off = (x) => (t.duration && x.secs ? Math.abs(x.secs - t.duration) : 0);
+    const byArtist = (x) => x.artists.some((a) => { a = norm(a); return a && (a.includes(artist) || artist.includes(a)); });
+    hit = found.filter((x) => off(x) <= 5 && (norm(x.name) === title || byArtist(x)))
       .sort((a, b) => (norm(b.name) === title) - (norm(a.name) === title) || byArtist(b) - byArtist(a) || off(a) - off(b))[0] || null;
   } catch (e) { console.warn('[lyrics] búsqueda en Spotify:', e?.message); return null; }
-  const out = hit ? { id: hit.id, isrc: hit.external_ids?.isrc } : null;
+  const out = hit ? { id: hit.id } : null;
   spCache.set(t.videoId, out);
   return out;
 }
