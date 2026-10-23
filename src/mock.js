@@ -47,6 +47,7 @@ export const library = async () => ({ playlists: Array.from({ length: 4 }, (_, i
 export const history = async () => Array.from({ length: 6 }, (_, i) => track(i + 1));
 export const rate = async () => true;
 const mockLines = ['Bajo la luz de neón', 'la ciudad se queda en calma', 'y tu voz en la canción', 'me devuelve el alma', '', 'Cruzamos la avenida', 'sin mirar atrás', 'la noche está encendida', 'y no hay nada más'];
+export const testSpicy = async (key) => (String(key || '').startsWith('sl_pk_') ? { ok: true } : { ok: false, why: key ? 'key' : 'empty' });
 export const fetchLyrics = async (t, provider) => {
   if (/Paper Planes/.test(t?.title || '')) return null; // a song without lyrics (tests)
   // (BITCHORD_MOCK_SPICY=1: a Spicy Lyrics answer with its attribution, to see the credit.)

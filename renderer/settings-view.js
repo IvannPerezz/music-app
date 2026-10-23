@@ -186,7 +186,7 @@ function lyrics() {
   return card('lyrics', tr('Letras'), 'lyrics',
     h(`<div class="set-note">${tr('La letra se busca en este orden y se usa la primera sincronizada que aparezca. Arrastra para cambiar el orden o apaga los que no quieras.')}</div>`),
     list,
-        row(tr('Clave de Spicy Lyrics'), tr('Para las letras de Spicy Lyrics, que suelen ir palabra a palabra. Es gratis.'), text('spicyLyricsKey', 'sl_pk_…', { secret: true })),
+        row(tr('Clave de Spicy Lyrics'), tr('Para las letras de Spicy Lyrics. Es gratis.'), spicyKey()),
     h(`<details class="set-steps"><summary>${tr('Cómo conseguir la clave')}</summary><ol>${[
       tr('Entra en <a href="#" data-url="https://developers.spicylyrics.org/dashboard">developers.spicylyrics.org</a> e inicia sesión (o crea una cuenta).'),
       tr('En el panel, crea una aplicación. El nombre da igual (por ejemplo «BitChord») y en «Project URL» pon <code>https://github.com/IvannPerezz/music-app</code>. Acepta las condiciones.'),
@@ -200,6 +200,34 @@ function lyrics() {
     h(`<div class="set-note">${tr('Estos controles también están en el menú de la letra, donde ves el cambio mientras arrastras. El botón ↺ deja cada uno como estaba.')}</div>`),
     lyricsLookControls(),
   );
+}
+
+/** The Spicy Lyrics key field, which tells at once whether the key works (and if not, what's missing). */
+function spicyKey() {
+  const status = h('<div class="key-status"></div>');
+  const check = btn(tr('Comprobar'), 'ghost');
+  const say = (cls, msg) => { status.className = 'key-status ' + cls; status.textContent = msg; };
+  const run = async (key) => {
+    if (!key) return say('', '');
+    say('busy', tr('Comprobando…'));
+    check.disabled = true;
+    try {
+      const r = await api('spicyTest', key);
+      if (r.ok) say('ok', tr('Funciona. Ya puede darte letras.'));
+      else if (r.why === 'origin') say('err', tr('La clave es buena, pero falta el paso 5: activa en su panel las peticiones sin cabecera Origin.'));
+      else if (r.why === 'key') say('err', tr('Spicy Lyrics no acepta esta clave. Revisa que sea la que empieza por sl_pk_ y que la aplicación tenga activado el acceso de cliente.'));
+      else if (r.why === 'limit') say('err', tr('Spicy Lyrics dice que hay demasiadas peticiones. Prueba dentro de un rato.'));
+      else say('err', tr('No se pudo contactar con Spicy Lyrics. Revisa la conexión.'));
+    } finally { check.disabled = false; }
+  };
+  const field = text('spicyLyricsKey', 'sl_pk_…', { secret: true, onSave: run });
+  check.onclick = () => run(field.querySelector('input').value.trim());
+  const wrap = h('<div class="key-ctl"></div>');
+  wrap.append(field, check);
+  const el = h('<div class="key-box"></div>');
+  el.append(wrap, status);
+  if (state.settings.spicyLyricsKey) run(state.settings.spicyLyricsKey);
+  return el;
 }
 
 function downloads() {

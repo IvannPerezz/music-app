@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.56.8
+------------------------------------------------------------
+- La clave de Spicy Lyrics se comprueba sola al pegarla (y con el botón "Comprobar"): debajo
+  aparece si funciona o qué falta, por ejemplo activar las peticiones sin cabecera Origin.
+
+------------------------------------------------------------
 v0.6.56.7
 ------------------------------------------------------------
 - Las letras de Spicy Lyrics muestran debajo quién las subió y quién las sincronizó, con enlace

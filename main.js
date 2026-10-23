@@ -308,6 +308,7 @@ app.whenReady().then(async () => {
   // Lyrics
   handle('lyrics-providers', () => settings.LYRICS_PROVIDERS);
   handle('lyrics', (track, provider) => lyrics.fetchLyrics(track, provider));
+  handle('spicy-test', (key) => lyrics.testSpicy(key));
   // Settings
   handle('settings-get', () => settings.get());
   handle('settings-defaults', () => settings.DEFAULTS);

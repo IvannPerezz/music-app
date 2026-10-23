@@ -1732,6 +1732,15 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 .upd-status.err { color: #ff8a8a; }
 .upd-buttons .upd-skip { margin-right: auto; }
 
+/* A key field with its check (Spicy Lyrics). */
+.key-box { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.key-ctl { display: flex; align-items: center; gap: 8px; }
+.key-status { font-size: 12.5px; max-width: 360px; text-align: right; line-height: 1.4; }
+.key-status:empty { display: none; }
+.key-status.ok { color: #6fd38d; }
+.key-status.err { color: #ff8a8a; }
+.key-status.busy { color: var(--muted); }
+
 /* Step-by-step help under a setting (e.g. getting the Spicy Lyrics key), folded until asked for. */
 .set-steps { font-size: 13px; line-height: 1.5; color: color-mix(in srgb, var(--text) 78%, transparent); margin: -2px 0 10px; }
 .set-steps summary { cursor: pointer; width: fit-content; color: var(--accent-light, var(--accent)); font-weight: 600; list-style: none; display: flex; align-items: center; gap: 6px; padding: 2px 0; }

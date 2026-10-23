@@ -314,6 +314,21 @@ async function spicy(t) {
   return lines.length ? { format: 'lines', data: lines, attribution } : null;
 }
 
+/** Tries a Spicy Lyrics key on a song it's known to have: { ok, why? } (why: origin | key | limit | net). */
+export async function testSpicy(key) {
+  key = String(key || '').trim();
+  if (!key) return { ok: false, why: 'empty' };
+  try {
+    const r = await fetch('https://api.spicylyrics.org/v1/lyrics/3Gfs29GWViOqUnHSBq911p', { headers: { Authorization: 'Bearer ' + key, Accept: 'application/json' }, signal: AbortSignal.timeout(TIMEOUT) });
+    if (r.ok || r.status === 404) return { ok: true };
+    const err = (await r.json().catch(() => null))?.Body?.error || '';
+    if (r.status === 403 && /origin/i.test(err)) return { ok: false, why: 'origin' };
+    if (r.status === 401 || r.status === 403) return { ok: false, why: 'key' };
+    if (r.status === 429) return { ok: false, why: 'limit' };
+    return { ok: false, why: 'net', status: r.status };
+  } catch { return { ok: false, why: 'net' }; }
+}
+
 async function youtube(t) {
   const y = await ytLyrics(t.videoId);
   return y?.text ? { format: 'plain', data: y.text, credit: y.source } : null;
