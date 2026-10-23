@@ -1731,3 +1731,15 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 .upd-status { font-size: 12.5px; margin-top: 8px; font-variant-numeric: tabular-nums; }
 .upd-status.err { color: #ff8a8a; }
 .upd-buttons .upd-skip { margin-right: auto; }
+
+/* Step-by-step help under a setting (e.g. getting the Spicy Lyrics key), folded until asked for. */
+.set-steps { font-size: 13px; line-height: 1.5; color: color-mix(in srgb, var(--text) 78%, transparent); margin: -2px 0 10px; }
+.set-steps summary { cursor: pointer; width: fit-content; color: var(--accent-light, var(--accent)); font-weight: 600; list-style: none; display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.set-steps summary::-webkit-details-marker { display: none; }
+.set-steps summary::before { content: '›'; display: inline-block; transition: transform .2s ease; font-size: 16px; line-height: 1; }
+.set-steps[open] summary::before { transform: rotate(90deg); }
+.set-steps ol { margin: 8px 0 6px; padding-left: 22px; }
+.set-steps li + li { margin-top: 4px; }
+.set-steps p { margin: 6px 0 0; }
+.set-steps code { font-size: 12px; background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; }
+.set-steps a { color: var(--accent-light, var(--accent)); }
