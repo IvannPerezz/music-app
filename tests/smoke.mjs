@@ -387,6 +387,18 @@ await win.click('#btn-lyrics'); await win.waitForTimeout(900); await shot('13-en
   const q = await perf();
   if (q.on || q.glass === 'none') errors.push('Al quitar el modo rendimiento no vuelven los efectos: ' + JSON.stringify(q));
 }
+// Search top result → artist page: the photo glides from the card into the page's own (and the
+// copies are gone once it lands).
+{
+  await win.fill('#search', 'lua vega'); await win.keyboard.press('Enter'); await win.waitForTimeout(1200);
+  await win.click('.top-card.artist .top-text');
+  await win.waitForTimeout(200);
+  const mid = await win.evaluate(() => [...document.body.children].some((e) => e.tagName === 'IMG' && e.style.position === 'fixed' && e.style.zIndex === '60'));
+  await win.waitForTimeout(1000);
+  const end = await win.evaluate(() => ({ ghosts: [...document.body.children].filter((e) => e.style?.zIndex === '60').length, photo: getComputedStyle(document.querySelector('.detail-head.artist img')).opacity, name: getComputedStyle(document.querySelector('.detail-head.artist h1')).opacity }));
+  if (!mid || end.ghosts || end.photo !== '1' || end.name !== '1') errors.push('Paso de la tarjeta del artista a su página: ' + JSON.stringify({ mid, ...end }));
+  await shot('15-artist-from-search');
+}
 await app.close();
 fs.rmSync(userData, { recursive: true, force: true });
 if (errors.length) { console.error('Errores en la interfaz:\n' + errors.join('\n')); process.exit(1); }

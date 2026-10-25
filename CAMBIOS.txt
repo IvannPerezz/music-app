@@ -15,6 +15,23 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.57.1
+------------------------------------------------------------
+- Al buscar a un artista y pulsar su tarjeta del resultado principal, su foto y su nombre
+  se deslizan y crecen desde la tarjeta hasta su sitio en la página del artista, y el
+  resto de la página aparece con un fundido (llega junto con la v0.6.57).
+- Arreglado: si la ventana dejaba de dibujarse justo durante esa animación (por ejemplo,
+  al cambiar a otra ventana), la foto y el nombre del artista podían quedarse ocultos.
+
+------------------------------------------------------------
+v0.6.57
+------------------------------------------------------------
+- Al buscar a un artista y pulsar su tarjeta del resultado principal, su foto y su nombre
+  se deslizan y crecen desde la tarjeta hasta su sitio en la página del artista, y el
+  resto de la página aparece con un fundido. Mientras carga el perfil, la foto y el
+  nombre se quedan donde estaban en vez de desaparecer.
+
+------------------------------------------------------------
 v0.6.56.8
 ------------------------------------------------------------
 - La clave de Spicy Lyrics se comprueba sola al pegarla (y con el botón "Comprobar"): debajo

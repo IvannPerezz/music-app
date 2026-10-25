@@ -31,6 +31,11 @@ let renderToken = 0;
 export async function render(restoreScroll = false, animate = true) {
   const route = nav.stack[nav.index];
   const token = ++renderToken;
+  // Copies of an artist's photo and name waiting to glide into this page (see heroFromCard).
+  const hero = pendingHero;
+  pendingHero = null;
+  const heroHere = !!hero && route.name === 'artist' && route.id === hero.id;
+  if (hero && !heroHere) hero.cleanup();
   closeNowPlaying();
   $('#back').disabled = nav.index <= 0;
   $('#forward').disabled = nav.index >= nav.stack.length - 1;
@@ -50,13 +55,15 @@ export async function render(restoreScroll = false, animate = true) {
   content.innerHTML = '<div class="spinner"></div>';
   try {
     const view = await views[route.name](route);
-    if (token !== renderToken) return;
+    if (token !== renderToken) { if (heroHere) hero.cleanup(); return; }
     content.innerHTML = '';
-    if (animate) view.classList.add('view-in');
+    if (animate && !heroHere) view.classList.add('view-in');
     content.append(view);
     content.scrollTop = keep;
+    if (heroHere) flyHero(hero, view);
     markPlaying();
   } catch (e) {
+    if (heroHere) hero.cleanup();
     if (token !== renderToken) return;
     console.error(e);
     content.innerHTML = '';
@@ -343,6 +350,68 @@ export function section(sec, { wrap = false, radio = true } = {}) {
 }
 
 /** Search "top result": a big card (artist, album, song…) with its songs beside it. */
+// ------------------------------------------------------------------ artist «hero» transition
+// From the search's top result to the artist page: copies of the photo and the name stay right
+// where they were on the card while the page loads (instead of everything vanishing), then glide
+// and grow into the page's own photo and name; the rest of the page fades in around them.
+let pendingHero = null;
+function heroFromCard(card, id) {
+  pendingHero?.cleanup();
+  pendingHero = null;
+  if (reducedMotion()) return;
+  const fix = (el, r) => Object.assign(el.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', margin: '0', zIndex: '60', pointerEvents: 'none', transformOrigin: '0 0' });
+  const img = card.querySelector('img'), name = card.querySelector('.top-text b');
+  let photo = null, text = null;
+  if (img?.complete && img.naturalWidth) {
+    const r = img.getBoundingClientRect();
+    photo = img.cloneNode();
+    fix(photo, r);
+    Object.assign(photo.style, { width: r.width + 'px', height: r.height + 'px', borderRadius: '50%', objectFit: 'cover', boxShadow: getComputedStyle(img).boxShadow });
+    photo.from = r;
+  }
+  const t = name && textRect(name);
+  if (t) {
+    const cs = getComputedStyle(name);
+    text = document.createElement('div');
+    text.textContent = name.textContent;
+    fix(text, t);
+    Object.assign(text.style, { font: cs.font, letterSpacing: cs.letterSpacing, color: cs.color, whiteSpace: 'nowrap', lineHeight: t.height + 'px', height: t.height + 'px' });
+    text.from = t;
+  }
+  const ghosts = [photo, text].filter(Boolean);
+  if (!ghosts.length) return;
+  ghosts.forEach((g) => g.setAttribute('aria-hidden', 'true'));
+  document.body.append(...ghosts);
+  pendingHero = {
+    id, photo, text,
+    // The page didn't come (another one was opened, or it failed): the copies just fade away.
+    cleanup() { for (const g of ghosts) g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards' }).finished.finally(() => g.remove()); },
+  };
+}
+function flyHero(hero, view) {
+  const head = view.querySelector('.detail-head.artist');
+  const img = head?.querySelector('img'), h1 = head?.querySelector('h1');
+  const timing = { duration: 620, easing: FS_EASE, fill: 'forwards' };
+  const glide = (ghost, real, b, scale) => {
+    const a = ghost.from;
+    real.style.opacity = '0';
+    // Also on a timer: an animation only runs while the window draws (hidden or covered, it can
+    // stall), and the real photo and name must never stay hidden.
+    let landed = false;
+    const land = () => { if (landed) return; landed = true; real.style.opacity = ''; ghost.remove(); };
+    ghost.animate([{ transform: 'none' }, { transform: `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(${scale})` }], timing).finished.finally(land);
+    setTimeout(land, timing.duration + 280);
+  };
+  if (hero.photo && img) { const b = img.getBoundingClientRect(); glide(hero.photo, img, b, b.width / hero.photo.from.width); }
+  else hero.photo?.remove();
+  const b = h1 && textRect(h1);
+  if (hero.text && b) glide(hero.text, h1, b, b.height / hero.text.from.height);
+  else hero.text?.remove();
+  // Everything else (the rest of the header and the page below) fades in around them.
+  const rest = [...(head?.querySelectorAll(':scope > div > :not(h1)') || []), ...[...view.children].filter((el) => el !== head)];
+  for (const el of rest) el.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: 450, delay: 220, easing: FS_EASE, fill: 'backwards' });
+}
+
 function topResult(sec) {
   const el = h(`<section class="section top-result"><h2>${esc(sec.title)}</h2><div class="top-grid"></div></section>`);
   const grid = el.querySelector('.top-grid');
@@ -364,9 +433,11 @@ function topResult(sec) {
       catch (e) { toast(e.message, true); }
     };
     c.querySelector('[data-a=play]').onclick = (e) => { e.stopPropagation(); playAll(); };
-    c.querySelector('[data-a=open]')?.addEventListener('click', (e) => { e.stopPropagation(); go({ name: it.kind, id: it.id }); });
+    // An artist page opens with its photo and name gliding over from this card.
+    const open = () => { if (it.kind === 'artist') heroFromCard(c, it.id); go({ name: it.kind, id: it.id }); };
+    c.querySelector('[data-a=open]')?.addEventListener('click', (e) => { e.stopPropagation(); open(); });
     c.querySelector('[data-a=radio]')?.addEventListener('click', (e) => { e.stopPropagation(); player.playRadio(it); });
-    c.onclick = () => (it.kind === 'track' ? player.playRadio(it) : go({ name: it.kind, id: it.id }));
+    c.onclick = () => (it.kind === 'track' ? player.playRadio(it) : open());
     if (it.kind === 'track') c.addEventListener('contextmenu', (e) => { e.preventDefault(); trackMenu(it, { x: e.clientX, y: e.clientY }); });
     grid.append(c);
   }
