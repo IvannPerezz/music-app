@@ -104,16 +104,13 @@ await shot('02d-fullscreen-eq');
 // The equalizer and the lyrics source only take the height they need.
 const panelH = () => win.evaluate(() => document.querySelector('#fs-panel').offsetHeight / innerHeight);
 if ((await panelH()) > 0.75) errors.push('El panel del ecualizador ocupa todo el alto');
-await dockClick('#lyrics-source'); await win.waitForTimeout(500);
-pn = await panel();
-// (The lyrics menu lists every provider, so it's tall: it just mustn't be taller than its content.)
-const fitsContent = await win.evaluate(() => { const p = document.querySelector('#fs-panel'), b = p.querySelector('.fs-panel-body'); return p.offsetHeight <= b.scrollHeight + 120; });
-if (!pn.open || pn.title !== 'Letra' || !fitsContent || pn.panelBottom > pn.cornerTop) errors.push('Panel de la letra: ' + JSON.stringify(pn));
-await shot('02d1-fullscreen-lyrics-source');
-const bottoms = await win.evaluate(() => ({ panel: Math.round(document.querySelector('#fs-panel').getBoundingClientRect().bottom), h: innerHeight }));
-// (It ends just above the dock: 84 px from the bottom edge.)
-if (Math.abs(bottoms.panel - (bottoms.h - 84)) > 4) errors.push('El panel de la letra no termina justo encima del dock: ' + JSON.stringify(bottoms));
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);
+// The lyrics source is a drop-up menu from its button in the dock (not a side panel).
+await dockClick('#lyrics-source'); await win.waitForTimeout(500);
+const lm = await win.evaluate(() => { const m = document.querySelector('#menu').getBoundingClientRect(), d = document.querySelector('.np-corner').getBoundingClientRect(); return { shown: !document.querySelector('#menu').hidden, menuBottom: Math.round(m.bottom), dockTop: Math.round(d.top), panel: !document.querySelector('#fs-panel').hidden }; });
+if (!lm.shown || lm.panel || lm.menuBottom > lm.dockTop) errors.push('La fuente de la letra no sale como menú hacia arriba desde el dock: ' + JSON.stringify(lm));
+await shot('02d1-fullscreen-lyrics-source');
+await win.keyboard.press('Escape'); await win.waitForTimeout(300);
 await win.click('#fs-more'); await win.waitForTimeout(500);
 // "Más opciones" is the usual pop-up menu next to its button, not a side panel.
 const moreState = await win.evaluate(() => ({ right: document.querySelector('#menu').getBoundingClientRect().left >= document.querySelector('#fs-more').getBoundingClientRect().left - 1, menu: !document.querySelector('#menu').hidden, panel: !document.querySelector('#fs-panel').hidden && !document.querySelector('#fs-panel').classList.contains('closing') }));

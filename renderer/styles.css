@@ -418,7 +418,6 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 /* The look sliders (lyrics menu and Ajustes), laid out like Apple's: name and value, a note, the bar. */
 .lyr-look { display: flex; flex-direction: column; gap: 10px; }
 .lyr-look.compact { padding: 2px 6px 8px; width: 320px; max-width: calc(100vw - 40px); }
-.fs-panel-body .lyr-look.compact { width: auto; padding: 2px 0 8px; } /* (the full screen panel sets its own width) */
 .fs-panel-body { overflow-x: hidden; }
 .lyr-look-h { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 8px 4px 0; }
 .lyr-look-g { display: flex; flex-direction: column; background: rgba(255,255,255,.04); border-radius: 12px; }
@@ -1049,13 +1048,6 @@ body.fs.fs-hide-like #fs-like { display: none; }
 #fs-panel[data-kind="eq"] { width: min(560px, calc(100vw - 120px)); }
 #fs-panel[data-kind="lyrics-source"] { width: 320px; }
 #fs-panel[data-kind="eq"] .fs-panel-body { padding: 0 18px 12px; }
-.fs-menu button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 8px; text-align: left; font-size: 14px; }
-.fs-menu button svg { width: 18px; height: 18px; color: var(--muted); flex: none; }
-.fs-menu button:hover { background: rgba(255,255,255,.1); }
-.fs-menu button .hint { margin-left: auto; font-size: 11px; color: var(--muted); padding-left: 12px; white-space: nowrap; }
-.fs-menu button.checked, .fs-menu button.checked svg { color: var(--accent); }
-.fs-menu hr { border: 0; height: 1px; background: rgba(255,255,255,.08); margin: 6px 6px; }
-.fs-menu .menu-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); padding: 10px 10px 4px; }
 #lyrics-source.on { color: var(--accent); }
 
 /* Full screen: favourite, shuffle and repeat, when switched on, sit on a small Mica disc with
@@ -1878,3 +1870,6 @@ body.fs:not(.circle-on) #nowplaying .np-corner > #np-circle-opts, body.fs:not(.v
 body.fs.queue-open:not(.queue-under) #nowplaying .np-corner, body.fs.panel-open #nowplaying .np-corner { right: 26px; }
 body.fs #queue { bottom: 84px; }
 body.fs #fs-panel { bottom: 84px; max-height: calc(100% - 94px); }
+
+/* (Their usual big shadow fell onto the dock right below and darkened it: a soft one instead.) */
+body.fs #fs-panel, body.fs #queue { box-shadow: 0 0 26px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.06); }

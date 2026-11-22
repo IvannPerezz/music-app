@@ -902,21 +902,7 @@ function fillMenu(m, items, pick) {
   });
 }
 // Menus of the full-screen buttons open in the side panel instead (title by button).
-const FS_MENUS = { 'lyrics-source': tr('Letra') };
-let fsMenuPicking = false;
 export function openMenu(items, anchor) {
-  if (isFs() && anchor instanceof Element && FS_MENUS[anchor.id]) {
-    if (fsPanelKind === anchor.id && !fsMenuPicking) return closeFsPanel(); // second click closes it
-    const list = h('<div class="fs-menu"></div>');
-    fillMenu(list, items, (it) => {
-      // An item may open another menu in the panel (a submenu): only close if it didn't.
-      const gen = fsPanelGen;
-      fsMenuPicking = true;
-      try { it.action(); } finally { fsMenuPicking = false; }
-      if (gen === fsPanelGen) closeFsPanel();
-    });
-    return openFsPanel(anchor.id, FS_MENUS[anchor.id], list);
-  }
   const m = $('#menu');
   clearTimeout(closeMenu.t); m.classList.remove('closing');
   m.innerHTML = '';
@@ -928,6 +914,9 @@ export function openMenu(items, anchor) {
     // Right-aligned to the button, or opening to its right if the button asks (data-menu=right).
     x = anchor.dataset.menu === 'right' ? r.left : r.right - m.offsetWidth; y = r.bottom + 4;
     if (y + m.offsetHeight > innerHeight - 8) y = r.top - m.offsetHeight - 4;
+    // From a button of the full-screen dock: open upwards, clear of the whole dock.
+    const dock = isFs() && anchor.closest('#nowplaying .np-corner');
+    if (dock) y = dock.getBoundingClientRect().top - m.offsetHeight - 10;
   } else ({ x, y } = anchor);
   x = Math.max(8, Math.min(x, innerWidth - m.offsetWidth - 8));
   y = Math.max(8, Math.min(y, innerHeight - m.offsetHeight - 8));

@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.59.5
+------------------------------------------------------------
+- Pantalla completa: la fuente de la letra es ahora un menú que sube desde su botón de la barra,
+  en vez de un panel por la derecha.
+- La cola y el ecualizador ya no oscurecen la barra de botones con su sombra.
+
+------------------------------------------------------------
 v0.6.59.4
 ------------------------------------------------------------
 - Pantalla completa: la cola, el ecualizador y la fuente de la letra se abren encima de la barra
