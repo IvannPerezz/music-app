@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.59.4
+------------------------------------------------------------
+- Pantalla completa: la cola, el ecualizador y la fuente de la letra se abren encima de la barra
+  de botones, deslizándose desde la derecha como antes, en vez de empujarla a la izquierda. La
+  barra se queda en su sitio y no se esconde mientras alguno de ellos está abierto.
+
+------------------------------------------------------------
 v0.6.59.3
 ------------------------------------------------------------
 - Pantalla completa: cuando la barra de botones se esconde ya no queda ninguna marca en el borde.

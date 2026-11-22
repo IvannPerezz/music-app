@@ -1525,6 +1525,7 @@ function inDockZone() {
   return fsPointer.x > r.left - 90 && fsPointer.y > innerHeight - 150;
 }
 const fsDockBusy = () => inDockZone() || $('#nowplaying .np-corner').matches(':hover, :focus-within') || document.body.classList.contains('panel-open')
+  || (document.body.classList.contains('queue-open') && !document.body.classList.contains('queue-under'))
   || $('#lyrics-source').classList.contains('open') || !$('#menu').hidden;
 function showFsDock(ms = 1200) {
   if (!isFs()) return;

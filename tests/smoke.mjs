@@ -96,10 +96,10 @@ await win.waitForTimeout(200);
 await win.mouse.move(40, 430); await win.waitForTimeout(500);
 if (!(await volShown())) errors.push('La barra de volumen no vuelve al acercar el ratón');
 // Menus open as a side panel from the right (like the queue) and the button column moves too.
-const panel = () => win.evaluate(() => { const p = document.querySelector('#fs-panel'), c = document.querySelector('.np-corner').getBoundingClientRect(); return { open: !p.hidden && !p.classList.contains('closing'), title: p.querySelector('h3').textContent, cornerRight: Math.round(c.right), panelLeft: Math.round(p.getBoundingClientRect().left), fs: document.body.classList.contains('fs') }; });
+const panel = () => win.evaluate(() => { const p = document.querySelector('#fs-panel'), c = document.querySelector('.np-corner').getBoundingClientRect(); return { open: !p.hidden && !p.classList.contains('closing'), title: p.querySelector('h3').textContent, cornerRight: Math.round(c.right), panelLeft: Math.round(p.getBoundingClientRect().left), cornerTop: Math.round(c.top), panelBottom: Math.round(p.getBoundingClientRect().bottom), fs: document.body.classList.contains('fs') }; });
 await dockClick('#fs-eq'); await win.waitForTimeout(500);
 let pn = await panel();
-if (!pn.open || pn.title !== 'Ecualizador' || pn.cornerRight > pn.panelLeft) errors.push('Ecualizador en pantalla completa: ' + JSON.stringify(pn));
+if (!pn.open || pn.title !== 'Ecualizador' || pn.panelBottom > pn.cornerTop) errors.push('Ecualizador en pantalla completa: ' + JSON.stringify(pn));
 await shot('02d-fullscreen-eq');
 // The equalizer and the lyrics source only take the height they need.
 const panelH = () => win.evaluate(() => document.querySelector('#fs-panel').offsetHeight / innerHeight);
@@ -108,10 +108,11 @@ await dockClick('#lyrics-source'); await win.waitForTimeout(500);
 pn = await panel();
 // (The lyrics menu lists every provider, so it's tall: it just mustn't be taller than its content.)
 const fitsContent = await win.evaluate(() => { const p = document.querySelector('#fs-panel'), b = p.querySelector('.fs-panel-body'); return p.offsetHeight <= b.scrollHeight + 120; });
-if (!pn.open || pn.title !== 'Letra' || !fitsContent || pn.cornerRight > pn.panelLeft) errors.push('Panel de la letra: ' + JSON.stringify(pn));
+if (!pn.open || pn.title !== 'Letra' || !fitsContent || pn.panelBottom > pn.cornerTop) errors.push('Panel de la letra: ' + JSON.stringify(pn));
 await shot('02d1-fullscreen-lyrics-source');
 const bottoms = await win.evaluate(() => ({ panel: Math.round(document.querySelector('#fs-panel').getBoundingClientRect().bottom), h: innerHeight }));
-if (bottoms.panel < bottoms.h - 30) errors.push('El panel de la letra no está abajo junto a los botones: ' + JSON.stringify(bottoms));
+// (It ends just above the dock: 84 px from the bottom edge.)
+if (Math.abs(bottoms.panel - (bottoms.h - 84)) > 4) errors.push('El panel de la letra no termina justo encima del dock: ' + JSON.stringify(bottoms));
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);
 await win.click('#fs-more'); await win.waitForTimeout(500);
 // "Más opciones" is the usual pop-up menu next to its button, not a side panel.
@@ -124,7 +125,7 @@ await dockClick('#fs-eq'); await win.waitForTimeout(500);
 await win.keyboard.press('Escape'); await win.waitForTimeout(450);
 pn = await panel();
 if (pn.open || !pn.fs) errors.push('Esc debería cerrar el panel sin salir de pantalla completa: ' + JSON.stringify(pn));
-// The right-hand column moves left with the queue panel instead of staying under it.
+// Full screen: the queue slides in above the dock, which stays where it is (and stays shown).
 const cornerRight = () => win.evaluate(() => Math.round(document.querySelector('.np-corner').getBoundingClientRect().right));
 const r0 = await cornerRight();
 await dockClick('#fs-queue'); await win.waitForTimeout(50);
@@ -132,10 +133,12 @@ await dockClick('#fs-queue'); await win.waitForTimeout(50);
 const sideways = await win.evaluate(() => ['#layout', '#nowplaying', 'body', 'html'].map((q) => document.querySelector(q).scrollLeft).filter(Boolean));
 if (sideways.length) errors.push('Al abrir la cola se desplaza la ventana: ' + sideways.join(', '));
 await win.waitForTimeout(550);
-const r1 = await cornerRight(), qLeft = await win.evaluate(() => document.querySelector('#queue').getBoundingClientRect().left);
+const r1 = await cornerRight(), qBottom = await win.evaluate(() => document.querySelector('#queue').getBoundingClientRect().bottom), dTop = await win.evaluate(() => document.querySelector('.np-corner').getBoundingClientRect().top);
 const qPos = await win.evaluate(() => ({ right: Math.round(document.querySelector('#queue').getBoundingClientRect().right), w: innerWidth, scrolled: ['#layout', '#nowplaying', 'body', 'html'].some((q) => document.querySelector(q).scrollLeft) }));
 if (qPos.scrolled || qPos.right < qPos.w - 20) errors.push('La cola no queda pegada a la derecha: ' + JSON.stringify(qPos));
-if (!(r1 < r0 && r1 <= qLeft)) errors.push(`Los botones no se apartan de la cola: ${r0} → ${r1}, cola en ${qLeft}`);
+if (r1 !== r0 || qBottom > dTop) errors.push(`El dock se mueve o la cola lo tapa: ${r0} → ${r1}, cola hasta ${qBottom}, dock desde ${dTop}`);
+await win.mouse.move(600, 300); await win.waitForTimeout(1600);
+if (!(await dockShown())) errors.push('El dock se esconde con la cola abierta');
 await shot('02e-fullscreen-queue');
 await dockClick('#fs-queue'); await win.waitForTimeout(400);
 // Full-screen settings: switching off "Aleatorio" hides it under the artwork.

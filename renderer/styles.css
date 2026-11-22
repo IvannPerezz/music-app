@@ -1871,3 +1871,10 @@ body.fs:not(.circle-on) #nowplaying .np-corner > #np-circle-opts, body.fs:not(.v
 .ai-chart-h { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.8); margin: 10px 0 6px; }
 .ai-chart { width: 100%; display: block; }
 .ai-foot { color: var(--muted) !important; }
+
+/* Full screen: the queue and the side panels (equalizer, lyrics source) slide in above the dock
+   instead of pushing it aside; the dock stays where it is. 84px = the dock's 22px from the edge,
+   its 50px height and a 12px gap. */
+body.fs.queue-open:not(.queue-under) #nowplaying .np-corner, body.fs.panel-open #nowplaying .np-corner { right: 26px; }
+body.fs #queue { bottom: 84px; }
+body.fs #fs-panel { bottom: 84px; max-height: calc(100% - 94px); }
