@@ -934,4 +934,6 @@ export default {
   "Compresión con pérdida": "Lossy compression",
   "Caída en el corte": "Drop at the cut-off",
   "Se ha leído todo el audio ({d}). Ningún análisis puede certificar el máster original.": "Read all {d} of the audio. No analysis can certify the original master.",
+  "Mostrar el nombre y los controles (H)": "Show the name and the controls (H)",
+  "Ocultar todo menos el visualizador (H)": "Hide everything but the visualizer (H)",
 };

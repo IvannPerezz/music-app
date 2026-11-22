@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.60
+------------------------------------------------------------
+- Pantalla completa con el visualizador o el círculo: un botón nuevo en la barra (el ojo), o la
+  tecla H, oculta todo lo demás (el nombre, la calidad, la barra de progreso y los controles) y
+  deja solo el visualizador o el círculo flotando. Se recuerda para la próxima vez; la barra
+  sigue saliendo al acercar el ratón a la esquina para volver a mostrarlo todo.
+- Arreglado: después de pulsar un botón de la barra de pantalla completa, la barra ya no se
+  queda fija; se esconde sola al apartar el ratón.
+
+------------------------------------------------------------
 v0.6.59.7
 ------------------------------------------------------------
 - Importar de Spotify: los botones de abajo ("Importar a YouTube Music", "Solo ver en BitChord"

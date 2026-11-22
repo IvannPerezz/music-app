@@ -1507,8 +1507,19 @@ $('#mute').onclick = () => {
   document.addEventListener('pointerleave', () => (fsPointer = null));
 }
 
+/** "Solo el visualizador": in full screen with the visualizer or the circle, only it stays on screen. */
+function setVisBare(on) {
+  store.set('visBare', on);
+  document.body.classList.toggle('vis-bare', on);
+  const b = $('#np-bare');
+  b.innerHTML = icon(on ? 'ms-visibility' : 'ms-visibility-off');
+  b.title = tr(on ? 'Mostrar el nombre y los controles (H)' : 'Ocultar todo menos el visualizador (H)');
+  b.classList.toggle('on', on);
+}
+
 /** Full screen: the view's buttons live in a dock that's hidden until it's wanted. It stays up while
- *  the pointer is on it, a menu or panel of its is open or it has the keyboard focus. */
+ *  the pointer is on it, a menu or panel of its is open or it has the keyboard focus (a click leaves
+ *  ordinary focus on the button, which mustn't keep it up). */
 let fsDockTimer = null, fsPointer = null;
 /** Whether the pointer is in the corner that calls the dock (it stays up while it rests there). */
 function inDockZone() {
@@ -1516,7 +1527,7 @@ function inDockZone() {
   const r = $('#nowplaying .np-corner').getBoundingClientRect();
   return fsPointer.x > r.left - 90 && fsPointer.y > innerHeight - 150;
 }
-const fsDockBusy = () => inDockZone() || $('#nowplaying .np-corner').matches(':hover, :focus-within') || document.body.classList.contains('panel-open')
+const fsDockBusy = () => inDockZone() || $('#nowplaying .np-corner').matches(':hover, :has(:focus-visible)') || document.body.classList.contains('panel-open')
   || (document.body.classList.contains('queue-open') && !document.body.classList.contains('queue-under'))
   || $('#lyrics-source').classList.contains('open') || !$('#menu').hidden;
 function showFsDock(ms = 1200) {
@@ -2979,6 +2990,9 @@ function initButtons() {
   $('#np-circle-toggle').onclick = toggleCircle;
   $('#np-circle-opts').innerHTML = icon('tune');
   $('#np-circle-opts').onclick = () => toggleCirclePanel();
+  // Full screen with the visualizer or the circle: hide everything else (name, quality, progress, controls).
+  $('#np-bare').onclick = () => setVisBare(!store.get('visBare', false));
+  setVisBare(store.get('visBare', false));
   applyVis();
   $('#fs-panel-close').onclick = () => closeFsPanel();
   applyFsButtons();
@@ -3055,6 +3069,7 @@ function initButtons() {
     else if (e.key.toLowerCase() === 'l') npOpen() ? closeNowPlaying() : openNowPlaying();
     else if (e.key.toLowerCase() === 'q') toggleQueue();
     else if (e.key.toLowerCase() === 'v' && npOpen()) toggleVisualizer();
+    else if (e.key.toLowerCase() === 'h' && isFs() && document.body.classList.contains('vis-on')) setVisBare(!store.get('visBare', false));
     else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && npOpen()) toggleCircle();
     else if (e.key.toLowerCase() === 's') player.setShuffle(!player.shuffle);
     else if (e.key.toLowerCase() === 'r') player.cycleRepeat();

@@ -1882,3 +1882,18 @@ body.fs #fs-panel, body.fs #queue { box-shadow: 0 0 26px rgba(0,0,0,.16), inset 
 body.fs #queue { right: 26px; width: var(--dock-w, 340px); }
 body.fs #fs-panel { right: 26px; width: max(var(--dock-w, 340px), var(--queue-w)); }
 body.fs #fs-panel[data-kind="eq"] { width: max(var(--dock-w, 340px), 560px); }
+
+/* "Solo el visualizador" (#np-bare): in full screen with the visualizer or the circle, the song's
+   name, quality pill, progress and controls fade away (and the arrow, the "playing from" line and
+   the volume go), leaving only the visual. The dock still comes up at its corner to undo it. */
+body:not(.fs) #np-bare { display: none; }
+body.fs #nowplaying .np-corner > #np-bare { height: 36px; min-height: 36px; margin: 0; overflow: hidden;
+  transition: width .45s cubic-bezier(.3,.9,.3,1), min-width .45s cubic-bezier(.3,.9,.3,1), margin .45s cubic-bezier(.3,.9,.3,1),
+    padding .45s cubic-bezier(.3,.9,.3,1), transform .45s cubic-bezier(.3,.9,.3,1), opacity .25s ease, background .2s; }
+body.fs:not(.vis-on) #nowplaying .np-corner > #np-bare {
+  width: 0; min-width: 0; padding: 0; margin: 0 0 0 -4px; border-width: 0; opacity: 0; transform: scale(.4); pointer-events: none;
+}
+#np-bare.on { color: var(--accent); }
+body.fs.vis-on #nowplaying .np-inner { transition: opacity .35s ease; }
+body.fs.vis-on.vis-bare #nowplaying .np-inner { opacity: 0; pointer-events: none; }
+body.fs.vis-on.vis-bare #np-from, body.fs.vis-on.vis-bare #np-close, body.fs.vis-on.vis-bare #fs-vol { visibility: hidden; }
