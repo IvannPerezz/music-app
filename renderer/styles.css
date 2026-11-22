@@ -92,9 +92,9 @@ svg { width: 20px; height: 20px; fill: currentColor; display: block; }
 /* Search suggestions: the same Mica glass as the menus and panels. */
 #suggest {
   position: absolute; top: 38px; left: 0; right: 0; margin: 0; padding: 6px; list-style: none; border-radius: 12px;
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,calc(.45 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1)));
 }
 #suggest li { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; gap: 10px; align-items: center; }
 #suggest li svg { width: 16px; height: 16px; color: var(--muted); }
@@ -158,14 +158,14 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .cards { display: grid; grid-auto-flow: column; grid-auto-columns: 176px; gap: 18px; overflow-x: auto; padding-bottom: 8px; }
 .cards.wrap { grid-auto-flow: row; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); overflow: visible; }
 .card { cursor: pointer; min-width: 0; }
-.card .art { position: relative; aspect-ratio: 1; border-radius: var(--radius); overflow: hidden; background: var(--surface); box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+.card .art { position: relative; aspect-ratio: 1; border-radius: var(--radius); overflow: hidden; background: var(--surface); box-shadow: 0 6px 20px rgba(0,0,0,calc(.35 * var(--shade, 1))); }
 .card.artist .art { border-radius: 50%; }
 .card .art img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
 .card:hover .art img { transform: scale(1.04); }
 .card .hover-play {
   position: absolute; right: 10px; bottom: 10px; width: 40px; height: 40px; border-radius: 50%;
   background: var(--accent); display: grid; place-items: center; color: #fff;
-  opacity: 0; transform: translateY(6px); transition: all .2s ease; box-shadow: 0 6px 16px rgba(0,0,0,.4);
+  opacity: 0; transform: translateY(6px); transition: all .2s ease; box-shadow: 0 6px 16px rgba(0,0,0,calc(.4 * var(--shade, 1)));
 }
 .card:hover .hover-play { opacity: 1; transform: none; }
 .card .t { margin-top: 8px; font-weight: 600; font-size: 14px; }
@@ -198,7 +198,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 
 /* detail header */
 .detail-head { display: flex; gap: 28px; align-items: flex-end; margin: 16px 0 28px; }
-.detail-head img { width: 220px; height: 220px; border-radius: 12px; object-fit: cover; box-shadow: 0 20px 50px rgba(0,0,0,.5); background: var(--surface); }
+.detail-head img { width: 220px; height: 220px; border-radius: 12px; object-fit: cover; box-shadow: 0 20px 50px rgba(0,0,0,calc(.5 * var(--shade, 1))); background: var(--surface); }
 .detail-head.artist img { border-radius: 50%; }
 .detail-head .kind { text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 1px; color: var(--muted); }
 .detail-head h1 { font-size: 40px; margin: 6px 0 8px; letter-spacing: -.6px; line-height: 1.1; }
@@ -245,7 +245,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .np-bg { position: absolute; inset: -80px; background-size: cover; background-position: center; filter: blur(80px) saturate(1.6) brightness(.55); transform: scale(1.2); transition: background-image .6s; }
 .np-inner { position: relative; height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(300px, 1fr) minmax(0, 1.15fr); gap: 56px; padding: 32px 64px; align-items: center; }
 .np-left { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; }
-#np-art { width: min(440px, 42vh, 100%); aspect-ratio: 1; border-radius: 14px; object-fit: cover; box-shadow: 0 30px 80px rgba(0,0,0,.55); background: var(--surface); }
+#np-art { width: min(440px, 42vh, 100%); aspect-ratio: 1; border-radius: 14px; object-fit: cover; box-shadow: 0 30px 80px rgba(0,0,0,calc(.55 * var(--shade, 1))); background: var(--surface); }
 .np-meta { width: min(440px, 42vh, 100%); margin-top: 22px; }
 #np-title { font-size: 24px; font-weight: 750; letter-spacing: -.3px; }
 #np-artist { font-size: 17px; color: rgba(255,255,255,.7); margin-top: 2px; }
@@ -273,7 +273,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
   border-top: 1px solid rgba(255,255,255,.06);
 }
 .p-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-#p-art { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: var(--surface); cursor: pointer; flex: none; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+#p-art { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: var(--surface); cursor: pointer; flex: none; box-shadow: 0 4px 12px rgba(0,0,0,calc(.4 * var(--shade, 1))); }
 #p-art[src=""] { visibility: hidden; }
 .p-meta { min-width: 0; }
 #p-title { font-weight: 650; }
@@ -304,7 +304,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 #menu {
   position: fixed; z-index: 50; min-width: 220px; padding: 6px;
   background: var(--popup); backdrop-filter: blur(20px); border-radius: 10px;
-  box-shadow: 0 16px 48px rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 16px 48px rgba(0,0,0,calc(.55 * var(--shade, 1))); border: 1px solid rgba(255,255,255,.07);
 }
 #menu button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 6px; text-align: left; font-size: 13.5px; }
 #menu button svg { width: 18px; height: 18px; color: var(--muted); }
@@ -314,7 +314,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 #toast {
   position: fixed; z-index: 60; left: 50%; bottom: calc(var(--player) + 18px); transform: translateX(-50%);
   background: rgba(44,44,48,.97); padding: 10px 16px; border-radius: 10px; max-width: 70vw;
-  box-shadow: 0 10px 30px rgba(0,0,0,.5); font-size: 13.5px; animation: rise .2s ease;
+  box-shadow: 0 10px 30px rgba(0,0,0,calc(.5 * var(--shade, 1))); font-size: 13.5px; animation: rise .2s ease;
 }
 #toast.error { border-left: 3px solid var(--accent); }
 
@@ -353,7 +353,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 #mix-badge {
   position: absolute; left: 50%; top: -46px; transform: translateX(-50%);
   display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
-  background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,.4);
+  background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,calc(.4 * var(--shade, 1)));
   animation: rise .3s ease;
 }
 #mix-badge svg { width: 14px; height: 14px; }
@@ -471,7 +471,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .switch { position: relative; width: 42px; height: 24px; flex: none; cursor: pointer; }
 .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
 .switch span { position: absolute; inset: 0; border-radius: 999px; background: rgba(255,255,255,.18); transition: background .2s; }
-.switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,calc(.4 * var(--shade, 1))); }
 .switch input:checked + span { background: var(--accent); }
 .switch input:checked + span::after { transform: translateX(18px); }
 .select, .text {
@@ -521,7 +521,7 @@ details.adv summary { cursor: pointer; padding: 6px 0; }
   position: fixed; right: 16px; bottom: calc(var(--player) + 10px); z-index: 30; width: min(560px, calc(100vw - 32px));
   padding: 14px 18px 12px; border-radius: 16px;
   background: var(--popup); backdrop-filter: blur(30px) saturate(1.4);
-  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 60px rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 60px rgba(0,0,0,calc(.55 * var(--shade, 1)));
   animation: pop-in .2s cubic-bezier(.2,.8,.2,1); transform-origin: bottom right;
 }
 .eq-pop-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 15px; }
@@ -544,7 +544,7 @@ body.sb-hover #sb-hot { display: block; position: absolute; left: 0; top: 0; bot
 body.sb-hover #sidebar {
   position: absolute; left: 0; top: 0; bottom: 0; z-index: 8;
   background: var(--chrome-solid); backdrop-filter: blur(24px);
-  border-right: 1px solid rgba(255,255,255,.06); box-shadow: 12px 0 40px rgba(0,0,0,.45);
+  border-right: 1px solid rgba(255,255,255,.06); box-shadow: 12px 0 40px rgba(0,0,0,calc(.45 * var(--shade, 1)));
   transform: translateX(-102%); transition: transform .22s cubic-bezier(.2,.8,.2,1);
 }
 body.sb-hover.sb-show #sidebar { transform: none; }
@@ -577,7 +577,7 @@ body.sb-hover .brand, body.sb-collapsed .brand { width: 112px; padding-right: 8p
 
 /* ================================================================ v0.5: playlists + Spotify import */
 .modal-back { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.5); display: grid; place-items: center; animation: rise .15s ease; }
-.modal { width: min(440px, calc(100vw - 32px)); background: var(--popup); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 20px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.modal { width: min(440px, calc(100vw - 32px)); background: var(--popup); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 20px; box-shadow: 0 30px 80px rgba(0,0,0,calc(.6 * var(--shade, 1))); }
 .modal h3 { margin: 0 0 10px; font-size: 18px; }
 .modal p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.5; }
 .modal .text { width: 100%; margin-bottom: 16px; }
@@ -587,7 +587,7 @@ body.sb-hover .brand, body.sb-collapsed .brand { width: 112px; padding-right: 8p
 .mosaic img { width: 100%; height: 100%; object-fit: cover; }
 .mosaic.empty { display: grid; place-items: center; grid-template-columns: 1fr; color: var(--muted); }
 .mosaic.empty svg { width: 48px; height: 48px; }
-.detail-head .mosaic { width: 220px; height: 220px; border-radius: 12px; overflow: hidden; flex: none; box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+.detail-head .mosaic { width: 220px; height: 220px; border-radius: 12px; overflow: hidden; flex: none; box-shadow: 0 20px 50px rgba(0,0,0,calc(.5 * var(--shade, 1))); }
 .detail-head .mosaic img { width: 100%; height: 100%; border-radius: 0; box-shadow: none; }
 
 .import { max-width: 980px; margin: 0 auto; }
@@ -617,7 +617,7 @@ body.sb-hover .brand, body.sb-collapsed .brand { width: 112px; padding-right: 8p
 .cover-edit.drop { outline: 3px dashed var(--accent); outline-offset: 4px; }
 
 /* YouTube rate-limit notice */
-#yt-banner{position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:60;display:flex;gap:12px;align-items:flex-start;max-width:min(640px,calc(100vw - 32px));padding:12px 16px;border-radius:12px;background:rgba(60,40,10,.92);border:1px solid rgba(255,190,90,.35);color:#ffe2b8;box-shadow:0 10px 30px rgba(0,0,0,.4);backdrop-filter:blur(10px)}
+#yt-banner{position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:60;display:flex;gap:12px;align-items:flex-start;max-width:min(640px,calc(100vw - 32px));padding:12px 16px;border-radius:12px;background:rgba(60,40,10,.92);border:1px solid rgba(255,190,90,.35);color:#ffe2b8;box-shadow:0 10px 30px rgba(0,0,0,calc(.4 * var(--shade, 1)));backdrop-filter:blur(10px)}
 #yt-banner[hidden]{display:none}
 #yt-banner svg{flex:none;width:20px;height:20px;fill:#ffbe5a;margin-top:2px}
 #yt-banner .muted{color:#e9cfa8}
@@ -702,7 +702,7 @@ body.np-open #sb-toggle { display: none !important; }
 #np-art, .np-meta { transition: width .5s cubic-bezier(.2,.8,.2,1); }
 /* Paused: the artwork sinks back a little (smaller, flatter shadow); on play it springs back. */
 #np-art { transition: width .5s cubic-bezier(.2,.8,.2,1), transform .6s cubic-bezier(.34,1.45,.5,1), box-shadow .6s ease; }
-#nowplaying.paused #np-art { transform: scale(.86); box-shadow: 0 12px 34px rgba(0,0,0,.4); transition: width .5s cubic-bezier(.2,.8,.2,1), transform .45s cubic-bezier(.3,.7,.3,1), box-shadow .45s ease; }
+#nowplaying.paused #np-art { transform: scale(.86); box-shadow: 0 12px 34px rgba(0,0,0,calc(.4 * var(--shade, 1))); transition: width .5s cubic-bezier(.2,.8,.2,1), transform .45s cubic-bezier(.3,.7,.3,1), box-shadow .45s ease; }
 #nowplaying.no-lyrics .np-inner { grid-template-columns: minmax(300px, 1fr) minmax(0, 0fr); gap: 0px; }
 #nowplaying.no-lyrics .np-right { opacity: 0; transform: translateX(40px); pointer-events: none; }
 #nowplaying.no-lyrics #np-art, #nowplaying.no-lyrics .np-meta { width: min(520px, 52vh, 100%); }
@@ -729,7 +729,7 @@ body.np-open #sb-toggle { display: none !important; }
   position: fixed; top: calc(var(--titlebar) + 4px); right: 150px; z-index: 55; width: 290px;
   padding: 8px; border-radius: 16px;
   background: var(--popup); backdrop-filter: blur(30px) saturate(1.4);
-  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 60px rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 24px 60px rgba(0,0,0,calc(.55 * var(--shade, 1)));
   animation: acct-in .2s cubic-bezier(.2,.8,.2,1); transform-origin: top right;
 }
 @keyframes acct-in { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
@@ -751,11 +751,11 @@ body.np-open #sb-toggle { display: none !important; }
   --mica-tint: rgba(var(--mica-rgb), min(1, calc(var(--mica-op) + var(--mica-op-extra))));
   --mica-filter: blur(var(--mica-blur)) saturate(var(--mica-sat)) brightness(.92); }
 #menu, #eq-pop, #acct-pop {
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter);
   backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.11);
-  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 24px 60px rgba(0,0,0,calc(.45 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1)));
 }
 #menu { border-radius: 12px; }
 #menu button:hover { background: rgba(255,255,255,.1); }
@@ -764,11 +764,11 @@ body.np-open #sb-toggle { display: none !important; }
 #queue {
   position: absolute; top: 8px; right: 10px; bottom: 10px; z-index: 6; width: 340px;
   border-radius: 16px; border-left: 1px solid rgba(255,255,255,.11);
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter);
   backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.11);
-  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 24px 60px rgba(0,0,0,calc(.45 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1)));
   animation: queue-slide-in .3s cubic-bezier(.2,.8,.2,1);
 }
 #queue > * { min-width: 0; }
@@ -831,15 +831,15 @@ body.ambient-cover .amb-layer i:nth-child(3) { left: 14vw; bottom: -40vmax; anim
 /* Sidebar: floating Mica panel, like the queue. */
 #sidebar {
   margin: 8px 0 10px 10px; border-radius: 16px;
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter);
   backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.11);
-  box-shadow: 0 18px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 18px 50px rgba(0,0,0,calc(.35 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1)));
   transition: width .3s cubic-bezier(.2,.8,.2,1), padding .3s cubic-bezier(.2,.8,.2,1), margin .3s cubic-bezier(.2,.8,.2,1), opacity .22s ease, border-width .3s;
 }
 body.sb-collapsed #sidebar { margin-left: 0; border-width: 0; }
-body.sb-hover #sidebar { margin: 8px 0 10px 10px; top: 0; bottom: 0; box-shadow: 0 18px 60px rgba(0,0,0,.5); transform: translateX(calc(-100% - 20px)); }
+body.sb-hover #sidebar { margin: 8px 0 10px 10px; top: 0; bottom: 0; box-shadow: 0 18px 60px rgba(0,0,0,calc(.5 * var(--shade, 1))); transform: translateX(calc(-100% - 20px)); }
 body.sb-hover.sb-show #sidebar { transform: none; }
 #sidebar .nav-item:hover { background: rgba(255,255,255,.08); }
 
@@ -851,12 +851,12 @@ body.sb-hover.sb-show #sidebar { transform: none; }
 .cpick { width: 300px; flex: none; display: flex; flex-direction: column; gap: 12px; user-select: none; }
 .cp-sv { position: relative; height: 200px; border-radius: 10px; cursor: crosshair; touch-action: none;
   background-image: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent); }
-.cp-knob { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.5); pointer-events: none; }
+.cp-knob { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,calc(.5 * var(--shade, 1))); pointer-events: none; }
 .cp-bar { position: relative; height: 16px; border-radius: 6px; cursor: pointer; touch-action: none; }
 .cp-hue { background: linear-gradient(90deg, #f00, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00); }
 .cp-alpha { background: repeating-conic-gradient(#bbb 0 25%, #eee 0 50%) 0 0 / 12px 12px; }
 .cp-alpha-fill { position: absolute; inset: 0; border-radius: 6px; }
-.cp-handle { position: absolute; top: -3px; width: 14px; height: 22px; margin-left: -7px; border-radius: 5px; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.5); pointer-events: none; }
+.cp-handle { position: absolute; top: -3px; width: 14px; height: 22px; margin-left: -7px; border-radius: 5px; border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,calc(.5 * var(--shade, 1))); pointer-events: none; }
 .cp-foot { display: flex; align-items: center; gap: 10px; }
 .cp-swatch { width: 34px; height: 34px; border-radius: 8px; flex: none; border: 1px solid rgba(255,255,255,.15); background-clip: padding-box; }
 .cp-hex { flex: 1; font-family: ui-monospace, Consolas, monospace; text-transform: uppercase; }
@@ -866,11 +866,11 @@ body.sb-hover.sb-show #sidebar { transform: none; }
 #layout { height: calc(100% - var(--titlebar)); }
 #player {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
-  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.015)), var(--mica-tint);
+  background: linear-gradient(180deg, rgba(255,255,255,calc(.07 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter);
   backdrop-filter: var(--mica-filter);
   border-top: 1px solid rgba(255,255,255,.11);
-  box-shadow: 0 -12px 40px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+  box-shadow: 0 -12px 40px rgba(0,0,0,calc(.25 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.05 * var(--sheen, 1)));
 }
 #content { padding-bottom: calc(48px + var(--player)); }
 #sidebar { margin-bottom: calc(var(--player) + 10px); }
@@ -888,13 +888,13 @@ body.no-mica-sidebar #sidebar, body.no-mica-queue #queue, body.no-mica-player #p
 /* Lyrics buttons in the full-screen view (source pill and show/hide): small Mica pills that
    follow the sliders of Ajustes > Personalización > Efecto Mica. */
 #lyrics-source, .np-lyr-toggle, .np-close {
-  background: linear-gradient(140deg, rgba(255,255,255,.1), rgba(255,255,255,.02)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.1 * var(--sheen, 1))), rgba(255,255,255,calc(.02 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 8px 24px rgba(0,0,0,calc(.25 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.08 * var(--sheen, 1)));
 }
 #lyrics-source:hover, .np-lyr-toggle:hover, #lyrics-source.open, .np-close:hover {
-  background: linear-gradient(140deg, rgba(255,255,255,.17), rgba(255,255,255,.05)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.17 * var(--sheen, 1))), rgba(255,255,255,calc(.05 * var(--sheen, 1)))), var(--mica-tint);
 }
 body.no-mica-lyrics #lyrics-source, body.no-mica-lyrics .np-lyr-toggle, body.no-mica-lyrics .np-close {
   background: rgba(0,0,0,.28); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-color: transparent; box-shadow: none;
@@ -998,9 +998,9 @@ body.fs-set-open #nowplaying > *, body.fs-set-open #queue, body.fs-set-open #fs-
 body.fs-set-open #nowplaying > .np-amb { filter: saturate(calc(var(--amb-sat, 1) * 1.4)) brightness(.6) blur(12px); }
 body.fs-set-open #nowplaying > .np-bg { filter: blur(80px) saturate(1.6) brightness(.55); }
 .modal.fs-set { width: min(480px, calc(100vw - 32px));
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); }
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,calc(.45 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1))); }
 .fs-set h4 { margin: 14px 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
 .fs-set .fs-opt { display: flex; align-items: center; gap: 12px; padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.06); }
 .fs-set .fs-opt:last-of-type { border-bottom: 0; }
@@ -1029,10 +1029,10 @@ body.fs.fs-hide-like #fs-like { display: none; }
 #fs-panel {
   position: absolute; top: 10px; right: 10px; bottom: 10px; z-index: 6; width: var(--queue-w);
   display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.11);
-  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 24px 60px rgba(0,0,0,calc(.45 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1)));
   animation: queue-slide-in .3s cubic-bezier(.2,.8,.2,1);
 }
 #fs-panel[hidden] { display: none; }
@@ -1055,9 +1055,9 @@ body.fs.fs-hide-like #fs-like { display: none; }
    without Mica they go back to the solid accent square). */
 #np-fs-slot #fs-like.on {
   color: var(--accent); border-radius: 50%;
-  background: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.03)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.12 * var(--sheen, 1))), rgba(255,255,255,calc(.03 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,.22);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 6px 18px rgba(0,0,0,calc(.22 * var(--shade, 1)));
 }
 body.no-mica-lyrics #np-fs-slot #fs-like.on { background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 
@@ -1082,12 +1082,12 @@ body.perf #lyrics .lyr-line { filter: none !important; }
 /* Title bar button: a Mica glass disc; green while the mode is on. no-drag: the title bar drags
    the window, and without it Windows took the click as the start of a drag. */
 #btn-perf { -webkit-app-region: no-drag; width: 34px; height: 34px; border-radius: 50%; margin-right: 4px;
-  background: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.12 * var(--sheen, 1))), rgba(255,255,255,calc(.03 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,.22); }
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,calc(.22 * var(--shade, 1))); }
 #btn-perf svg { width: 19px; height: 19px; }
-#btn-perf:hover { background: linear-gradient(140deg, rgba(255,255,255,.2), rgba(255,255,255,.06) 45%, rgba(255,255,255,.02)), var(--mica-tint); }
-#btn-perf.on { color: #34c759; box-shadow: inset 0 0 0 1px rgba(52,199,89,.55), 0 0 14px rgba(52,199,89,.25), 0 4px 14px rgba(0,0,0,.22); }
+#btn-perf:hover { background: linear-gradient(140deg, rgba(255,255,255,calc(.2 * var(--sheen, 1))), rgba(255,255,255,calc(.06 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(.02 * var(--sheen, 1)))), var(--mica-tint); }
+#btn-perf.on { color: #34c759; box-shadow: inset 0 0 0 1px rgba(52,199,89,.55), 0 0 14px rgba(52,199,89,.25), 0 4px 14px rgba(0,0,0,calc(.22 * var(--shade, 1))); }
 
 /* ---------------------------------------------------------------- visualizer (MilkDrop)
    Fills the cover and lyrics view; cover and lyrics give way to it and the song details (and,
@@ -1184,9 +1184,9 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 .select::picker(select) {
   margin-block: 6px; padding: 5px; min-width: anchor-size(width); max-height: min(360px, 60vh); overflow-y: auto;
   border-radius: 12px; border: 1px solid rgba(255,255,255,.11); color: var(--text);
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow: 0 24px 60px rgba(0,0,0,calc(.45 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1)));
   opacity: 1; transform: none;
   transition: opacity .16s ease, transform .2s cubic-bezier(.2,.8,.2,1), overlay .2s allow-discrete, display .2s allow-discrete;
 }
@@ -1214,13 +1214,13 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 /* (.p-center too: in full screen its controls move under the song details and look the same.) */
 #player #like.on, #shuffle.on, #repeat.on,
 #player .icon-btn:active:not(.on), .p-center .icon-btn:active:not(.on) {
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.11), inset 0 1px 0 rgba(255,255,255,.06), 0 4px 14px rgba(0,0,0,.22);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.11), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1))), 0 4px 14px rgba(0,0,0,calc(.22 * var(--shade, 1)));
 }
 /* Inside the bar, like play/pause: the bar's own glass through them (a second tint went grey). */
 #player #like.on, #player #shuffle.on, #player #repeat.on, #player .icon-btn:active:not(.on) {
-  background: linear-gradient(140deg, rgba(255,255,255,.14), rgba(255,255,255,.04) 45%, rgba(255,255,255,.02)); -webkit-backdrop-filter: none; backdrop-filter: none;
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.14 * var(--sheen, 1))), rgba(255,255,255,calc(.04 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(.02 * var(--sheen, 1)))); -webkit-backdrop-filter: none; backdrop-filter: none;
 }
 #player .icon-btn:active:not(.on), .p-center .icon-btn:active:not(.on) { transform: scale(.94); }
 #player .icon-btn, .p-center .icon-btn { transition: background .15s, opacity .15s, color .15s, transform .12s; }
@@ -1228,13 +1228,13 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
    tint, blur and saturation from Personalización), with a white icon (solid white without Mica). */
 #play {
   color: #fff;
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.11), inset 0 1px 0 rgba(255,255,255,.06), 0 6px 18px rgba(0,0,0,.25);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.11), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1))), 0 6px 18px rgba(0,0,0,calc(.25 * var(--shade, 1)));
 }
 /* Inside the player bar it can't see past the bar's own glass (the bar is its backdrop), so a
    second tint would only darken it: there it lets the bar's glass through, with its sheen and edge. */
-#player #play { background: linear-gradient(140deg, rgba(255,255,255,.14), rgba(255,255,255,.04) 45%, rgba(255,255,255,.02)); -webkit-backdrop-filter: none; backdrop-filter: none; }
+#player #play { background: linear-gradient(140deg, rgba(255,255,255,calc(.14 * var(--sheen, 1))), rgba(255,255,255,calc(.04 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(.02 * var(--sheen, 1)))); -webkit-backdrop-filter: none; backdrop-filter: none; }
 /* Always on its own layer, as it is while hovered (scaled): otherwise, with Windows display
    scaling, the glass disc and the icon could round to different pixels and the icon looked a
    little low until the mouse went over it. */
@@ -1243,16 +1243,16 @@ body:not(.fs) #fs-panel[data-kind="vis"] { height: min(560px, calc(100% - var(--
 /* Accent buttons (Reproducir, Nueva playlist…) and the round play button of the cards: the same
    Mica glass, tinted with the accent colour. */
 .btn.primary, .card .hover-play {
-  background: linear-gradient(140deg, rgba(255,255,255,.2), rgba(255,255,255,.05) 45%, rgba(255,255,255,0)), color-mix(in srgb, var(--accent) 62%, transparent);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.2 * var(--sheen, 1))), rgba(255,255,255,calc(.05 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), color-mix(in srgb, var(--accent) 62%, transparent);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.12), 0 6px 18px rgba(0,0,0,.25);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,calc(.12 * var(--sheen, 1))), 0 6px 18px rgba(0,0,0,calc(.25 * var(--shade, 1)));
 }
 /* «Spotify Sync»: the same glass in Spotify's green. */
 .btn.spotify {
   color: #fff;
-  background: linear-gradient(140deg, rgba(255,255,255,.2), rgba(255,255,255,.05) 45%, rgba(255,255,255,0)), rgba(29, 185, 84, .62);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.2 * var(--sheen, 1))), rgba(255,255,255,calc(.05 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), rgba(29, 185, 84, .62);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.12), 0 6px 18px rgba(0,0,0,.25);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,calc(.12 * var(--sheen, 1))), 0 6px 18px rgba(0,0,0,calc(.25 * var(--shade, 1)));
 }
 .btn.spotify:hover { filter: brightness(1.1); }
 /* Ajustes → «Importar de Spotify»: its icon in Spotify's green, not the accent colour. */
@@ -1280,7 +1280,7 @@ body.route-settings:not(.np-open) #titlebar:has(#suggest:not([hidden])) { -webki
 .traffic { display: flex; gap: 8px; margin: 0 24px 0 6px; -webkit-app-region: no-drag; flex: none; }
 .traffic[hidden] { display: none; }
 .tl { --c: #ff5f57; --ink: rgba(89, 33, 30, .69); width: 13px; height: 13px; border-radius: 50%; padding: 0; display: block; position: relative;
-  background: var(--c); box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2); transition: background-color .16s ease, filter .12s; }
+  background: var(--c); box-shadow: inset 0 0 0 .5px rgba(0,0,0,calc(.2 * var(--shade, 1))); transition: background-color .16s ease, filter .12s; }
 .tl-close { --c: #ff5f57; --ink: rgba(89, 33, 30, .69); }
 .tl-min { --c: #febc2e; --ink: rgba(88, 65, 16, .69); }
 .tl-max { --c: #28c840; --ink: rgba(14, 70, 22, .69); }
@@ -1324,7 +1324,7 @@ body.mac-buttons .settings-btn { margin-right: 8px; }
 .top-card { display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 16px; cursor: pointer;
   background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.06); transition: background .2s; min-width: 0; }
 .top-card:hover { background: rgba(255,255,255,.1); }
-.top-card img, .top-card .top-ph { width: 120px; height: 120px; border-radius: 10px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,.4); background: var(--surface); }
+.top-card img, .top-card .top-ph { width: 120px; height: 120px; border-radius: 10px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,calc(.4 * var(--shade, 1))); background: var(--surface); }
 .top-card.artist img, .top-card.artist .top-ph { border-radius: 50%; }
 .top-ph { display: grid; place-items: center; } .top-ph svg { width: 48px; height: 48px; opacity: .6; }
 .top-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -1364,7 +1364,7 @@ body.mac-buttons .settings-btn { margin-right: 8px; }
 @media (prefers-reduced-motion: reduce) { .sb-pl-grid, .sb-pl-inner, .sb-pl-grid .sb-pl { transition: none; } }
 .sb-pl { display: flex; flex-direction: column; gap: 5px; min-width: 0; text-align: left; border-radius: 10px; padding: 4px; transition: background .15s; }
 .sb-pl:hover { background: rgba(255,255,255,.07); }
-.sb-pl-art { aspect-ratio: 1; border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: rgba(255,255,255,.07); box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+.sb-pl-art { aspect-ratio: 1; border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: rgba(255,255,255,.07); box-shadow: 0 4px 12px rgba(0,0,0,calc(.3 * var(--shade, 1))); }
 .sb-pl-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sb-pl-art svg { width: 26px; height: 26px; opacity: .7; }
 .sb-pl-art.liked { background: linear-gradient(135deg, var(--accent), #6a1b9a); color: #fff; }
@@ -1411,16 +1411,16 @@ body.resizing #sidebar, body.resizing .brand, body.resizing #queue { transition:
 
 /* Confirmation dialogs: Mica glass like the rest of the app. */
 .modal-back.fade { animation: fade-in .2s ease; }
-.modal.mica { background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+.modal.mica { background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,calc(.45 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1)));
   animation: zoom-out-in .28s cubic-bezier(.2,.8,.2,1); }
 
 /* Notices (toasts): Mica glass like the menus, rising in from below. */
 #toast {
-  background: linear-gradient(140deg, rgba(255,255,255,.09), rgba(255,255,255,.02) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.09 * var(--sheen, 1))), rgba(255,255,255,calc(.02 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 16px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 16px 40px rgba(0,0,0,calc(.4 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.07 * var(--sheen, 1)));
 }
 /* Zoom in when it appears, zoom out when it goes. */
 #toast { animation: none; }
@@ -1481,12 +1481,12 @@ body.route-settings:not(.np-open) #sidebar { width: 0; padding-left: 0; padding-
 body.route-settings #sb-resize { display: none; }
 
 /* ---------------------------------------------------------------- every dialog with Mica */
-.modal { background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+.modal { background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,calc(.45 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1)));
   animation: zoom-out-in .28s cubic-bezier(.2,.8,.2,1); }
 .modal-back { animation: fade-in .2s ease; }
-.modal.theme-editor { background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint); }
+.modal.theme-editor { background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint); }
 .modal .text { background: rgba(0,0,0,.22); }
 .theme-editor textarea.text { background: rgba(0,0,0,.35); }
 
@@ -1506,17 +1506,17 @@ body.route-settings #sb-resize { display: none; }
 .search-wrap.hero { z-index: 20; }
 .search-wrap #search { transition: background .15s, border-color .15s, height .45s cubic-bezier(.32,.72,0,1), font-size .45s cubic-bezier(.32,.72,0,1), border-radius .45s, padding .45s; }
 .search-wrap.hero #search { height: 58px; font-size: 19px; border-radius: 16px; padding: 0 20px 0 56px;
-  background: linear-gradient(140deg, rgba(255,255,255,.1), rgba(255,255,255,.03)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.1 * var(--sheen, 1))), rgba(255,255,255,calc(.03 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border-color: rgba(255,255,255,.14); box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+  border-color: rgba(255,255,255,.14); box-shadow: 0 20px 50px rgba(0,0,0,calc(.35 * var(--shade, 1))); }
 .search-wrap.hero #search:focus { border-color: var(--accent); }
 .search-wrap .search-icon { transition: left .45s cubic-bezier(.32,.72,0,1); }
 .search-wrap.hero .search-icon { left: 20px; }
 .search-wrap.hero .search-icon svg { width: 24px; height: 24px; transition: width .45s, height .45s; }
 .search-wrap.hero #suggest { top: 70px; padding: 8px; max-height: min(460px, calc(100vh - 340px)); overflow-y: auto; border-radius: 18px;
-  background: linear-gradient(140deg, rgba(255,255,255,.075), rgba(255,255,255,.015) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.075 * var(--sheen, 1))), rgba(255,255,255,calc(.015 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,.4);
+  border: 1px solid rgba(255,255,255,.11); box-shadow: 0 24px 60px rgba(0,0,0,calc(.4 * var(--shade, 1)));
   animation: zoom-out-in .3s cubic-bezier(.2,.8,.2,1); scrollbar-width: none; }
 .search-wrap.hero #suggest li { padding: 12px 14px; font-size: 16px; border-radius: 10px; gap: 14px; }
 .search-wrap.hero #suggest li svg { width: 20px; height: 20px; }
@@ -1545,10 +1545,10 @@ body.route-settings #sb-resize { display: none; }
 
 /* Automix badge: Mica glass tinted with the cover's colour (the dynamic accent). */
 #mix-badge {
-  background: linear-gradient(140deg, rgba(255,255,255,.22), rgba(255,255,255,.04)), color-mix(in srgb, var(--accent) 62%, transparent);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.22 * var(--sheen, 1))), rgba(255,255,255,calc(.04 * var(--sheen, 1)))), color-mix(in srgb, var(--accent) 62%, transparent);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   border: 1px solid color-mix(in srgb, var(--accent) 60%, rgba(255,255,255,.35));
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 35%, rgba(0,0,0,.4)), inset 0 1px 0 rgba(255,255,255,.25);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 35%, rgba(0,0,0,calc(.4 * var(--shade, 1)))), inset 0 1px 0 rgba(255,255,255,calc(.25 * var(--sheen, 1)));
   text-shadow: 0 1px 2px rgba(0,0,0,.25);
 }
 
@@ -1626,9 +1626,9 @@ label.sp-row { cursor: pointer; }
 .sp-actions.sticky-actions {
   width: fit-content; max-width: 100%; margin: 12px auto 0; justify-content: center; gap: 6px;
   bottom: -32px; padding: 6px; border-radius: 999px; /* (-32px: the content's 48px bottom padding minus 16px, so it ends 16px above the player bar) */
-  background: linear-gradient(140deg, rgba(255,255,255,.09), rgba(255,255,255,.02) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.09 * var(--sheen, 1))), rgba(255,255,255,calc(.02 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.3);
+  border: 1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,calc(.3 * var(--shade, 1)));
 }
 
 /* Visualizer: Trap Nation-style bass circle, over MilkDrop. */
@@ -1801,9 +1801,9 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
    the pointer comes near (app.js: showFsDock). Nothing marks it while hidden. */
 body.fs #nowplaying .np-corner {
   flex-direction: row; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 999px;
-  background: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  background: linear-gradient(140deg, rgba(255,255,255,calc(.12 * var(--sheen, 1))), rgba(255,255,255,calc(.03 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
-  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 14px 40px rgba(0,0,0,calc(.35 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.08 * var(--sheen, 1)));
   transform: translateY(calc(100% + 40px)); opacity: 0; pointer-events: none;
   transition: transform .45s cubic-bezier(.2,.85,.25,1), opacity .25s ease, right .3s cubic-bezier(.5,0,.75,0);
 }
@@ -1874,7 +1874,7 @@ body.fs #queue { bottom: 84px; }
 body.fs #fs-panel { bottom: 84px; max-height: calc(100% - 94px); }
 
 /* (Their usual big shadow fell onto the dock right below and darkened it: a soft one instead.) */
-body.fs #fs-panel, body.fs #queue { box-shadow: 0 0 26px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.06); }
+body.fs #fs-panel, body.fs #queue { box-shadow: 0 0 26px rgba(0,0,0,calc(.16 * var(--shade, 1))), inset 0 1px 0 rgba(255,255,255,calc(.06 * var(--sheen, 1))); }
 
 /* Full screen: the panels line up with the dock (26px from the right edge). The queue spans it end to
    end; the equalizer (and the visualizer/circle panels) share its right edge and grow leftwards as
@@ -1898,15 +1898,33 @@ body.fs.vis-on #nowplaying .np-inner { transition: opacity .35s ease; }
 body.fs.vis-on.vis-bare #nowplaying .np-inner { opacity: 0; pointer-events: none; }
 body.fs.vis-on.vis-bare #np-from, body.fs.vis-on.vis-bare #np-close, body.fs.vis-on.vis-bare #fs-vol { visibility: hidden; }
 
-/* Full screen: the player's buttons wear the audio-quality pill's glass (light, translucent, a thin
+/* Flat style, full screen: the player's buttons wear the audio-quality pill's look (light, translucent, a thin
    edge) instead of the tinted Mica disc: play/pause always; favourite, shuffle and repeat while on;
    the rest for the moment they're pressed. */
-body.fs #np-fs-slot #play,
-body.fs #np-fs-slot #fs-like.on, body.fs #np-fs-slot #shuffle.on, body.fs #np-fs-slot #repeat.on,
-body.fs #np-fs-slot .icon-btn:active:not(.on) {
+body.ui-flat.fs #np-fs-slot #play,
+body.ui-flat.fs #np-fs-slot #fs-like.on, body.ui-flat.fs #np-fs-slot #shuffle.on, body.ui-flat.fs #np-fs-slot #repeat.on,
+body.ui-flat.fs #np-fs-slot .icon-btn:active:not(.on) {
   background: rgba(255,255,255,.08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
 }
-body.fs #np-fs-slot #play:hover, body.fs #np-fs-slot #fs-like.on:hover,
-body.fs #np-fs-slot #shuffle.on:hover, body.fs #np-fs-slot #repeat.on:hover { background: rgba(255,255,255,.14); }
-body.fs #np-fs-slot #play { color: #fff; }
+body.ui-flat.fs #np-fs-slot #play:hover, body.ui-flat.fs #np-fs-slot #fs-like.on:hover,
+body.ui-flat.fs #np-fs-slot #shuffle.on:hover, body.ui-flat.fs #np-fs-slot #repeat.on:hover { background: rgba(255,255,255,.14); }
+body.ui-flat.fs #np-fs-slot #play { color: #fff; }
+
+/* ---------------------------------------------------------------- flat style (Ajustes → Apariencia)
+   "Plano" instead of "Cristal": no sheen, a light translucent fill with a soft blur and a thin edge
+   (the audio-quality pill's look), softer shadows. Everything drawn with the Mica glass follows it
+   through these variables. What opens over the content (menus, queue, dialogs, notices, panels)
+   gets a darker fill instead, or its text wouldn't read over artwork. */
+body.ui-flat:not(.perf) { --sheen: 0; --shade: .35; --mica-tint: rgba(255,255,255,.08); --mica-filter: blur(10px); }
+body.ui-flat:not(.perf) :is(#menu, #eq-pop, #acct-pop, #suggest, #queue, #fs-panel, #toast, .modal) {
+  --mica-tint: rgba(26,26,30,.62); --mica-filter: blur(22px);
+}
+/* (Big bars with content moving under them need more blur than a small pill, or the artwork shows as bands.) */
+body.ui-flat:not(.perf) :is(#sidebar, #player) { --mica-filter: blur(28px); }
+body.ui-flat:not(.perf) .select::picker(select) { --mica-tint: rgba(26,26,30,.62); --mica-filter: blur(22px); } /* (apart: a pseudo-element would void the list above) */
+/* Cristal: the audio-quality pill is glass like the other buttons of the view. */
+body:not(.ui-flat) .aq-pill {
+  background: linear-gradient(140deg, rgba(255,255,255,.1), rgba(255,255,255,.02)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter); border-color: rgba(255,255,255,.12);
+}

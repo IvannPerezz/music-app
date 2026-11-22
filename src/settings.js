@@ -107,6 +107,7 @@ export const DEFAULTS = {
     'Flexi - alien fader', 'martin - gate to moria', 'martin - extreme heat',
   ],
   appleEmoji: true, // Apple's emoji (when its font file is on this PC)
+  uiStyle: 'glass', // 'glass' (Mica glass, with sheen) | 'flat' (light translucent fill, thin edge)
   uiFont: 'sf', // 'default' (Inter) | 'sf' (SF Pro Display, the user's own files; Inter while they aren't there)
   circleMode: false, // "Círculo" view (Trap Nation style), instead of cover and lyrics
   circleGain: 0.2, // how strongly the aura reacts to the music

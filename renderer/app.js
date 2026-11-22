@@ -1616,6 +1616,8 @@ function closeFsPanel() {
 // all back. (styles.css: body.perf)
 export const perfMode = () => !!state.settings.performanceMode;
 const reducedMotion = () => perfMode() || matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Ajustes → Apariencia → Estilo: Mica glass or the flat look (styles.css, "flat style"). */
+function applyUiStyle() { document.body.classList.toggle('ui-flat', state.settings.uiStyle === 'flat'); }
 function applyPerf() {
   const on = perfMode();
   document.body.classList.toggle('perf', on);
@@ -2647,6 +2649,7 @@ function setupSidebarMode() {
   applyTheme();
   applyAmbient();
   applyMica();
+  applyUiStyle();
   applyPerf();
   applyWindowButtons();
   applyFont();
@@ -2924,6 +2927,7 @@ document.addEventListener('settings', (e) => {
   if (k.includes('visualizer') || k.includes('circleMode') || k.includes('circleBg')) applyVis();
   if (k.includes('visualizer') || k.includes('animatedCovers')) updateCanvas();
   if (k.includes('performanceMode')) applyPerf();
+  if (k.includes('uiStyle')) applyUiStyle();
   if (k.includes('uiFont')) applyFont();
   if (k.includes('appleEmoji')) applyEmoji();
   if (k.includes('visAuto')) scheduleAuto();

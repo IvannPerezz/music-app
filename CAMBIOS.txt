@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.61
+------------------------------------------------------------
+- Nuevo en Ajustes → Apariencia → Efecto Mica: "Estilo de paneles y botones".
+  · Cristal: como hasta ahora, tintado con el color del tema y con brillo.
+  · Plano: el acabado de la píldora de calidad de audio en toda la interfaz (barras laterales,
+    barra del reproductor, botones, pantalla completa…): un fondo claro y translúcido con un
+    borde fino, sin brillo y con sombras más suaves. Los menús, la cola, los avisos y los
+    diálogos llevan en este estilo un fondo oscuro translúcido para que se lean bien.
+
+------------------------------------------------------------
 v0.6.60.1
 ------------------------------------------------------------
 - Pantalla completa: los botones del reproductor (reproducir/pausa, y favorito, aleatorio y
