@@ -1916,13 +1916,14 @@ body.ui-flat.fs #np-fs-slot #play { color: #fff; }
    (the audio-quality pill's look), softer shadows. Everything drawn with the Mica glass follows it
    through these variables. What opens over the content (menus, queue, dialogs, notices, panels)
    gets a darker fill instead, or its text wouldn't read over artwork. */
-body.ui-flat:not(.perf) { --sheen: 0; --shade: .35; --mica-tint: rgba(255,255,255,.08); --mica-filter: blur(10px); }
+/* (The Mica sliders drive it too: tint → how strong the fill is, blur, saturation. At 30 % and 30 px it's the pill's 8 % white and 10 px.) */
+body.ui-flat:not(.perf) { --sheen: 0; --shade: .35; --mica-tint: rgba(255,255,255,calc(var(--mica-op) * .27)); --mica-filter: blur(calc(var(--mica-blur) / 3)) saturate(var(--mica-sat)); }
 body.ui-flat:not(.perf) :is(#menu, #eq-pop, #acct-pop, #suggest, #queue, #fs-panel, #toast, .modal) {
-  --mica-tint: rgba(26,26,30,.62); --mica-filter: blur(22px);
+  --mica-tint: rgba(26,26,30,calc(.5 + var(--mica-op) * .4)); --mica-filter: blur(calc(var(--mica-blur) * .75)) saturate(var(--mica-sat));
 }
 /* (Big bars with content moving under them need more blur than a small pill, or the artwork shows as bands.) */
-body.ui-flat:not(.perf) :is(#sidebar, #player) { --mica-filter: blur(28px); }
-body.ui-flat:not(.perf) .select::picker(select) { --mica-tint: rgba(26,26,30,.62); --mica-filter: blur(22px); } /* (apart: a pseudo-element would void the list above) */
+body.ui-flat:not(.perf) :is(#sidebar, #player) { --mica-filter: blur(var(--mica-blur)) saturate(var(--mica-sat)); }
+body.ui-flat:not(.perf) .select::picker(select) { --mica-tint: rgba(26,26,30,calc(.5 + var(--mica-op) * .4)); --mica-filter: blur(calc(var(--mica-blur) * .75)) saturate(var(--mica-sat)); } /* (apart: a pseudo-element would void the list above) */
 /* Cristal: the audio-quality pill is glass like the other buttons of the view. */
 body:not(.ui-flat) .aq-pill {
   background: linear-gradient(140deg, rgba(255,255,255,.1), rgba(255,255,255,.02)), var(--mica-tint);

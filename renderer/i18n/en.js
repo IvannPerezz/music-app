@@ -937,6 +937,6 @@ export default {
   "Mostrar el nombre y los controles (H)": "Show the name and the controls (H)",
   "Ocultar todo menos el visualizador (H)": "Hide everything but the visualizer (H)",
   "Estilo de paneles y botones": "Panel and button style",
-  "Cristal: tintado con el color del tema y con brillo. Plano: un fondo claro y translúcido con un borde fino, como la píldora de calidad de audio. Se aplica a toda la interfaz; la intensidad, el desenfoque y la saturación de abajo son del cristal.": "Glass: tinted with the theme's colour, with a sheen. Flat: a light translucent fill with a thin edge, like the audio-quality pill. It applies to the whole interface; the intensity, blur and saturation below are the glass's.",
+  "Cristal: tintado con el color del tema y con brillo. Plano: un fondo claro y translúcido con un borde fino, como la píldora de calidad de audio. Se aplica a toda la interfaz, y los controles de abajo funcionan en los dos.": "Glass: tinted with the theme's colour, with a sheen. Flat: a light translucent fill with a thin edge, like the audio-quality pill. It applies to the whole interface, and the controls below work in both.",
   "Cristal": "Glass",
 };

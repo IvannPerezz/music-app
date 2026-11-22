@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.61.1
+------------------------------------------------------------
+- Con el estilo "Plano", los controles "Intensidad del tinte", "Desenfoque del cristal" y
+  "Saturación" vuelven a funcionar: cambian lo claro que es el fondo, cuánto se difumina lo de
+  detrás y lo vivos que se ven los colores.
+
+------------------------------------------------------------
 v0.6.61
 ------------------------------------------------------------
 - Nuevo en Ajustes → Apariencia → Efecto Mica: "Estilo de paneles y botones".

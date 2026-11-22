@@ -616,7 +616,7 @@ function sidebarCard() {
       row(tr('Portada animada'), tr('Si la canción tiene portada animada (un vídeo corto en bucle), se ve en la vista de portada y letra y en pantalla completa.'), toggle('animatedCovers')),
       sub(tr('Efecto Mica'), 'sparkle'),
       h(`<div class="set-note">${tr('Los paneles se ven como un cristal teñido con el color del tema. Puedes activarlo en cada panel por separado.')}</div>`),
-      row(tr('Estilo de paneles y botones'), tr('Cristal: tintado con el color del tema y con brillo. Plano: un fondo claro y translúcido con un borde fino, como la píldora de calidad de audio. Se aplica a toda la interfaz; la intensidad, el desenfoque y la saturación de abajo son del cristal.'), select('uiStyle', [['glass', tr('Cristal')], ['flat', tr('Plano')]])),
+      row(tr('Estilo de paneles y botones'), tr('Cristal: tintado con el color del tema y con brillo. Plano: un fondo claro y translúcido con un borde fino, como la píldora de calidad de audio. Se aplica a toda la interfaz, y los controles de abajo funcionan en los dos.'), select('uiStyle', [['glass', tr('Cristal')], ['flat', tr('Plano')]])),
       row(tr('Barra lateral izquierda'), '', toggle('micaSidebar', () => mica())),
       row(tr('Cola (barra lateral derecha)'), '', toggle('micaQueue', () => mica())),
       row(tr('Controles de reproducción (abajo)'), '', toggle('micaPlayer', () => mica())),
