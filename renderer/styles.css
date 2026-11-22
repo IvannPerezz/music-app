@@ -1753,3 +1753,65 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 .set-steps code { font-size: 12px; background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; }
 .set-steps a { color: var(--accent-light, var(--accent)); }
 #lyrics .src a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Audio-quality pill under the artist (renderer/audio-info.js). */
+#np-stats { min-height: 28px; line-height: normal; overflow: visible; }
+.aq-pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px 0 9px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; letter-spacing: .2px; color: rgba(255,255,255,.88); font-variant-numeric: tabular-nums;
+  background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.1); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  transition: background .2s, border-color .2s, transform .15s; cursor: pointer; }
+.aq-pill:hover { background: rgba(0,0,0,.36); border-color: rgba(255,255,255,.18); }
+.aq-pill:active { transform: scale(.97); }
+.aq-pill svg { width: 15px; height: 15px; fill: currentColor; opacity: .85; }
+
+/* "Información de audio": a Mica panel (a sheet from below on narrow windows). */
+.modal.mica.ai { width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; padding: 0; animation: none; overflow: hidden; }
+.ai-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 18px 10px 22px; }
+.ai-head h3 { margin: 0 0 6px; }
+.ai-sub { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.ai-sub svg { width: 15px; height: 15px; fill: currentColor; }
+.ai-body { overflow-y: auto; padding: 0 18px 20px; }
+.ai-body::-webkit-scrollbar { width: 10px; }
+.ai-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+.ai-sec { margin-top: 14px; }
+.ai-sec h4 { margin: 0 0 7px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-light, var(--accent)); }
+.ai-g, .ai-card { background: rgba(0,0,0,.16); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; }
+.ai-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 10px 14px; font-size: 13.5px; }
+.ai-row + .ai-row { border-top: 1px solid rgba(255,255,255,.06); }
+.ai-row span { color: rgba(255,255,255,.92); font-weight: 550; flex: none; }
+.ai-row b { font-weight: 500; color: var(--muted); text-align: right; min-width: 0; }
+.ai-row b.accent { color: var(--accent-light, var(--accent)); font-weight: 600; }
+.ai-card { padding: 14px; }
+.ai-card h5 { margin: 0 0 6px; font-size: 14.5px; }
+.ai-card p { margin: 0 0 12px; font-size: 13px; line-height: 1.5; }
+.ai-spec { padding: 10px; }
+.ai-spec-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.ai-tabs button { font-size: 12.5px; }
+.ai-canvas-wrap { position: relative; }
+.ai-canvas-wrap canvas { width: 100%; height: auto; display: block; border-radius: 10px; }
+.ai-wait { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-size: 12.5px; color: var(--muted); background: rgba(10,10,12,.85); border-radius: 10px; }
+.ai-wait .ai-prog { width: 55%; }
+.ai-prog { height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; margin: 4px 0 8px; }
+.ai-prog i { display: block; height: 100%; background: var(--accent-light, var(--accent)); transform: scaleX(.02); transform-origin: left center; transition: transform .25s ease; border-radius: 3px; }
+.ai-verify { width: 100%; justify-content: center; gap: 8px; }
+.ai-verify svg { width: 16px; height: 16px; fill: currentColor; }
+.ai-verify-out:not(:empty) { margin-bottom: 12px; }
+.ai-verdict { font-weight: 700; font-size: 13.5px; margin-bottom: 6px; }
+.ai-verdict.ok { color: #6fd38d; } .ai-verdict.bad { color: #ffb36b; }
+.ai-check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.45; padding: 3px 0; }
+.ai-check svg { width: 16px; height: 16px; flex: none; margin-top: 1px; fill: currentColor; }
+.ai-check.ok svg { color: #6fd38d; } .ai-check.bad svg { color: #ffb36b; } .ai-check.meh svg { color: var(--muted); }
+.ai-qgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 14px; }
+.ai-q { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12.8px; }
+.ai-q b { white-space: nowrap; }
+.ai-q span { display: inline-flex; align-items: center; align-self: center; gap: 6px; color: var(--muted); white-space: nowrap; }
+.ai-q span svg { width: 14px; height: 14px; fill: currentColor; opacity: .8; }
+.ai-q b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.ai-card hr { border: 0; height: 1px; background: rgba(255,255,255,.08); margin: 12px 0; }
+.ai-per { display: flex; flex-direction: column; gap: 4px; font-size: 12.8px; font-variant-numeric: tabular-nums; }
+.ai-per span { color: var(--muted); }
+/* Narrow window: a sheet that rises from the bottom edge. */
+.ai-back.sheet { place-items: end stretch; }
+.ai-back.sheet .modal.mica.ai { width: 100%; max-height: 88vh; border-radius: 20px 20px 0 0; border-bottom: 0; }
+.ai-back.sheet .ai-head::before { content: ''; position: absolute; left: 50%; top: 7px; width: 38px; height: 4px; margin-left: -19px; border-radius: 2px; background: rgba(255,255,255,.25); }
+.ai-back.sheet .ai-head { position: relative; padding-top: 22px; }

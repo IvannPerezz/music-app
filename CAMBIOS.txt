@@ -15,6 +15,26 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.57
+------------------------------------------------------------
+- Debajo del artista, en la vista de portada y letra, la línea de datos técnicos es ahora una
+  píldora con lo importante: códec, bits y frecuencia (por ejemplo "FLAC · 24-bit · 48 kHz").
+  Si un dato no se sabe, no aparece.
+- Al pulsarla se abre "Información de audio": el archivo de origen, la señal, la sonoridad
+  (ReplayGain si el archivo la trae y lo que está haciendo la normalización) y todo lo que le
+  pasa al sonido ahora mismo: decodificación, remuestreo, ecualizador, limitador, volumen,
+  AutoMix, salida y si es bit-perfect.
+- Con música de tu equipo, además:
+  · Espectrograma en estéreo y de cada canal, con escala en dBFS y botón para descargarlo.
+  · Análisis de calidad: rango dinámico, pico, RMS, sonoridad (LUFS), pico real, recortes,
+    corte espectral y datos por canal.
+  · "Verificar": comprueba si la alta resolución es auténtica (bits reales, rango de
+    frecuencias y rastros de MP3/AAC) y, en los FLAC, que el audio no esté dañado.
+  Todo se calcula en segundo plano, sin cortar la música.
+- La línea de datos ya no muestra la frecuencia de tu tarjeta de sonido cuando no sabía la de
+  la canción.
+
+------------------------------------------------------------
 v0.6.56.8
 ------------------------------------------------------------
 - La clave de Spicy Lyrics se comprueba sola al pegarla (y con el botón "Comprobar"): debajo

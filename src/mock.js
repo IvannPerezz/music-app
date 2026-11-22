@@ -104,6 +104,18 @@ export function startProxy() {
       res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Access-Control-Allow-Origin': '*' });
       return res.end(fs.readFileSync(p));
     }
+    // Local music is real even in the mock (the library is the real one): serve the actual file.
+    if (req.url.startsWith('/local/')) {
+      const { pathFor } = await import('./local.js');
+      const fs = await import('node:fs');
+      const p = pathFor(req.url.split('?')[0].split('/')[2]);
+      if (!p || !fs.existsSync(p)) return res.writeHead(404).end();
+      const size = fs.statSync(p).size;
+      const r = /bytes=(\d*)-(\d*)/.exec(req.headers.range || '');
+      const start = r && r[1] ? +r[1] : 0, end = r && r[2] ? +r[2] : size - 1;
+      res.writeHead(r ? 206 : 200, { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'audio/flac', 'Accept-Ranges': 'bytes', 'Content-Length': end - start + 1, ...(r ? { 'Content-Range': `bytes ${start}-${end}/${size}` } : {}) });
+      return fs.createReadStream(p, { start, end }).pipe(res);
+    }
     const id = (req.url.split('?')[0].split('/')[2]) || '';
     const seed = parseInt(id.replace(/\D/g, '') || '0', 10);
     if (!cache.has(seed)) cache.set(seed, beatTrack(40, 118 + (seed % 5) * 3, seed));

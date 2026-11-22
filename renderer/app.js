@@ -5,6 +5,7 @@ import { parseResult } from './lyrics-parse.js';
 import * as lyricsView from './lyrics-view.js';
 import { lyricsLookControls, LYRICS_LOOK } from './lyrics-look.js';
 import { checkForUpdates } from './update-dialog.js';
+import { initAudioInfo, renderPill, openAudioInfo } from './audio-info.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
 import { eqPanel } from './eq-panel.js';
@@ -2020,30 +2021,14 @@ function updateNowPlaying() {
   }
   pushState();
   updateCanvas();
-  if (t) setTimeout(updateStats, 2500);
+  // (A local file's details are known now; a stream's once YouTube has handed it over.)
+  if (t) { if (t.local) updateStats(); setTimeout(updateStats, 2500); }
 }
 
+/** Under the artist: the audio-quality pill (codec · bit depth · sample rate), which opens the audio info. */
 async function updateStats() {
-  const t = player.current;
-  if (!t) return;
-  let s = null;
-  try { s = t.local ? { codec: t.codec, bitrate: t.bitrate, client: t.remote ? 'WebDAV' : tr('archivo local'), sampleRate: t.sampleRate } : await api('streamInfo', t.id); } catch {}
-  if (player.current?.id !== t.id) return;
-  const an = engine.analysisFor(t.id);
-  const sr = s?.sampleRate || engine.ctx.sampleRate;
-  const parts = [
-    s?.codec && s.codec.toUpperCase(),
-    s?.bitrate && s.bitrate + ' kbps',
-    sr && (sr / 1000).toFixed(1) + ' kHz',
-    s?.loudnessDb != null && (s.loudnessDb > 0 ? '+' : '') + Number(s.loudnessDb).toFixed(1) + ' dB',
-    an?.bpm && Math.round(an.bpm) + ' BPM',
-    s?.client,
-  ].filter(Boolean);
-  // Fade/slide the line in (its space is always reserved, so the cover never moves).
-  const st = $('#np-stats'), text = parts.join(' · ');
-  if (st.textContent === text) return;
-  st.textContent = text;
-  st.classList.remove('in'); void st.offsetWidth; st.classList.add('in');
+  if (!player.current) return;
+  await renderPill($('#np-stats'));
 }
 
 function markPlaying() {
@@ -3060,5 +3045,6 @@ document.addEventListener('dragover', (e) => { if (!e.defaultPrevented) { e.prev
 document.addEventListener('drop', (e) => e.preventDefault());
 
 // Exposed for debugging from DevTools.
-window.__bc = { player, go, engine, state, saveSidebar: (sidebar) => saveSettings({ sidebar }) };
+initAudioInfo({ engine, player });
+window.__bc = { player, go, engine, state, openAudioInfo, saveSidebar: (sidebar) => saveSettings({ sidebar }) };
 init();

@@ -356,6 +356,7 @@ app.whenReady().then(async () => {
   });
   // Local library
   handle('local-tracks', () => local.tracks());
+  handle('local-details', (id) => local.details(id));
   handle('local-rescan', () => rescanLocal());
   const folderList = () => settings.get('localFolders') || [];
   handle('local-folders', () => local.folders(folderList()).map((f) => ({ ...f, watched: local.watched(f.path) })));

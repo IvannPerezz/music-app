@@ -117,6 +117,22 @@ export function scan(folders, onProgress = () => {}, { only = null } = {}) {
   return scanning;
 }
 
+/** What the audio-info panel needs that the index doesn't keep: ReplayGain and the encoder, read now. */
+export async function details(id) {
+  const p = pathFor(id);
+  if (!p) return null;
+  try {
+    const m = await parseFile(p, { duration: false, skipCovers: true });
+    const c = m.common, f = m.format;
+    const db = (x) => (x && typeof x.dB === 'number' ? x.dB : null);
+    return {
+      trackGain: db(c.replaygain_track_gain), trackPeak: c.replaygain_track_peak?.ratio ?? null,
+      albumGain: db(c.replaygain_album_gain), tool: f.tool || '', container: f.container || '', profile: f.codecProfile || '',
+      channels: f.numberOfChannels || null, numberOfSamples: f.numberOfSamples || null,
+    };
+  } catch (e) { return { error: String(e?.message || e) }; }
+}
+
 export async function cover(id) {
   const e = byId.get(id);
   if (!e) return null;
