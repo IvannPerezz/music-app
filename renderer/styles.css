@@ -1622,8 +1622,10 @@ label.sp-row { cursor: pointer; }
 .sp-busy-t { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 2px; }
 .sp-busy-t .sp-pct { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
 .sp-busy .progress div { transition: width .5s cubic-bezier(.32,.72,0,1); }
+/* A pill as wide as its buttons, centred, sitting low over the end of the list. */
 .sp-actions.sticky-actions {
-  bottom: 12px; padding: 10px; margin-top: 12px; border-radius: 16px;
+  width: fit-content; max-width: 100%; margin: 12px auto 0; justify-content: center; gap: 6px;
+  bottom: -32px; padding: 6px; border-radius: 999px; /* (-32px: the content's 48px bottom padding minus 16px, so it ends 16px above the player bar) */
   background: linear-gradient(140deg, rgba(255,255,255,.09), rgba(255,255,255,.02) 45%, rgba(255,255,255,0)), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
   border: 1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.3);
