@@ -1796,20 +1796,7 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 .ai-verify { width: 100%; justify-content: center; gap: 8px; }
 .ai-verify svg { width: 16px; height: 16px; fill: currentColor; }
 .ai-verify-out:not(:empty) { margin-bottom: 12px; }
-.ai-verdict { font-weight: 700; font-size: 13.5px; margin-bottom: 6px; }
-.ai-verdict.ok { color: #6fd38d; } .ai-verdict.bad { color: #ffb36b; }
-.ai-check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.45; padding: 3px 0; }
-.ai-check svg { width: 16px; height: 16px; flex: none; margin-top: 1px; fill: currentColor; }
-.ai-check.ok svg { color: #6fd38d; } .ai-check.bad svg { color: #ffb36b; } .ai-check.meh svg { color: var(--muted); }
-.ai-qgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 14px; }
-.ai-q { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12.8px; }
-.ai-q b { white-space: nowrap; }
-.ai-q span { display: inline-flex; align-items: center; align-self: center; gap: 6px; color: var(--muted); white-space: nowrap; }
-.ai-q span svg { width: 14px; height: 14px; fill: currentColor; opacity: .8; }
-.ai-q b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .ai-card hr { border: 0; height: 1px; background: rgba(255,255,255,.08); margin: 12px 0; }
-.ai-per { display: flex; flex-direction: column; gap: 4px; font-size: 12.8px; font-variant-numeric: tabular-nums; }
-.ai-per span { color: var(--muted); }
 /* Narrow window: a sheet that rises from the bottom edge. */
 .ai-back.sheet { place-items: end stretch; }
 .ai-back.sheet .modal.mica.ai { width: 100%; max-height: 88vh; border-radius: 20px 20px 0 0; border-bottom: 0; }
@@ -1870,3 +1857,27 @@ body.fs.fs-dock-show #nowplaying::after, body.fs.panel-open #nowplaying::after {
 /* Notices are pills: round ends, centred text (an error gets an accent outline instead of a side stripe). */
 #toast { border-radius: 999px; padding: 10px 20px; text-align: center; }
 #toast.error { border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent); }
+
+/* Quality analysis: "icon Label: value" pairs flowing onto lines (as in the reference design). */
+.ai-qrow { display: flex; flex-wrap: wrap; gap: 7px 18px; font-size: 13px; }
+.ai-q { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: rgba(255,255,255,.92); }
+.ai-q svg { width: 16px; height: 16px; fill: currentColor; opacity: .85; flex: none; }
+.ai-q span { color: rgba(255,255,255,.92); }
+.ai-q b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ai-note { margin: 10px 0 0 !important; font-size: 12.5px !important; color: var(--muted); }
+.ai-per-h { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+/* Authenticity check: blocks with a status icon, a sentence and their figures. */
+.ai-verify-out:not(:empty) { margin-bottom: 14px; }
+.ai-vblock + .ai-vblock { border-top: 1px solid rgba(255,255,255,.08); margin-top: 14px; padding-top: 14px; }
+.ai-vh { display: flex; align-items: center; gap: 8px; font-size: 14.5px; margin-bottom: 6px; }
+.ai-vh svg { width: 20px; height: 20px; fill: currentColor; flex: none; }
+.ai-vh.ok svg { color: var(--accent-light, var(--accent)); }
+.ai-vh.bad svg { color: #ffb36b; }
+.ai-vh.meh svg { color: var(--muted); }
+.ai-vblock p { margin: 0 0 8px !important; font-size: 13px !important; color: rgba(255,255,255,.8); }
+.ai-kv { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 13px; padding: 4px 0; }
+.ai-kv span { color: rgba(255,255,255,.88); flex: none; }
+.ai-kv b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; word-break: break-all; }
+.ai-chart-h { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.8); margin: 10px 0 6px; }
+.ai-chart { width: 100%; display: block; }
+.ai-foot { color: var(--muted) !important; }

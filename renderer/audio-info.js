@@ -14,6 +14,7 @@ const dB = (x, d = 1) => (Number.isFinite(x) ? `${x > 0 ? '+' : ''}${x.toFixed(d
 const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const mb = (n) => `${(n / 1048576).toLocaleString(undefined, { maximumFractionDigits: 1 })} MB`;
 
+const CODEC_NAMES = () => ({ FLAC: 'Free Lossless Audio Codec', ALAC: 'Apple Lossless', MP3: 'MPEG-1 Layer III', AAC: 'Advanced Audio Coding', PCM: tr('sin comprimir') });
 function codecName(codec, mime) {
   const c = `${codec || ''} ${mime || ''}`.toLowerCase();
   if (/opus/.test(c)) return 'Opus';
@@ -181,14 +182,14 @@ function localSections(src) {
     <div class="ai-canvas-wrap"><canvas></canvas><div class="ai-wait"><div class="ai-prog"><i></i></div><span>${esc(tr('Decodificando el archivo…'))}</span></div></div>
   </div></section>`);
   const auth = h(`<section class="ai-sec"><div class="ai-card">
-    <h5>${esc(tr('Autenticidad de la alta resolución'))}</h5>
+    <h5>${esc(tr('Autenticidad en alta resolución'))}</h5>
     <p class="muted">${esc(tr('Lee el archivo completo y comprueba su integridad, la profundidad de bits real, el rango de frecuencias y si tiene rastros de compresión con pérdida.'))}</p>
     <div class="ai-verify-out"></div>
     <button class="btn primary small ai-verify">${icon('search')}${esc(tr('Verificar'))}</button>
   </div></section>`);
   const qa = h(`<section class="ai-sec"><div class="ai-card"><h5>${esc(tr('Análisis de calidad'))}</h5><div class="ai-qa"><div class="ai-prog"><i></i></div></div></div></section>`);
   auth.querySelector('.ai-verify').onclick = () => runVerify();
-  return [spec, auth, qa];
+  return [spec, qa, auth]; // (the authenticity check goes last)
 }
 
 function setProgress(p, label) {
@@ -251,29 +252,36 @@ function showAnalysis(a) {
   const dl = m.querySelector('.ai-dl');
   dl.disabled = false;
   dl.onclick = () => canvas.toBlob((b) => { const u = URL.createObjectURL(b); const x = document.createElement('a'); x.href = u; x.download = `${current?.t.title || 'audio'} - ${tr('espectrograma')}.png`; x.click(); setTimeout(() => URL.revokeObjectURL(u), 5000); }, 'image/png');
-  // Quality analysis.
+  // Quality analysis: "icon Label: value" pairs that flow onto as many lines as they need.
   const src = current.src, cut = a.cutoff;
-  const it = (ic, label, v) => `<div class="ai-q"><span>${icon(ic)}${esc(label)}</span><b>${esc(v)}</b></div>`;
-  m.querySelector('.ai-qa').innerHTML = `<div class="ai-qgrid">
-    ${it('disc', tr('Códec'), src.codec + (src.profile ? ` (${src.profile})` : ''))}
-    ${it('equalizer', tr('Frecuencia de muestreo'), kHz(a.sampleRate))}
-    ${src.bits ? it('equalizer', tr('Profundidad de bits'), `${src.bits}-bit`) : ''}
-    ${it('tune', tr('Formato decodificado'), tr('flotante de 32 bits'))}
-    ${src.kbps ? it('speed', tr('Tasa de bits media'), `${(src.kbps / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 })} Mbps`) : ''}
-    ${it('volume', tr('Canales'), a.channels === 2 ? tr('2 (estéreo)') : String(a.channels))}
-    ${it('timer', tr('Duración'), fmtTime(a.duration))}
-    ${it('visualizer', 'Nyquist', kHz(a.sampleRate / 2))}
-    ${src.size ? it('folder', tr('Tamaño'), mb(src.size)) : ''}
-  </div><hr><div class="ai-qgrid">
-    ${it('equalizer', tr('Rango dinámico (pico − RMS)'), `${a.dr.toFixed(2)} dB`)}
-    ${it('up', tr('Pico'), `${a.peak.toFixed(2)} dBFS`)}
-    ${it('equalizer', 'RMS', `${a.rms.toFixed(2)} dBFS`)}
-    ${it('volume', tr('Sonoridad integrada'), Number.isFinite(a.lufs) ? `${a.lufs.toFixed(1)} LUFS` : '—')}
-    ${it('warning', tr('Pico real'), `${a.truePeak.toFixed(2)} dBTP`)}
-    ${it('info', tr('Muestras recortadas'), a.clips.toLocaleString())}
-    ${it('visualizer', tr('Corte espectral'), kHz(cut.hz))}
-    ${it('info', tr('Muestras'), a.samples >= 1e6 ? `${(a.samples / 1e6).toLocaleString(undefined, { maximumFractionDigits: 1 })} M` : a.samples.toLocaleString())}
-  </div><hr><div class="ai-per"><b>${esc(tr('Por canal'))}</b>${a.perChannel.map((c, i) => `<span>${esc(tr('Canal {n}', { n: i + 1 }))}: ${esc(tr('pico'))} ${c.peak.toFixed(1)} · RMS ${c.rms.toFixed(1)} · DR ${c.dr.toFixed(1)} · ${esc(tr('recortes'))} ${c.clips}</span>`).join('')}</div>`;
+  const it = (ic, label, v) => `<span class="ai-q">${icon(ic)}<span>${esc(label)}:</span><b>${esc(v)}</b></span>`;
+  const num = (x, d) => x.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+  const long = CODEC_NAMES()[src.codec];
+  m.querySelector('.ai-qa').innerHTML = `<div class="ai-qrow">
+    ${it('ms-memory', tr('Códec'), src.codec + (long ? ` (${long})` : '') + (src.profile ? ` · ${src.profile}` : ''))}
+    ${it('ms-graphic-eq', tr('Frecuencia de muestreo'), `${num(a.sampleRate / 1000, 1)} kHz`)}
+    ${src.bits ? it('ms-description', tr('Profundidad de bits'), `${src.bits}-bit`) : ''}
+    ${it('ms-data-object', tr('Formato decodificado'), 'f32')}
+    ${src.kbps ? it('ms-speed', tr('Tasa de bits media del archivo'), `${num(src.kbps / 1000, 2)} Mbps`) : ''}
+    ${it('ms-surround-sound', tr('Canales'), a.channels === 2 ? tr('2 (estéreo)') : a.channels === 1 ? tr('1 (mono)') : String(a.channels))}
+    ${it('ms-timer', tr('Duración'), fmtTime(a.duration))}
+    ${it('ms-ssid-chart', 'Nyquist', `${num(a.sampleRate / 2000, 1)} kHz`)}
+    ${src.size ? it('ms-storage', tr('Tamaño'), mb(src.size)) : ''}
+  </div>
+  ${src.kbps ? `<p class="ai-note">${esc(tr('Incluye las etiquetas y el contenedor del archivo: puede no coincidir con la tasa del audio en sí.'))}</p>` : ''}
+  <hr><div class="ai-qrow">
+    ${it('ms-trending-up', tr('Rango dinámico'), `${num(a.dr, 2)} dB`)}
+    ${it('ms-show-chart', tr('Pico'), `${num(a.peak, 2)} dB`)}
+    ${it('ms-bar-chart', 'RMS', `${num(a.rms, 2)} dB`)}
+    ${it('ms-volume-up', 'LUFS', Number.isFinite(a.lufs) ? `${num(a.lufs, 1)} LUFS` : '—')}
+    ${it('ms-warning', tr('Pico real'), `${num(a.truePeak, 2)} dBTP`)}
+    ${it('ms-error', tr('Recorte'), a.clips.toLocaleString())}
+    ${it('ms-filter-alt', tr('Corte espectral'), `${num(cut.hz / 1000, 1)} kHz`)}
+    ${it('ms-tag', tr('Muestras'), a.samples >= 1e6 ? `${num(a.samples / 1e6, 1)} M` : a.samples.toLocaleString())}
+  </div>
+  <hr><div class="ai-per-h">${esc(tr('Estadísticas por canal'))}</div><div class="ai-qrow">
+    ${a.perChannel.map((c, i) => it('ms-surround-sound', tr('Canal {n}', { n: i + 1 }), `P ${num(c.peak, 1)} / R ${num(c.rms, 1)} / DR ${num(c.dr, 1)} / Clip ${c.clips}`)).join('')}
+  </div>`;
   const done = cache.get(current.t.id);
   if (done?.verify) showVerify(done.verify);
 }
@@ -369,20 +377,97 @@ function runVerify() {
 function showVerify(r) {
   if (!current) return;
   remember(current.t.id, { verify: r });
+  const a = current.analysis, src = current.src;
   const out = current.m.querySelector('.ai-verify-out'), btn = current.m.querySelector('.ai-verify');
   if (btn) { btn.disabled = false; btn.lastChild.textContent = tr('Volver a verificar'); }
-  const line = (ok, text) => `<div class="ai-check ${ok === true ? 'ok' : ok === false ? 'bad' : 'meh'}">${icon(ok === true ? 'check' : ok === false ? 'warning' : 'info')}<span>${esc(text)}</span></div>`;
-  const lines = r.checks.map((c) => {
-    if (c.key === 'bits') return c.float ? line(null, tr('Las muestras no son enteras de {b} bits: el audio se guardó desde coma flotante.', { b: c.declared }))
-      : line(c.ok, c.ok ? tr('Profundidad de bits real: {b} bits, la que dice el archivo.', { b: c.real }) : tr('Dice {d} bits, pero solo usa {r}: está rellenado desde {r} bits.', { d: c.declared, r: c.real }));
-    if (c.key === 'lossy') return line(c.ok, c.ok ? tr('Sin rastros de compresión con pérdida en el espectro.') : tr('Corte brusco a {f} ({d} dB): típico de un archivo que pasó por MP3 o AAC.', { f: kHz(c.hz), d: Math.round(c.drop) }));
-    if (c.key === 'range') return line(c.ok, c.upsampled ? tr('El sonido llega solo hasta {f}: probablemente se remuestreó desde 44,1 o 48 kHz.', { f: kHz(c.hz) }) : tr('Rango de frecuencias: hasta {f} de {n} posibles.', { f: kHz(c.hz), n: kHz(c.nyquist) }));
-    if (c.key === 'integrity') {
-      if (c.md5) return line(c.md5.ok, c.md5.ok ? tr('Integridad: la huella MD5 del audio coincide con la que guarda el FLAC.') : tr('Integridad: la huella MD5 del audio NO coincide con la del FLAC. El archivo puede estar dañado.'));
-      return line(c.ok, c.ok ? tr('Integridad: se decodifica entero y sin errores.') : tr('Integridad: le faltan muestras respecto a lo que indica su cabecera.'));
-    }
-    return '';
-  });
-  const fails = r.checks.filter((c) => c.ok === false).length;
-  out.innerHTML = `<div class="ai-verdict ${fails ? 'bad' : 'ok'}">${esc(fails ? tr('Hay indicios de que no es alta resolución auténtica') : tr('Parece auténtico'))}</div>${lines.join('')}`;
+  const by = Object.fromEntries(r.checks.map((c) => [c.key, c]));
+  const mark = (ok) => icon(ok === false ? 'ms-warning' : ok == null ? 'ms-info' : 'ms-check-circle');
+  const head = (ok, title) => `<div class="ai-vh ${ok === false ? 'bad' : ok == null ? 'meh' : 'ok'}">${mark(ok)}<b>${esc(title)}</b></div>`;
+  const kv = (k, v) => `<div class="ai-kv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`;
+  const kHz1 = (hz) => `${(hz / 1000).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kHz`;
+  const parts = [];
+  const fails = r.checks.filter((c) => c.ok === false);
+
+  // Verdict and the average spectrum.
+  parts.push(`${head(!fails.length, fails.length ? tr('Se han encontrado problemas') : tr('No se han encontrado problemas'))}
+    <p>${esc(fails.length ? tr('Hay indicios en el audio de que no es lo que dice ser: mira los apartados marcados.') : tr('Nada en el audio apunta a daños, reescalado ni compresión con pérdida.'))}</p>
+    ${a?.spectrum ? `<div class="ai-chart-h">${esc(tr('Espectro medio'))}</div><canvas class="ai-chart"></canvas>` : ''}`);
+
+  // Integrity.
+  const g = by.integrity;
+  if (g) {
+    const text = g.md5 ? (g.md5.ok ? tr('El audio coincide con la huella que guarda el archivo.') : tr('El audio NO coincide con la huella que guarda el archivo: puede estar dañado.'))
+      : g.ok ? tr('Se decodifica entero y sin errores. Este formato no guarda una huella con la que comprobarlo más a fondo.') : tr('Le faltan muestras respecto a lo que indica su cabecera.');
+    parts.push(`${head(g.md5 ? g.md5.ok : g.ok, tr('Integridad'))}<p>${esc(text)}</p>
+      ${g.md5 ? kv(tr('Huella (MD5)'), g.md5.computed) : ''}`);
+  }
+
+  // Bit depth.
+  const b = by.bits;
+  if (b) {
+    const text = b.float ? tr('Las muestras no son números enteros: el audio se guardó desde coma flotante.')
+      : b.ok ? tr('Los {n} bits llevan audio.', { n: b.declared }) : tr('Solo {r} de los {d} bits llevan audio: el resto es relleno.', { r: b.real, d: b.declared });
+    parts.push(`${head(b.float ? null : b.ok, tr('Profundidad de bits'))}<p>${esc(text)}</p>
+      ${b.float ? '' : kv(tr('Bits activos / almacenados'), `${b.real} / ${b.declared}`) + kv(tr('Resolución medida'), tr('{n} bits', { n: b.real }))}`);
+  }
+
+  // Frequency range.
+  const rg = by.range, cut = a?.cutoff;
+  if (rg && cut) {
+    const full = cut.hz >= cut.nyquist * 0.98;
+    const text = rg.upsampled ? tr('El sonido termina en {f}, muy por debajo de los {n} que permite el archivo: probablemente se remuestreó desde 44,1 o 48 kHz.', { f: kHz1(cut.hz), n: kHz1(cut.nyquist) })
+      : full ? tr('El espectro llega hasta el final sin ningún corte brusco.') : tr('El sonido se apaga cerca de {f}, sin un corte brusco.', { f: kHz1(cut.hz) });
+    parts.push(`${head(rg.ok, tr('Rango de frecuencias'))}<p>${esc(text)}</p>
+      ${kv(tr('Frecuencia de muestreo'), kHz1(a.sampleRate))}${kv('Nyquist', kHz1(cut.nyquist))}
+      ${kv(tr('Corte estimado'), full ? tr('No hay (llega hasta Nyquist)') : `~${kHz1(cut.hz)}`)}
+      ${full ? '' : kv(tr('Paso bajo'), tr('{f}, caída de {d} dB', { f: kHz1(cut.hz), d: Math.round(cut.drop) }))}`);
+  }
+
+  // Lossy compression.
+  const l = by.lossy;
+  if (l) {
+    const text = l.ok ? tr('El espectro no tiene el corte brusco que dejan MP3 y AAC. Opus y un remuestreo posterior no siempre dejan esa huella, así que esto no descarta del todo un origen con pérdida.')
+      : tr('Corte brusco a {f} (caída de {d} dB): es la huella típica de MP3 o AAC.', { f: kHz1(l.hz), d: Math.round(l.drop) });
+    const hasCut = cut && cut.hz < cut.nyquist * 0.98; // (with no cut-off there's no drop to show)
+    parts.push(`${head(l.ok, tr('Compresión con pérdida'))}<p>${esc(text)}</p>${hasCut ? kv(tr('Caída en el corte'), `${Math.round(l.drop)} dB`) : ''}`);
+  }
+
+  parts.push(`<p class="ai-foot">${esc(tr('Se ha leído todo el audio ({d}). Ningún análisis puede certificar el máster original.', { d: fmtTime(a?.duration || src.duration || 0) }))}</p>`);
+  out.innerHTML = parts.map((x) => `<div class="ai-vblock">${x}</div>`).join('');
+  const chart = out.querySelector('.ai-chart');
+  if (chart) drawSpectrumChart(chart, a);
+}
+
+/** The average spectrum as an area, with a mark where the sound is cut off (if it is). */
+function drawSpectrumChart(canvas, a) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.max(260, canvas.parentElement.clientWidth || 500), H = 150;
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.height = H + 'px';
+  const g = canvas.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const PH = H - 22, spec = a.spectrum, n = spec.length, nyq = a.sampleRate / 2;
+  const top = Math.max(...spec), lo = top - 100;
+  const y = (d) => Math.min(PH, Math.max(0, (top - d) / (top - lo) * PH));
+  const accent = getComputedStyle(document.body).getPropertyValue('--accent-light').trim() || '#ff8a8a';
+  const font = getComputedStyle(document.body).fontFamily;
+  g.clearRect(0, 0, W, H);
+  g.strokeStyle = 'rgba(255,255,255,.1)'; g.lineWidth = 1;
+  for (const f of [1 / 3, 2 / 3]) { g.beginPath(); g.moveTo(0, PH * f); g.lineTo(W, PH * f); g.stroke(); }
+  g.fillStyle = 'rgba(255,255,255,.55)'; g.font = `11px ${font}`; g.textAlign = 'center'; g.textBaseline = 'top';
+  const step = nyq > 30000 ? 10000 : 5000;
+  for (let f = step; f < nyq; f += step) { const x = f / nyq * W; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, PH); g.stroke(); g.fillText(`${f / 1000}k`, x, PH + 6); }
+  g.beginPath(); g.moveTo(0, PH);
+  for (let i = 0; i < n; i++) g.lineTo(i / (n - 1) * W, y(spec[i]));
+  g.lineTo(W, PH); g.closePath();
+  g.fillStyle = 'rgba(255,255,255,.08)'; g.fill();
+  g.beginPath();
+  for (let i = 0; i < n; i++) { const X = i / (n - 1) * W; i ? g.lineTo(X, y(spec[i])) : g.moveTo(X, y(spec[i])); }
+  g.strokeStyle = accent; g.lineWidth = 1.6; g.stroke();
+  const cut = a.cutoff;
+  if (cut && cut.hz < cut.nyquist * 0.98) {
+    const x = cut.hz / nyq * W;
+    g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(x, 6); g.lineTo(x, PH); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.moveTo(x - 5, 0); g.lineTo(x + 5, 0); g.lineTo(x, 7); g.closePath(); g.fill();
+  }
 }

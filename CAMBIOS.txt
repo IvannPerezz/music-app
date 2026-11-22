@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.59.2
+------------------------------------------------------------
+- "Información de audio" (música de tu equipo):
+  · El análisis de calidad lleva un icono para cada dato y se lee de corrido, con las
+    estadísticas de cada canal al final.
+  · "Autenticidad en alta resolución" pasa al final del panel y explica su resultado por
+    partes: el veredicto con una gráfica del espectro medio, la integridad (con la huella MD5
+    en los FLAC), los bits que llevan audio de verdad, el rango de frecuencias y si hay rastros
+    de compresión con pérdida.
+
+------------------------------------------------------------
 v0.6.59.1
 ------------------------------------------------------------
 - Pantalla completa: al pasar al visualizador o al círculo, los botones que sobran se encogen en

@@ -73,6 +73,13 @@ function analyze() {
     if (c % 30 === 0) progress('spectrum', c / cols * 0.45);
   }
   const avgDb = Array.from(avg, (p) => (p > 0 ? 10 * Math.log10(p / cols) : -200));
+  // The average spectrum, in 400 bands, for the chart of the authenticity check.
+  const S = 400, spectrum = new Float32Array(S);
+  for (let i = 0; i < S; i++) {
+    let p = 0, c = 0;
+    for (let b = Math.floor(i * bins / S); b < Math.floor((i + 1) * bins / S); b++) { p += avg[b] / cols; c++; }
+    spectrum[i] = c && p > 0 ? 10 * Math.log10(p / c) : -200;
+  }
 
   // Levels per channel.
   const per = [];
@@ -93,7 +100,7 @@ function analyze() {
   return {
     sampleRate: rate, channels: nch, samples: len, duration: len / rate,
     peak, rms, dr: peak - rms, lufs, truePeak: db(truePeak), clips: per.reduce((a, p) => a + p.clips, 0),
-    cutoff: cutoffOf(avgDb, rate / N), perChannel: per,
+    cutoff: cutoffOf(avgDb, rate / N), perChannel: per, spectrum,
     spectrogram: { cols, bins, views: views.map((v) => (v === null ? 'mix' : v)), images },
   };
 }
