@@ -1507,18 +1507,27 @@ $('#mute').onclick = () => {
   $('#nowplaying').addEventListener('mousemove', (e) => { if (isFs() && e.clientX < 150) peekFsVolume(); });
   // The dock comes up when the pointer (or a touch) gets near the bottom-right corner.
   const nearDock = (e) => {
-    if (!isFs()) return;
-    const r = $('#nowplaying .np-corner').getBoundingClientRect();
-    if (e.clientX > r.left - 90 && e.clientY > innerHeight - 150) showFsDock();
+    fsPointer = { x: e.clientX, y: e.clientY };
+    if (isFs() && inDockZone()) showFsDock();
   };
   $('#nowplaying').addEventListener('pointermove', nearDock);
   $('#nowplaying').addEventListener('pointerdown', nearDock);
+  document.addEventListener('pointerleave', () => (fsPointer = null));
+  // (Its width, for the handle that marks it while hidden: it changes as buttons fold in and out.)
+  const dock = $('#nowplaying .np-corner');
+  new ResizeObserver(() => $('#nowplaying').style.setProperty('--dock-w', dock.offsetWidth + 'px')).observe(dock);
 }
 
 /** Full screen: the view's buttons live in a dock that's hidden until it's wanted. It stays up while
  *  the pointer is on it, a menu or panel of its is open or it has the keyboard focus. */
-let fsDockTimer = null;
-const fsDockBusy = () => $('#nowplaying .np-corner').matches(':hover, :focus-within') || document.body.classList.contains('panel-open')
+let fsDockTimer = null, fsPointer = null;
+/** Whether the pointer is in the corner that calls the dock (it stays up while it rests there). */
+function inDockZone() {
+  if (!fsPointer) return false;
+  const r = $('#nowplaying .np-corner').getBoundingClientRect();
+  return fsPointer.x > r.left - 90 && fsPointer.y > innerHeight - 150;
+}
+const fsDockBusy = () => inDockZone() || $('#nowplaying .np-corner').matches(':hover, :focus-within') || document.body.classList.contains('panel-open')
   || $('#lyrics-source').classList.contains('open') || !$('#menu').hidden;
 function showFsDock(ms = 1200) {
   if (!isFs()) return;

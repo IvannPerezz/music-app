@@ -1765,18 +1765,18 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 .aq-pill svg { width: 15px; height: 15px; fill: currentColor; opacity: .85; }
 
 /* "Información de audio": a Mica panel (a sheet from below on narrow windows). */
-.modal.mica.ai { width: min(640px, calc(100vw - 32px)); max-height: calc(100vh - 48px); display: flex; flex-direction: column; padding: 0; animation: none; overflow: hidden; }
-.ai-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 18px 10px 22px; }
+.modal.mica.ai { width: min(640px, calc(100vw - 32px)); max-height: min(600px, calc(100vh - 140px)); display: flex; flex-direction: column; padding: 0; animation: none; overflow: hidden; }
+.ai-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px 16px 8px 20px; }
 .ai-head h3 { margin: 0 0 6px; }
 .ai-sub { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .ai-sub svg { width: 15px; height: 15px; fill: currentColor; }
 .ai-body { overflow-y: auto; padding: 0 18px 20px; }
 .ai-body::-webkit-scrollbar { width: 10px; }
 .ai-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
-.ai-sec { margin-top: 14px; }
+.ai-sec { margin-top: 12px; }
 .ai-sec h4 { margin: 0 0 7px 4px; font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-light, var(--accent)); }
 .ai-g, .ai-card { background: rgba(0,0,0,.16); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; }
-.ai-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 10px 14px; font-size: 13.5px; }
+.ai-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 7px 13px; font-size: 13px; }
 .ai-row + .ai-row { border-top: 1px solid rgba(255,255,255,.06); }
 .ai-row span { color: rgba(255,255,255,.92); font-weight: 550; flex: none; }
 .ai-row b { font-weight: 500; color: var(--muted); text-align: right; min-width: 0; }
@@ -1838,20 +1838,35 @@ body.fs #nowplaying .np-corner > .np-lyr-toggle:hover, body.fs #nowplaying .np-c
   background: rgba(255,255,255,.12);
 }
 body.fs .np-corner-gap { width: 2px; height: 22px; margin: 0 5px; }
-/* Buttons that don't apply right now fold sideways instead of upwards. */
+/* Buttons that don't apply right now (switching to the visualizer or the circle) shrink away where
+   they are while the dock closes the gap; the ones that start applying grow in the same way. Fixed
+   sizes, because a width can't be animated from "auto". */
+body.fs #nowplaying .np-corner > .np-lyr-toggle { width: 36px; min-width: 36px; }
+body.fs #nowplaying .np-corner > #lyrics-source { max-width: 38px; }
+body.fs #nowplaying .np-corner > #lyrics-source:hover, body.fs #nowplaying .np-corner > #lyrics-source.open,
+body.fs #nowplaying .np-corner > #lyrics-source:focus-visible { max-width: 320px; }
+body.fs #nowplaying .np-corner > #lyrics-source, body.fs #nowplaying .np-corner > #np-lyrics-toggle,
+body.fs #nowplaying .np-corner > #np-vis-presets, body.fs #nowplaying .np-corner > #np-circle-opts {
+  height: 36px; min-height: 36px; margin: 0; overflow: hidden;
+  transition: width .45s cubic-bezier(.3,.9,.3,1), min-width .45s cubic-bezier(.3,.9,.3,1), max-width .45s cubic-bezier(.3,.9,.3,1),
+    margin .45s cubic-bezier(.3,.9,.3,1), padding .45s cubic-bezier(.3,.9,.3,1), transform .45s cubic-bezier(.3,.9,.3,1), opacity .25s ease, background .2s;
+}
 body.fs.vis-on #nowplaying .np-corner > #lyrics-source, body.fs.vis-on #nowplaying .np-corner > #np-lyrics-toggle,
 body.fs #nowplaying.no-lyrics:not(.lyrics-empty) .np-corner > #lyrics-source,
 body.fs:not(.vis-on) #nowplaying .np-corner > #np-vis-presets, body.fs.circle-on #nowplaying .np-corner > #np-vis-presets,
 body.fs:not(.circle-on) #nowplaying .np-corner > #np-circle-opts, body.fs:not(.vis-on) #nowplaying .np-corner > #np-circle-opts {
-  height: 36px; min-height: 36px; width: 0; min-width: 0; padding: 0; margin: 0 0 0 -4px; transform: translateY(14px);
+  width: 0; min-width: 0; max-width: 0; padding: 0; margin: 0 0 0 -4px; border-width: 0; opacity: 0; transform: scale(.4);
 }
-body.fs #nowplaying .np-corner > #lyrics-source, body.fs #nowplaying .np-corner > #np-lyrics-toggle,
-body.fs #nowplaying .np-corner > #np-vis-presets, body.fs #nowplaying .np-corner > #np-circle-opts {
-  transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .3s ease, width .4s cubic-bezier(.2,.8,.2,1), min-width .4s cubic-bezier(.2,.8,.2,1),
-    margin .4s cubic-bezier(.2,.8,.2,1), padding .25s ease, background .2s;
-}
+/* Where the hidden dock is: a small handle under its middle (like a phone's home bar). */
 body.fs #nowplaying::after {
-  content: ''; position: absolute; right: 0; bottom: 0; width: 380px; height: 3px; z-index: 2; pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.3)); transition: opacity .3s ease;
+  content: ''; position: absolute; bottom: 9px; z-index: 2; pointer-events: none;
+  right: calc(26px + var(--dock-w, 320px) / 2 - 22px); width: 44px; height: 5px; border-radius: 3px;
+  background: rgba(255,255,255,.38); box-shadow: 0 1px 6px rgba(0,0,0,.35);
+  transition: opacity .3s ease, right .3s cubic-bezier(.2,.8,.2,1);
 }
-body.fs.fs-dock-show #nowplaying::after { opacity: 0; }
+body.fs.queue-open:not(.queue-under) #nowplaying::after { right: calc(var(--queue-w) + 36px + var(--dock-w, 320px) / 2 - 22px); }
+body.fs.fs-dock-show #nowplaying::after, body.fs.panel-open #nowplaying::after { opacity: 0; }
+
+/* Notices are pills: round ends, centred text (an error gets an accent outline instead of a side stripe). */
+#toast { border-radius: 999px; padding: 10px 20px; text-align: center; }
+#toast.error { border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent); }

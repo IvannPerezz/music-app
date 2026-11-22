@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.59.1
+------------------------------------------------------------
+- Pantalla completa: al pasar al visualizador o al círculo, los botones que sobran se encogen en
+  su sitio y la barra se estrecha con suavidad (antes desaparecían de golpe con un salto raro).
+- La barra ya no se esconde mientras el ratón sigue en su esquina, aunque no se mueva.
+- La línea del borde que marcaba dónde está la barra escondida es ahora un asa pequeña bajo ella.
+- "Información de audio" ocupa menos alto y sus filas son más compactas.
+- Los avisos ("Te recomendaremos menos cosas como esta", "Añadida a la playlist"…) salen en
+  forma de píldora.
+
+------------------------------------------------------------
 v0.6.59
 ------------------------------------------------------------
 - Pantalla completa: los botones de la derecha (visualizador, círculo, letra, cola, ecualizador,
