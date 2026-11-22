@@ -57,6 +57,16 @@ a = await amb(); if (!a.paused) errors.push('El fondo animado no se para al paus
 await win.click('#play'); await win.waitForTimeout(300);
 // Full-screen mode: player controls under the artwork, no title bar or window buttons.
 await win.click('#btn-fs'); await win.waitForTimeout(1200);
+// Full screen: the corner buttons are a dock that's hidden until the pointer nears the bottom-right corner.
+const dockClick = async (sel) => { await win.mouse.move(1370, 842); await win.waitForTimeout(550); await win.click(sel); };
+const dockShown = () => win.evaluate(() => document.body.classList.contains('fs-dock-show') && +getComputedStyle(document.querySelector('#nowplaying .np-corner')).opacity > 0.9);
+await win.mouse.move(600, 300); await win.waitForTimeout(3200);
+if (await dockShown()) errors.push('El dock de pantalla completa no se oculta solo');
+await win.mouse.move(1370, 842); await win.waitForTimeout(600);
+if (!(await dockShown())) errors.push('El dock de pantalla completa no aparece al acercar el ratón a la esquina');
+const dockRow = await win.evaluate(() => getComputedStyle(document.querySelector('#nowplaying .np-corner')).flexDirection);
+if (dockRow !== 'row') errors.push('El dock de pantalla completa no es horizontal: ' + dockRow);
+await shot('02b2-fullscreen-dock');
 const fsState = () => win.evaluate(() => ({
   fs: document.body.classList.contains('fs'),
   inside: !!document.querySelector('#np-fs-slot .p-center'),
@@ -87,14 +97,14 @@ await win.mouse.move(40, 430); await win.waitForTimeout(500);
 if (!(await volShown())) errors.push('La barra de volumen no vuelve al acercar el ratón');
 // Menus open as a side panel from the right (like the queue) and the button column moves too.
 const panel = () => win.evaluate(() => { const p = document.querySelector('#fs-panel'), c = document.querySelector('.np-corner').getBoundingClientRect(); return { open: !p.hidden && !p.classList.contains('closing'), title: p.querySelector('h3').textContent, cornerRight: Math.round(c.right), panelLeft: Math.round(p.getBoundingClientRect().left), fs: document.body.classList.contains('fs') }; });
-await win.click('#fs-eq'); await win.waitForTimeout(500);
+await dockClick('#fs-eq'); await win.waitForTimeout(500);
 let pn = await panel();
 if (!pn.open || pn.title !== 'Ecualizador' || pn.cornerRight > pn.panelLeft) errors.push('Ecualizador en pantalla completa: ' + JSON.stringify(pn));
 await shot('02d-fullscreen-eq');
 // The equalizer and the lyrics source only take the height they need.
 const panelH = () => win.evaluate(() => document.querySelector('#fs-panel').offsetHeight / innerHeight);
 if ((await panelH()) > 0.75) errors.push('El panel del ecualizador ocupa todo el alto');
-await win.click('#lyrics-source'); await win.waitForTimeout(500);
+await dockClick('#lyrics-source'); await win.waitForTimeout(500);
 pn = await panel();
 // (The lyrics menu lists every provider, so it's tall: it just mustn't be taller than its content.)
 const fitsContent = await win.evaluate(() => { const p = document.querySelector('#fs-panel'), b = p.querySelector('.fs-panel-body'); return p.offsetHeight <= b.scrollHeight + 120; });
@@ -110,14 +120,14 @@ if (!moreState.menu || moreState.panel || !moreState.right) errors.push('Más op
 await shot('02d2-fullscreen-more');
 await win.keyboard.press('Escape'); await win.waitForTimeout(200);
 if (!(await win.evaluate(() => document.body.classList.contains('fs')))) errors.push('Esc con el menú abierto sale de pantalla completa');
-await win.click('#fs-eq'); await win.waitForTimeout(500);
+await dockClick('#fs-eq'); await win.waitForTimeout(500);
 await win.keyboard.press('Escape'); await win.waitForTimeout(450);
 pn = await panel();
 if (pn.open || !pn.fs) errors.push('Esc debería cerrar el panel sin salir de pantalla completa: ' + JSON.stringify(pn));
 // The right-hand column moves left with the queue panel instead of staying under it.
 const cornerRight = () => win.evaluate(() => Math.round(document.querySelector('.np-corner').getBoundingClientRect().right));
 const r0 = await cornerRight();
-await win.click('#fs-queue'); await win.waitForTimeout(50);
+await dockClick('#fs-queue'); await win.waitForTimeout(50);
 // Opening the queue must not scroll the window sideways (it did while the panel slid in).
 const sideways = await win.evaluate(() => ['#layout', '#nowplaying', 'body', 'html'].map((q) => document.querySelector(q).scrollLeft).filter(Boolean));
 if (sideways.length) errors.push('Al abrir la cola se desplaza la ventana: ' + sideways.join(', '));
@@ -127,22 +137,22 @@ const qPos = await win.evaluate(() => ({ right: Math.round(document.querySelecto
 if (qPos.scrolled || qPos.right < qPos.w - 20) errors.push('La cola no queda pegada a la derecha: ' + JSON.stringify(qPos));
 if (!(r1 < r0 && r1 <= qLeft)) errors.push(`Los botones no se apartan de la cola: ${r0} → ${r1}, cola en ${qLeft}`);
 await shot('02e-fullscreen-queue');
-await win.click('#fs-queue'); await win.waitForTimeout(400);
+await dockClick('#fs-queue'); await win.waitForTimeout(400);
 // Full-screen settings: switching off "Aleatorio" hides it under the artwork.
-await win.click('#fs-settings'); await win.waitForTimeout(400); await shot('02f-fullscreen-settings');
+await dockClick('#fs-settings'); await win.waitForTimeout(400); await shot('02f-fullscreen-settings');
 await win.locator('.fs-opt', { hasText: 'Aleatorio' }).click(); await win.waitForTimeout(300);
 if (await win.isVisible('#shuffle')) errors.push('Ocultar «Aleatorio» en pantalla completa no funciona');
 await win.locator('.fs-opt', { hasText: 'Aleatorio' }).click(); await win.waitForTimeout(300);
 await win.click('.fs-set [data-a=ok]'); await win.waitForTimeout(300);
 if (!(await win.isVisible('#shuffle'))) errors.push('«Aleatorio» no vuelve a aparecer');
 // MilkDrop visualizer: sandboxed iframe that reports its presets, a presets panel, and off again.
-await win.click('#np-vis-toggle');
+await dockClick('#np-vis-toggle');
 try { await win.waitForFunction(() => document.body.dataset.vis === 'ready', null, { timeout: 8000 }); }
 catch { errors.push('El visualizador no arranca'); }
 await win.waitForTimeout(1500); await shot('02g-visualizer');
-const corner = await win.evaluate(() => ['#lyrics-source', '#np-lyrics-toggle', '#np-vis-presets'].map((q) => { const s = getComputedStyle(document.querySelector(q)); return +s.opacity > 0.5 && parseFloat(s.height) > 20; }));
+const corner = await win.evaluate(() => ['#lyrics-source', '#np-lyrics-toggle', '#np-vis-presets'].map((q) => { const s = getComputedStyle(document.querySelector(q)); return +s.opacity > 0.5 && parseFloat(s.width) > 20; }));
 if (corner.join() !== 'false,false,true') errors.push('Con el visualizador, los botones de la letra deberían salir y el de presets entrar: ' + corner.join());
-await win.click('#np-vis-presets'); await win.waitForTimeout(500);
+await dockClick('#np-vis-presets'); await win.waitForTimeout(500);
 const vis = await win.evaluate(() => ({ title: document.querySelector('#fs-panel h3').textContent, presets: document.querySelectorAll('.vis-item').length, checked: document.querySelectorAll('.vis-item.checked').length }));
 if (vis.title !== 'Visualizador' || vis.presets < 200 || vis.checked !== 1) errors.push('Panel del visualizador: ' + JSON.stringify(vis));
 await win.click('.vis-pick >> nth=3'); await win.waitForTimeout(1500);
@@ -160,19 +170,19 @@ if (favCount !== favAfter) errors.push('La pestaña de favoritos del visualizado
 await shot('02i-visualizer-favorites');
 await win.click('.vis-tabs [data-t=all]'); await win.waitForTimeout(200);
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);
-await win.click('#np-vis-toggle'); await win.waitForTimeout(700); // it blurs away first
+await dockClick('#np-vis-toggle'); await win.waitForTimeout(700); // it blurs away first
 if (await win.$('#np-vis')) errors.push('El visualizador no se quita al apagarlo');
 // "Círculo" mode: its own button; the lyrics buttons leave and its options button comes in.
-await win.click('#np-circle-toggle'); await win.waitForTimeout(1500);
+await dockClick('#np-circle-toggle'); await win.waitForTimeout(1500);
 if (!(await win.evaluate(() => { const c = document.querySelector('#np-vis-circle'); return c && c.width > 0 && !document.querySelector('#np-vis'); }))) errors.push('No sale el modo círculo');
-const ccorner = await win.evaluate(() => ['#np-lyrics-toggle', '#np-vis-presets', '#np-circle-opts'].map((q) => { const s = getComputedStyle(document.querySelector(q)); return +s.opacity > 0.5 && parseFloat(s.height) > 20; }));
+const ccorner = await win.evaluate(() => ['#np-lyrics-toggle', '#np-vis-presets', '#np-circle-opts'].map((q) => { const s = getComputedStyle(document.querySelector(q)); return +s.opacity > 0.5 && parseFloat(s.width) > 20; }));
 if (ccorner.join() !== 'false,false,true') errors.push('Con el círculo, botones de la esquina: ' + ccorner.join());
-await win.click('#np-circle-opts'); await win.waitForTimeout(500);
+await dockClick('#np-circle-opts'); await win.waitForTimeout(500);
 await win.locator('#fs-panel [data-k=circleGain]').fill('2'); await win.waitForTimeout(300);
 if (!(await win.evaluate(() => window.__bc.state.settings.circleGain === 2))) errors.push('La intensidad del aura no cambia');
 await shot('02j-circle');
 await win.click('#fs-panel-close'); await win.waitForTimeout(400);
-await win.click('#np-circle-toggle'); await win.waitForTimeout(900);
+await dockClick('#np-circle-toggle'); await win.waitForTimeout(900);
 if (await win.$('#np-vis-circle')) errors.push('El círculo no se quita al apagarlo');
 await win.keyboard.press('Escape'); await win.waitForTimeout(1200);
 fsx = { ...(await fsState()), window: await winFs() };

@@ -1758,9 +1758,9 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 #np-stats { min-height: 28px; line-height: normal; overflow: visible; }
 .aq-pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px 0 9px; border-radius: 999px;
   font-size: 12px; font-weight: 600; letter-spacing: .2px; color: rgba(255,255,255,.88); font-variant-numeric: tabular-nums;
-  background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.1); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   transition: background .2s, border-color .2s, transform .15s; cursor: pointer; }
-.aq-pill:hover { background: rgba(0,0,0,.36); border-color: rgba(255,255,255,.18); }
+.aq-pill:hover { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.18); }
 .aq-pill:active { transform: scale(.97); }
 .aq-pill svg { width: 15px; height: 15px; fill: currentColor; opacity: .85; }
 
@@ -1815,3 +1815,43 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 .ai-back.sheet .modal.mica.ai { width: 100%; max-height: 88vh; border-radius: 20px 20px 0 0; border-bottom: 0; }
 .ai-back.sheet .ai-head::before { content: ''; position: absolute; left: 50%; top: 7px; width: 38px; height: 4px; margin-left: -19px; border-radius: 2px; background: rgba(255,255,255,.25); }
 .ai-back.sheet .ai-head { position: relative; padding-top: 22px; }
+
+/* Full screen: the corner buttons become a horizontal glass dock at the bottom right, hidden until
+   the pointer comes near (app.js: showFsDock). A faint line on the edge hints where it is. */
+body.fs #nowplaying .np-corner {
+  flex-direction: row; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 999px;
+  background: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 45%, rgba(255,255,255,0)), var(--mica-tint);
+  -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
+  transform: translateY(calc(100% + 40px)); opacity: 0; pointer-events: none;
+  transition: transform .45s cubic-bezier(.2,.85,.25,1), opacity .25s ease, right .3s cubic-bezier(.5,0,.75,0);
+}
+body.fs.queue-open:not(.queue-under) #nowplaying .np-corner, body.fs.panel-open #nowplaying .np-corner {
+  transition: transform .45s cubic-bezier(.2,.85,.25,1), opacity .25s ease, right .3s cubic-bezier(.2,.8,.2,1);
+}
+body.fs.fs-dock-show #nowplaying .np-corner { transform: none; opacity: 1; pointer-events: auto; }
+/* Inside the dock the buttons are plain (the dock is the glass). */
+body.fs #nowplaying .np-corner > .np-lyr-toggle, body.fs #nowplaying .np-corner > #lyrics-source {
+  background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; border-color: transparent; box-shadow: none; opacity: 1;
+}
+body.fs #nowplaying .np-corner > .np-lyr-toggle:hover, body.fs #nowplaying .np-corner > #lyrics-source:hover, body.fs #nowplaying .np-corner > #lyrics-source.open {
+  background: rgba(255,255,255,.12);
+}
+body.fs .np-corner-gap { width: 2px; height: 22px; margin: 0 5px; }
+/* Buttons that don't apply right now fold sideways instead of upwards. */
+body.fs.vis-on #nowplaying .np-corner > #lyrics-source, body.fs.vis-on #nowplaying .np-corner > #np-lyrics-toggle,
+body.fs #nowplaying.no-lyrics:not(.lyrics-empty) .np-corner > #lyrics-source,
+body.fs:not(.vis-on) #nowplaying .np-corner > #np-vis-presets, body.fs.circle-on #nowplaying .np-corner > #np-vis-presets,
+body.fs:not(.circle-on) #nowplaying .np-corner > #np-circle-opts, body.fs:not(.vis-on) #nowplaying .np-corner > #np-circle-opts {
+  height: 36px; min-height: 36px; width: 0; min-width: 0; padding: 0; margin: 0 0 0 -4px; transform: translateY(14px);
+}
+body.fs #nowplaying .np-corner > #lyrics-source, body.fs #nowplaying .np-corner > #np-lyrics-toggle,
+body.fs #nowplaying .np-corner > #np-vis-presets, body.fs #nowplaying .np-corner > #np-circle-opts {
+  transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .3s ease, width .4s cubic-bezier(.2,.8,.2,1), min-width .4s cubic-bezier(.2,.8,.2,1),
+    margin .4s cubic-bezier(.2,.8,.2,1), padding .25s ease, background .2s;
+}
+body.fs #nowplaying::after {
+  content: ''; position: absolute; right: 0; bottom: 0; width: 380px; height: 3px; z-index: 2; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.3)); transition: opacity .3s ease;
+}
+body.fs.fs-dock-show #nowplaying::after { opacity: 0; }

@@ -1505,6 +1505,29 @@ $('#mute').onclick = () => {
   $('#fs-vol').addEventListener('wheel', (e) => { e.preventDefault(); setVolume(store.get('volume', 0.8) + (e.deltaY < 0 ? 0.05 : -0.05)); });
   $('#fs-mute').onclick = () => $('#mute').click();
   $('#nowplaying').addEventListener('mousemove', (e) => { if (isFs() && e.clientX < 150) peekFsVolume(); });
+  // The dock comes up when the pointer (or a touch) gets near the bottom-right corner.
+  const nearDock = (e) => {
+    if (!isFs()) return;
+    const r = $('#nowplaying .np-corner').getBoundingClientRect();
+    if (e.clientX > r.left - 90 && e.clientY > innerHeight - 150) showFsDock();
+  };
+  $('#nowplaying').addEventListener('pointermove', nearDock);
+  $('#nowplaying').addEventListener('pointerdown', nearDock);
+}
+
+/** Full screen: the view's buttons live in a dock that's hidden until it's wanted. It stays up while
+ *  the pointer is on it, a menu or panel of its is open or it has the keyboard focus. */
+let fsDockTimer = null;
+const fsDockBusy = () => $('#nowplaying .np-corner').matches(':hover, :focus-within') || document.body.classList.contains('panel-open')
+  || $('#lyrics-source').classList.contains('open') || !$('#menu').hidden;
+function showFsDock(ms = 1200) {
+  if (!isFs()) return;
+  document.body.classList.add('fs-dock-show');
+  clearTimeout(fsDockTimer);
+  fsDockTimer = setTimeout(function hide() {
+    if (fsDockBusy()) { fsDockTimer = setTimeout(hide, 400); return; }
+    document.body.classList.remove('fs-dock-show');
+  }, ms);
 }
 
 // ------------------------------------------------------------------ full-screen mode
@@ -1964,7 +1987,8 @@ function applyFullscreen(on) {
   $('#btn-fs').title = tr(on ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa (F11)');
   $('#btn-fs').classList.toggle('on', on);
   if (on && !npOpen()) openNowPlaying();
-  if (on) peekFsVolume(2500); else document.body.classList.remove('fs-vol-show');
+  if (on) { peekFsVolume(2500); showFsDock(2500); } // (shown for a moment, so it's known to be there)
+  else document.body.classList.remove('fs-vol-show', 'fs-dock-show');
   closeFsPanel();
   if (!on) toggleEq(false);
 }

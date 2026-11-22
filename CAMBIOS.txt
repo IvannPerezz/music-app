@@ -15,6 +15,16 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.59
+------------------------------------------------------------
+- Pantalla completa: los botones de la derecha (visualizador, círculo, letra, cola, ecualizador,
+  ajustes y salir) ya no van apilados en columna. Ahora forman una barra horizontal de cristal
+  que se esconde sola y sube al acercar el ratón a la esquina de abajo a la derecha. Se queda
+  mientras la usas o tienes abierto uno de sus paneles. Al entrar en pantalla completa se ve un
+  momento, y una línea tenue en el borde indica dónde está.
+- La píldora de calidad de audio tiene el fondo algo más claro.
+
+------------------------------------------------------------
 v0.6.58
 ------------------------------------------------------------
 - Debajo del artista, en la vista de portada y letra, la línea de datos técnicos es ahora una
