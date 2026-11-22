@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.59.3
+------------------------------------------------------------
+- Pantalla completa: cuando la barra de botones se esconde ya no queda ninguna marca en el borde.
+  Vuelve a salir al acercar el ratón a la esquina de abajo a la derecha, como antes.
+
+------------------------------------------------------------
 v0.6.59.2
 ------------------------------------------------------------
 - "Información de audio" (música de tu equipo):

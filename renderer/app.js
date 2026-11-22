@@ -1513,9 +1513,6 @@ $('#mute').onclick = () => {
   $('#nowplaying').addEventListener('pointermove', nearDock);
   $('#nowplaying').addEventListener('pointerdown', nearDock);
   document.addEventListener('pointerleave', () => (fsPointer = null));
-  // (Its width, for the handle that marks it while hidden: it changes as buttons fold in and out.)
-  const dock = $('#nowplaying .np-corner');
-  new ResizeObserver(() => $('#nowplaying').style.setProperty('--dock-w', dock.offsetWidth + 'px')).observe(dock);
 }
 
 /** Full screen: the view's buttons live in a dock that's hidden until it's wanted. It stays up while

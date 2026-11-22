@@ -1804,7 +1804,7 @@ body.route-settings #content > .set-wrap { flex: 1; min-height: 0; display: flex
 .ai-back.sheet .ai-head { position: relative; padding-top: 22px; }
 
 /* Full screen: the corner buttons become a horizontal glass dock at the bottom right, hidden until
-   the pointer comes near (app.js: showFsDock). A faint line on the edge hints where it is. */
+   the pointer comes near (app.js: showFsDock). Nothing marks it while hidden. */
 body.fs #nowplaying .np-corner {
   flex-direction: row; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 999px;
   background: linear-gradient(140deg, rgba(255,255,255,.12), rgba(255,255,255,.03) 45%, rgba(255,255,255,0)), var(--mica-tint);
@@ -1844,16 +1844,6 @@ body.fs:not(.vis-on) #nowplaying .np-corner > #np-vis-presets, body.fs.circle-on
 body.fs:not(.circle-on) #nowplaying .np-corner > #np-circle-opts, body.fs:not(.vis-on) #nowplaying .np-corner > #np-circle-opts {
   width: 0; min-width: 0; max-width: 0; padding: 0; margin: 0 0 0 -4px; border-width: 0; opacity: 0; transform: scale(.4);
 }
-/* Where the hidden dock is: a small handle under its middle (like a phone's home bar). */
-body.fs #nowplaying::after {
-  content: ''; position: absolute; bottom: 9px; z-index: 2; pointer-events: none;
-  right: calc(26px + var(--dock-w, 320px) / 2 - 22px); width: 44px; height: 5px; border-radius: 3px;
-  background: rgba(255,255,255,.38); box-shadow: 0 1px 6px rgba(0,0,0,.35);
-  transition: opacity .3s ease, right .3s cubic-bezier(.2,.8,.2,1);
-}
-body.fs.queue-open:not(.queue-under) #nowplaying::after { right: calc(var(--queue-w) + 36px + var(--dock-w, 320px) / 2 - 22px); }
-body.fs.fs-dock-show #nowplaying::after, body.fs.panel-open #nowplaying::after { opacity: 0; }
-
 /* Notices are pills: round ends, centred text (an error gets an accent outline instead of a side stripe). */
 #toast { border-radius: 999px; padding: 10px 20px; text-align: center; }
 #toast.error { border: 1px solid color-mix(in srgb, var(--accent) 70%, transparent); }
