@@ -1897,3 +1897,16 @@ body.fs:not(.vis-on) #nowplaying .np-corner > #np-bare {
 body.fs.vis-on #nowplaying .np-inner { transition: opacity .35s ease; }
 body.fs.vis-on.vis-bare #nowplaying .np-inner { opacity: 0; pointer-events: none; }
 body.fs.vis-on.vis-bare #np-from, body.fs.vis-on.vis-bare #np-close, body.fs.vis-on.vis-bare #fs-vol { visibility: hidden; }
+
+/* Full screen: the player's buttons wear the audio-quality pill's glass (light, translucent, a thin
+   edge) instead of the tinted Mica disc: play/pause always; favourite, shuffle and repeat while on;
+   the rest for the moment they're pressed. */
+body.fs #np-fs-slot #play,
+body.fs #np-fs-slot #fs-like.on, body.fs #np-fs-slot #shuffle.on, body.fs #np-fs-slot #repeat.on,
+body.fs #np-fs-slot .icon-btn:active:not(.on) {
+  background: rgba(255,255,255,.08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
+}
+body.fs #np-fs-slot #play:hover, body.fs #np-fs-slot #fs-like.on:hover,
+body.fs #np-fs-slot #shuffle.on:hover, body.fs #np-fs-slot #repeat.on:hover { background: rgba(255,255,255,.14); }
+body.fs #np-fs-slot #play { color: #fff; }

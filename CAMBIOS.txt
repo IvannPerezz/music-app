@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.60.1
+------------------------------------------------------------
+- Pantalla completa: los botones del reproductor (reproducir/pausa, y favorito, aleatorio y
+  repetir cuando están activados) tienen el mismo fondo claro y translúcido que la píldora de
+  calidad de audio.
+
+------------------------------------------------------------
 v0.6.60
 ------------------------------------------------------------
 - Pantalla completa con el visualizador o el círculo: un botón nuevo en la barra (el ojo), o la
