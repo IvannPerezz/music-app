@@ -1501,6 +1501,9 @@ $('#mute').onclick = () => {
   };
   $('#nowplaying').addEventListener('pointermove', nearDock);
   $('#nowplaying').addEventListener('pointerdown', nearDock);
+  // (Its width: the full-screen panels line up with it, see styles.css.)
+  const dock = $('#nowplaying .np-corner');
+  new ResizeObserver(() => document.body.style.setProperty('--dock-w', dock.offsetWidth + 'px')).observe(dock);
   document.addEventListener('pointerleave', () => (fsPointer = null));
 }
 

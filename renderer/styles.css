@@ -1873,3 +1873,10 @@ body.fs #fs-panel { bottom: 84px; max-height: calc(100% - 94px); }
 
 /* (Their usual big shadow fell onto the dock right below and darkened it: a soft one instead.) */
 body.fs #fs-panel, body.fs #queue { box-shadow: 0 0 26px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.06); }
+
+/* Full screen: the panels line up with the dock (26px from the right edge). The queue spans it end to
+   end; the equalizer (and the visualizer/circle panels) share its right edge and grow leftwards as
+   far as their controls need (all ten equalizer bands, 560px), never narrower than the dock. */
+body.fs #queue { right: 26px; width: var(--dock-w, 340px); }
+body.fs #fs-panel { right: 26px; width: max(var(--dock-w, 340px), var(--queue-w)); }
+body.fs #fs-panel[data-kind="eq"] { width: max(var(--dock-w, 340px), 560px); }
