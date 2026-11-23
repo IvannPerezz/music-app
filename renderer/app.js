@@ -1616,8 +1616,8 @@ function closeFsPanel() {
 // all back. (styles.css: body.perf)
 export const perfMode = () => !!state.settings.performanceMode;
 const reducedMotion = () => perfMode() || matchMedia('(prefers-reduced-motion: reduce)').matches;
-/** Ajustes → Apariencia → Estilo: Mica glass or the flat look (styles.css, "flat style"). */
-function applyUiStyle() { document.body.classList.toggle('ui-flat', state.settings.uiStyle === 'flat'); }
+/** Ajustes → Apariencia → Estilo de los botones: Mica glass or flat (styles.css, "flat buttons"). */
+function applyButtonStyle() { document.body.classList.toggle('flat-btns', state.settings.buttonStyle !== 'glass'); }
 function applyPerf() {
   const on = perfMode();
   document.body.classList.toggle('perf', on);
@@ -2649,7 +2649,7 @@ function setupSidebarMode() {
   applyTheme();
   applyAmbient();
   applyMica();
-  applyUiStyle();
+  applyButtonStyle();
   applyPerf();
   applyWindowButtons();
   applyFont();
@@ -2927,7 +2927,7 @@ document.addEventListener('settings', (e) => {
   if (k.includes('visualizer') || k.includes('circleMode') || k.includes('circleBg')) applyVis();
   if (k.includes('visualizer') || k.includes('animatedCovers')) updateCanvas();
   if (k.includes('performanceMode')) applyPerf();
-  if (k.includes('uiStyle')) applyUiStyle();
+  if (k.includes('buttonStyle')) applyButtonStyle();
   if (k.includes('uiFont')) applyFont();
   if (k.includes('appleEmoji')) applyEmoji();
   if (k.includes('visAuto')) scheduleAuto();

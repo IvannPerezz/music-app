@@ -107,7 +107,7 @@ export const DEFAULTS = {
     'Flexi - alien fader', 'martin - gate to moria', 'martin - extreme heat',
   ],
   appleEmoji: true, // Apple's emoji (when its font file is on this PC)
-  uiStyle: 'glass', // 'glass' (Mica glass, with sheen) | 'flat' (light translucent fill, thin edge)
+  buttonStyle: 'flat', // buttons: 'flat' (the audio-quality pill's look) | 'glass' (Mica, like the panels)
   uiFont: 'sf', // 'default' (Inter) | 'sf' (SF Pro Display, the user's own files; Inter while they aren't there)
   circleMode: false, // "Círculo" view (Trap Nation style), instead of cover and lyrics
   circleGain: 0.2, // how strongly the aura reacts to the music
@@ -140,6 +140,8 @@ export function load(userData) {
   try {
     const saved = JSON.parse(fs.readFileSync(file, 'utf8'));
     data = { ...DEFAULTS, ...saved, localInfo: { ...DEFAULTS.localInfo, ...(saved.localInfo || {}) } };
+    // (v0.6.61's «uiStyle» set the whole interface flat or glass; that option is gone: buttons start flat.)
+    delete data.uiStyle;
     // New providers added in later versions take their default place in the saved order.
     const known = new Set(data.lyricsOrder);
     LYRICS_PROVIDERS.forEach((p, i) => { if (!known.has(p.id)) data.lyricsOrder.splice(Math.min(i, data.lyricsOrder.length), 0, p.id); });

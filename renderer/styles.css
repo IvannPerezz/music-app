@@ -1898,34 +1898,29 @@ body.fs.vis-on #nowplaying .np-inner { transition: opacity .35s ease; }
 body.fs.vis-on.vis-bare #nowplaying .np-inner { opacity: 0; pointer-events: none; }
 body.fs.vis-on.vis-bare #np-from, body.fs.vis-on.vis-bare #np-close, body.fs.vis-on.vis-bare #fs-vol { visibility: hidden; }
 
-/* Flat style, full screen: the player's buttons wear the audio-quality pill's look (light, translucent, a thin
-   edge) instead of the tinted Mica disc: play/pause always; favourite, shuffle and repeat while on;
-   the rest for the moment they're pressed. */
-body.ui-flat.fs #np-fs-slot #play,
-body.ui-flat.fs #np-fs-slot #fs-like.on, body.ui-flat.fs #np-fs-slot #shuffle.on, body.ui-flat.fs #np-fs-slot #repeat.on,
-body.ui-flat.fs #np-fs-slot .icon-btn:active:not(.on) {
+/* ---------------------------------------------------------------- flat buttons (Ajustes → Apariencia)
+   "Botones: Plano": every button wears the audio-quality pill's look (a light translucent fill, a
+   soft blur, a thin edge, no sheen) while the panels stay Mica glass. Coloured buttons (Reproducir,
+   the cards' play button, Spotify's green) keep their colour, flat. The dock's own buttons stay
+   plain: the dock is the glass there. */
+body.flat-btns :is(#play, #like.on, #shuffle.on, #repeat.on, #fs-like.on, .np-lyr-toggle, .np-close, #lyrics-source, #btn-perf, .btn.ghost),
+body.flat-btns :is(#player, .p-center, #np-fs-slot) :is(#play, #like.on, #shuffle.on, #repeat.on, #fs-like.on, .icon-btn:active:not(.on)) {
   background: rgba(255,255,255,.08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); border-color: transparent;
 }
-body.ui-flat.fs #np-fs-slot #play:hover, body.ui-flat.fs #np-fs-slot #fs-like.on:hover,
-body.ui-flat.fs #np-fs-slot #shuffle.on:hover, body.ui-flat.fs #np-fs-slot #repeat.on:hover { background: rgba(255,255,255,.14); }
-body.ui-flat.fs #np-fs-slot #play { color: #fff; }
-
-/* ---------------------------------------------------------------- flat style (Ajustes → Apariencia)
-   "Plano" instead of "Cristal": no sheen, a light translucent fill with a soft blur and a thin edge
-   (the audio-quality pill's look), softer shadows. Everything drawn with the Mica glass follows it
-   through these variables. What opens over the content (menus, queue, dialogs, notices, panels)
-   gets a darker fill instead, or its text wouldn't read over artwork. */
-/* (The Mica sliders drive it too: tint → how strong the fill is, blur, saturation. At 30 % and 30 px it's the pill's 8 % white and 10 px.) */
-body.ui-flat:not(.perf) { --sheen: 0; --shade: .35; --mica-tint: rgba(255,255,255,calc(var(--mica-op) * .27)); --mica-filter: blur(calc(var(--mica-blur) / 3)) saturate(var(--mica-sat)); }
-body.ui-flat:not(.perf) :is(#menu, #eq-pop, #acct-pop, #suggest, #queue, #fs-panel, #toast, .modal) {
-  --mica-tint: rgba(26,26,30,calc(.5 + var(--mica-op) * .4)); --mica-filter: blur(calc(var(--mica-blur) * .75)) saturate(var(--mica-sat));
+body.flat-btns :is(#play, .np-lyr-toggle, .np-close, #lyrics-source, #btn-perf, .btn.ghost):hover, body.flat-btns #lyrics-source.open,
+body.flat-btns :is(#player, .p-center, #np-fs-slot) :is(#play, #like.on, #shuffle.on, #repeat.on, #fs-like.on):hover { background: rgba(255,255,255,.14); }
+body.flat-btns :is(#player, .p-center, #np-fs-slot) #play { color: #fff; }
+body.flat-btns :is(.btn.primary, .card .hover-play) {
+  background: color-mix(in srgb, var(--accent) 58%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
 }
-/* (Big bars with content moving under them need more blur than a small pill, or the artwork shows as bands.) */
-body.ui-flat:not(.perf) :is(#sidebar, #player) { --mica-filter: blur(var(--mica-blur)) saturate(var(--mica-sat)); }
-body.ui-flat:not(.perf) .select::picker(select) { --mica-tint: rgba(26,26,30,calc(.5 + var(--mica-op) * .4)); --mica-filter: blur(calc(var(--mica-blur) * .75)) saturate(var(--mica-sat)); } /* (apart: a pseudo-element would void the list above) */
-/* Cristal: the audio-quality pill is glass like the other buttons of the view. */
-body:not(.ui-flat) .aq-pill {
+body.flat-btns .btn.spotify {
+  background: rgba(29, 185, 84, .58); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
+}
+/* Glass buttons: the audio-quality pill is glass like the other buttons of the view. */
+body:not(.flat-btns) .aq-pill {
   background: linear-gradient(140deg, rgba(255,255,255,.1), rgba(255,255,255,.02)), var(--mica-tint);
   -webkit-backdrop-filter: var(--mica-filter); backdrop-filter: var(--mica-filter); border-color: rgba(255,255,255,.12);
 }

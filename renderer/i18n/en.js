@@ -936,7 +936,7 @@ export default {
   "Se ha leído todo el audio ({d}). Ningún análisis puede certificar el máster original.": "Read all {d} of the audio. No analysis can certify the original master.",
   "Mostrar el nombre y los controles (H)": "Show the name and the controls (H)",
   "Ocultar todo menos el visualizador (H)": "Hide everything but the visualizer (H)",
-  "Estilo de paneles y botones": "Panel and button style",
-  "Cristal: tintado con el color del tema y con brillo. Plano: un fondo claro y translúcido con un borde fino, como la píldora de calidad de audio. Se aplica a toda la interfaz, y los controles de abajo funcionan en los dos.": "Glass: tinted with the theme's colour, with a sheen. Flat: a light translucent fill with a thin edge, like the audio-quality pill. It applies to the whole interface, and the controls below work in both.",
   "Cristal": "Glass",
+  "Estilo de los botones": "Button style",
+  "Plano: los botones llevan un fondo claro y translúcido con un borde fino, como la píldora de calidad de audio; los de color mantienen su color. Cristal: como los paneles, tintados y con brillo. Los paneles son siempre de cristal.": "Flat: buttons get a light translucent fill with a thin edge, like the audio-quality pill; coloured ones keep their colour. Glass: like the panels, tinted and with a sheen. Panels are always glass.",
 };

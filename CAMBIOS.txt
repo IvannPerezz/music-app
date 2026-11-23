@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.62
+------------------------------------------------------------
+- Los paneles (barras laterales, barra del reproductor, menús, cola, diálogos…) vuelven a ser
+  siempre de cristal: se quita el estilo plano para toda la interfaz.
+- En su lugar, Ajustes → Apariencia → Efecto Mica → "Estilo de los botones" (Plano por defecto):
+  todos los botones llevan el acabado de la píldora de calidad de audio, con un fondo claro y
+  translúcido y un borde fino. Incluye los del reproductor, los de la vista de portada y los de
+  las páginas ("Reproducir", "Aleatorio", "Actualizar desde Spotify"…). Los de color
+  mantienen su color, pero planos.
+
+------------------------------------------------------------
 v0.6.61.1
 ------------------------------------------------------------
 - Con el estilo "Plano", los controles "Intensidad del tinte", "Desenfoque del cristal" y
