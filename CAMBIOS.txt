@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.62.4
+------------------------------------------------------------
+- En portátiles con dos tarjetas gráficas (Intel Iris Xe + NVIDIA), BitChord usa ahora la
+  NVIDIA en vez de la integrada: la interfaz, el efecto Mica y el visualizador van más fluidos.
+  (Gasta algo más de batería mientras BitChord está abierto.)
+
+------------------------------------------------------------
 v0.6.62.3
 ------------------------------------------------------------
 - "Botones de la ventana" (macOS o Windows) pasa de Ajustes → General a Ajustes → Apariencia →

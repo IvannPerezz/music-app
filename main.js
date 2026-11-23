@@ -19,6 +19,10 @@ app.setName('BitChord');
 // decoder: on Iván's PC (NVIDIA) the hardware path failed mid-clip and the machine then froze.
 // A small square clip costs the processor next to nothing.
 app.commandLine.appendSwitch('disable-accelerated-video-decode');
+// On laptops with two graphics chips (Intel Iris Xe + NVIDIA, Optimus) Windows hands apps the
+// integrated one by default. Ask for the dedicated card so the interface, the Mica effect and the
+// visualizer render on it (the screen itself stays wired to the Intel chip, which is normal).
+app.commandLine.appendSwitch('force_high_performance_gpu');
 if (process.env.BITCHORD_USERDATA) app.setPath('userData', process.env.BITCHORD_USERDATA);
 const userData = app.getPath('userData');
 
