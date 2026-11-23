@@ -84,6 +84,8 @@ export const DEFAULTS = {
   npLyricsHidden: false,
   homeHidden: ['forgotten'],
   performanceMode: false, // no glass, moving backgrounds, visualizer, animated covers or animations
+  hardwareAcceleration: true, // off: drawn by the processor only (applies on restart, read in main.js)
+  dedicatedGpu: true, // laptops with two graphics chips: use the dedicated one (applies on restart)
   animatedCovers: true, // looping video on the big artwork when the release has one (src/canvas.js)
   ambient: true,
   ambientMode: 'cover',

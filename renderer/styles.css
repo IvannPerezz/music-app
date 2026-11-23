@@ -466,6 +466,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .set-desc { color: color-mix(in srgb, var(--text) 72%, transparent); font-size: 12.5px; margin-top: 2px; line-height: 1.45; }
 .set-desc a, .set-note a { color: var(--accent); }
 .set-ctl { flex: none; display: flex; align-items: center; gap: 10px; max-width: 55%; }
+.set-row.set-off { opacity: .45; }
 .set-note { color: color-mix(in srgb, var(--text) 72%, transparent); font-size: 13px; line-height: 1.5; padding: 4px 0 10px; }
 .set-note.keys { padding-top: 12px; }
 .switch { position: relative; width: 42px; height: 24px; flex: none; cursor: pointer; }

@@ -943,4 +943,10 @@ export default {
   "Elegir qué playlists de Spotify tener en BitChord": "Choose which Spotify playlists to have in BitChord",
   "Vinculada como {name}. Lleva tus playlists de Spotify a YouTube Music y las mantiene al día.": "Linked as {name}. Brings your Spotify playlists to YouTube Music and keeps them up to date.",
   "Ventana": "Window",
+  "Los cambios de la tarjeta gráfica se aplican al reiniciar BitChord.": "Graphics card changes apply when BitChord restarts.",
+  "Reiniciar ahora": "Restart now",
+  "Usar la gráfica dedicada": "Use the dedicated graphics card",
+  "En portátiles con dos tarjetas gráficas (integrada y dedicada, como Intel y NVIDIA), usa la dedicada: todo va más fluido, pero gasta más batería. Desactivado, Windows elige (normalmente la integrada). Con una sola tarjeta gráfica no cambia nada.": "On laptops with two graphics cards (integrated and dedicated, such as Intel and NVIDIA), uses the dedicated one: everything runs smoother, but it uses more battery. Off, Windows chooses (usually the integrated one). With a single graphics card nothing changes.",
+  "Aceleración por hardware": "Hardware acceleration",
+  "Dibuja la interfaz, el cristal y el visualizador con la tarjeta gráfica. Desactívala solo si ves fallos gráficos o pantallazos: entonces todo lo dibuja el procesador, que trabaja bastante más (el visualizador y el cristal pueden ir a tirones; el modo rendimiento ayuda).": "Draws the interface, the glass and the visualizer with the graphics card. Turn it off only if you see graphics glitches or crashes: then the processor draws everything and works much harder (the visualizer and the glass may stutter; performance mode helps).",
 };

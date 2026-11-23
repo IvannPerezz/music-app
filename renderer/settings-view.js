@@ -643,7 +643,30 @@ function performanceCard() {
   return card('performance', tr('Rendimiento'), 'speed',
     h(`<div class="set-note">${tr('Quita los efectos que más gastan, para equipos modestos, portátiles con batería o para jugar mientras escuchas música. También tienes el botón del velocímetro, arriba a la derecha.')}</div>`),
     row(tr('Modo rendimiento'), tr('Se quitan los fondos animados, el cristal, el visualizador y las animaciones. Tus ajustes no se pierden: al desactivarlo todo vuelve como estaba.'), toggle('performanceMode')),
+    ...gpuRows(),
   );
+}
+
+// Hardware acceleration and which graphics card: Chromium only takes them at start, so a change
+// shows a note with a button to restart BitChord.
+function gpuRows() {
+  const pending = h(`<div class="set-row gpu-restart" style="display:none"><div class="set-text"><div class="set-desc">${tr('Los cambios de la tarjeta gráfica se aplican al reiniciar BitChord.')}</div></div><div class="set-ctl"></div></div>`);
+  const rb = btn(tr('Reiniciar ahora'), 'primary', 'refresh');
+  rb.onclick = () => api('appRelaunch');
+  pending.querySelector('.set-ctl').append(rb);
+  let start = null;
+  api('gpuStart').then((s) => { start = s; refresh(); }).catch(() => {});
+  const dedicated = row(tr('Usar la gráfica dedicada'), tr('En portátiles con dos tarjetas gráficas (integrada y dedicada, como Intel y NVIDIA), usa la dedicada: todo va más fluido, pero gasta más batería. Desactivado, Windows elige (normalmente la integrada). Con una sola tarjeta gráfica no cambia nada.'), toggle('dedicatedGpu', () => refresh()));
+  const refresh = () => {
+    const on = state.settings.hardwareAcceleration !== false;
+    dedicated.classList.toggle('set-off', !on);
+    dedicated.querySelector('input').disabled = !on;
+    const same = start && start.hardwareAcceleration === on && (!on || start.dedicatedGpu === (state.settings.dedicatedGpu !== false));
+    pending.style.display = !start || same ? 'none' : '';
+  };
+  const accel = row(tr('Aceleración por hardware'), tr('Dibuja la interfaz, el cristal y el visualizador con la tarjeta gráfica. Desactívala solo si ves fallos gráficos o pantallazos: entonces todo lo dibuja el procesador, que trabaja bastante más (el visualizador y el cristal pueden ir a tirones; el modo rendimiento ayuda).'), toggle('hardwareAcceleration', () => refresh()));
+  refresh();
+  return [accel, dedicated, pending];
 }
 
 function general() {

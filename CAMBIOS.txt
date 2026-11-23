@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.63
+------------------------------------------------------------
+- Nuevo en Ajustes → Rendimiento: "Aceleración por hardware". Activada (por defecto), la
+  interfaz, el cristal y el visualizador los dibuja la tarjeta gráfica; desactivada, todo lo
+  dibuja el procesador (útil si ves fallos gráficos, pero gasta bastante más procesador).
+- También "Usar la gráfica dedicada" (activado por defecto): en portátiles con dos tarjetas
+  gráficas (por ejemplo Intel y NVIDIA) usa la dedicada; desactivado, Windows elige, que
+  normalmente es la integrada y gasta menos batería. Con una sola gráfica no cambia nada.
+- Los dos se aplican al reiniciar BitChord: al cambiarlos aparece el botón "Reiniciar ahora".
+
+------------------------------------------------------------
 v0.6.62.4
 ------------------------------------------------------------
 - En portátiles con dos tarjetas gráficas (Intel Iris Xe + NVIDIA), BitChord usa ahora la

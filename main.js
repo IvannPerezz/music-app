@@ -19,12 +19,21 @@ app.setName('BitChord');
 // decoder: on Iván's PC (NVIDIA) the hardware path failed mid-clip and the machine then froze.
 // A small square clip costs the processor next to nothing.
 app.commandLine.appendSwitch('disable-accelerated-video-decode');
-// On laptops with two graphics chips (Intel Iris Xe + NVIDIA, Optimus) Windows hands apps the
-// integrated one by default. Ask for the dedicated card so the interface, the Mica effect and the
-// visualizer render on it (the screen itself stays wired to the Intel chip, which is normal).
-app.commandLine.appendSwitch('force_high_performance_gpu');
 if (process.env.BITCHORD_USERDATA) app.setPath('userData', process.env.BITCHORD_USERDATA);
 const userData = app.getPath('userData');
+// Graphics card (Ajustes → Rendimiento). Chromium only takes these before the app is ready, so
+// settings.json is read straight away and a change applies from the next start.
+// - hardwareAcceleration off: everything is drawn by the processor (software rendering).
+// - dedicatedGpu on: on laptops with two graphics chips (Intel/AMD + NVIDIA/AMD), Windows hands
+//   apps the integrated one by default; this asks for the dedicated one. With a single graphics
+//   card it changes nothing.
+const GPU_START = (() => {
+  let s = {};
+  try { s = JSON.parse(fs.readFileSync(path.join(userData, 'settings.json'), 'utf8')); } catch {}
+  return { hardwareAcceleration: s.hardwareAcceleration !== false, dedicatedGpu: s.dedicatedGpu !== false };
+})();
+if (!GPU_START.hardwareAcceleration) app.disableHardwareAcceleration();
+else if (GPU_START.dedicatedGpu) app.commandLine.appendSwitch('force_high_performance_gpu');
 
 // ---------------------------------------------------------------- logging
 const logFile = path.join(userData, 'bitchord.log');
@@ -427,6 +436,7 @@ app.whenReady().then(async () => {
     console.log('[backup] configuración importada');
     return local;
   });
+  handle('gpu-start', () => GPU_START);
   handle('app-relaunch', () => { setTimeout(() => { quitting = true; app.relaunch(); app.exit(0); }, 150); return true; });
   // Updates from GitHub releases (src/updater.js, loaded only when asked).
   const updater = () => import('./src/updater.js');
