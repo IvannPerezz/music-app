@@ -939,4 +939,8 @@ export default {
   "Cristal": "Glass",
   "Estilo de los botones": "Button style",
   "Plano: los botones llevan un fondo claro y translúcido con un borde fino, como la píldora de calidad de audio; los de color mantienen su color. Cristal: como los paneles, tintados y con brillo. Los paneles son siempre de cristal.": "Flat: buttons get a light translucent fill with a thin edge, like the audio-quality pill; coloured ones keep their colour. Glass: like the panels, tinted and with a sheen. Panels are always glass.",
+  "Cuenta de Spotify vinculada": "Spotify account linked",
+  "Elegir qué playlists de Spotify tener en BitChord": "Choose which Spotify playlists to have in BitChord",
+  "Vinculada como {name}. Lleva tus playlists de Spotify a YouTube Music y las mantiene al día.": "Linked as {name}. Brings your Spotify playlists to YouTube Music and keeps them up to date.",
+  "Ventana": "Window",
 };

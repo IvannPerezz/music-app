@@ -284,8 +284,17 @@ function localMusic() {
 function importCard() {
   const link = btn(tr('Vincular cuenta de Spotify…'), 'spotify', 'open');
   link.onclick = () => go({ name: 'spotify-import' });
+  const r = row(tr('Cuenta de Spotify'), tr('Lleva tus playlists de Spotify a YouTube Music y las mantiene al día. Necesitas haber iniciado sesión con Google.'), link);
+  // Already linked: say so (the button still opens the playlist picker).
+  api('spotifyStatus').then((st) => {
+    if (!st?.connected) return;
+    link.innerHTML = `${icon('check')}${esc(tr('Cuenta de Spotify vinculada'))}`;
+    link.title = tr('Elegir qué playlists de Spotify tener en BitChord');
+    const d = r.querySelector('.set-desc');
+    if (d && st.user?.name) d.textContent = tr('Vinculada como {name}. Lleva tus playlists de Spotify a YouTube Music y las mantiene al día.', { name: st.user.name });
+  }).catch(() => {});
   return card('import', tr('Importar de Spotify'), 'importIcon',
-    row(tr('Cuenta de Spotify'), tr('Lleva tus playlists de Spotify a YouTube Music y las mantiene al día. Necesitas haber iniciado sesión con Google.'), link),
+    r,
     h(`<ul class="set-note sp-how">${SPOTIFY_HOW().map((t) => `<li>${t}</li>`).join('')}</ul>`),
   );
 }
@@ -585,6 +594,8 @@ function sidebarCard() {
   // Two sections (Apariencia shows both): the interface itself, and the background and glass effects.
   return [
     card('sidebar', tr('Interfaz'), 'tune',
+      sub(tr('Ventana'), 'computer'),
+      row(tr('Botones de la ventana'), tr('Los círculos de colores de macOS o los botones de Windows. BitChord se reinicia al cambiarlo.'), select('windowButtons', [['mac', tr('Estilo macOS')], ['windows', tr('Estilo Windows')]])),
       sub(tr('Fuente'), 'edit'),
       row(tr('Emojis de Apple'), tr('Usa los emojis de Apple si tienes instalada la fuente «Apple Color Emoji». Si no, se ven los de Windows.'), toggle('appleEmoji')),
       row(tr('Fuente de la aplicación'), tr('La letra de toda la app. Para SF Pro Display hacen falta sus archivos: BitChord los coge de la carpeta «sf-pro-display» del Escritorio o de la que elijas.'), font),
@@ -646,7 +657,6 @@ function general() {
   });
   return card('general', tr('General'), 'settings',
     row(tr('Idioma de la interfaz'), tr('El idioma de la app (el de YouTube Music se elige aparte). Al cambiarlo, la ventana se recarga.'), langSel),
-    row(tr('Botones de la ventana'), tr('Los círculos de colores de macOS o los botones de Windows. BitChord se reinicia al cambiarlo.'), select('windowButtons', [['mac', tr('Estilo macOS')], ['windows', tr('Estilo Windows')]])),
     row(tr('Cerrar a la bandeja del sistema'), tr('Al cerrar la ventana, la música sigue y BitChord se queda junto al reloj. Para salir del todo: clic derecho en su icono → Salir.'), toggle('closeToTray')),
     row(tr('Idioma de YouTube Music'), tr('El idioma de los títulos y recomendaciones de YouTube Music.'), select('language', [['es', 'Español'], ['en', 'English'], ['pt', 'Português'], ['fr', 'Français'], ['de', 'Deutsch'], ['it', 'Italiano']])),
     row(tr('País'), tr('Cambia las listas de éxitos, las recomendaciones y qué canciones están disponibles.'), select('region', [['ES', tr('España')], ['MX', tr('México')], ['AR', 'Argentina'], ['CO', 'Colombia'], ['CL', 'Chile'], ['PE', tr('Perú')], ['US', tr('Estados Unidos')], ['GB', tr('Reino Unido')]])),
