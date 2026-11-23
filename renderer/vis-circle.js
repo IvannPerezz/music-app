@@ -20,6 +20,9 @@ let w = 0, h = 0, dpr = 1;
 const smooth = new Float32Array(BARS);
 const hist = Array.from({ length: HIST }, () => new Float32Array(BARS)); // the last moments of `smooth`
 let histAt = 0, lastT = 0, acc = 0, shx = 0, shy = 0;
+// Height of the circle's centre (share of the view): a bit above the middle, to leave room for the
+// song's name and controls; the very middle when they're hidden (full screen, «solo el visualizador»).
+let cyK = 0.44;
 const peak = new Float32Array(BARS).fill(0.3); // each band's recent maximum (evens out bass and treble)
 let bassAvg = 0.2, prevBass = 0, kick = 0, pulse = 0;
 let cover = null, coverSrc = '', accent = '#ff5a36', accentAt = 0;
@@ -191,7 +194,9 @@ function draw(k, gain, size, beat, color, now) {
   c.clearRect(0, 0, w, h);
   const base = Math.min(w, h) * 0.16 * size;
   const R = base * (1 + pulse * 0.2 * beat);
-  const cx = w / 2 + shx, cy = h * 0.44 + shy;
+  const bare = document.body.classList.contains('vis-bare') && document.body.classList.contains('fs');
+  cyK += ((bare ? 0.5 : 0.44) - cyK) * (1 - Math.pow(0.88, k)); // glides there, the same at any refresh rate
+  const cx = w / 2 + shx, cy = h * cyK + shy;
 
   // Particles: drift outwards, faster with the bass.
   const far = Math.hypot(w, h) / 2;

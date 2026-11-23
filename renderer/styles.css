@@ -1079,7 +1079,7 @@ body.perf *, body.perf *::before, body.perf *::after {
 }
 body.perf #ambient, body.perf .np-amb, body.perf .np-bg { display: none !important; }
 body.perf #lyrics .lyr-line { filter: none !important; }
-/* Title bar button: a Mica glass disc; green while the mode is on. no-drag: the title bar drags
+/* Title bar button: a Mica glass disc; in the accent colour while the mode is on. no-drag: the title bar drags
    the window, and without it Windows took the click as the start of a drag. */
 #btn-perf { -webkit-app-region: no-drag; width: 34px; height: 34px; border-radius: 50%; margin-right: 4px;
   background: linear-gradient(140deg, rgba(255,255,255,calc(.12 * var(--sheen, 1))), rgba(255,255,255,calc(.03 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(0 * var(--sheen, 1)))), var(--mica-tint);
@@ -1087,7 +1087,7 @@ body.perf #lyrics .lyr-line { filter: none !important; }
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 4px 14px rgba(0,0,0,calc(.22 * var(--shade, 1))); }
 #btn-perf svg { width: 19px; height: 19px; }
 #btn-perf:hover { background: linear-gradient(140deg, rgba(255,255,255,calc(.2 * var(--sheen, 1))), rgba(255,255,255,calc(.06 * var(--sheen, 1))) 45%, rgba(255,255,255,calc(.02 * var(--sheen, 1)))), var(--mica-tint); }
-#btn-perf.on { color: #34c759; box-shadow: inset 0 0 0 1px rgba(52,199,89,.55), 0 0 14px rgba(52,199,89,.25), 0 4px 14px rgba(0,0,0,calc(.22 * var(--shade, 1))); }
+#btn-perf.on { color: var(--accent-light, var(--accent)); } /* (on: the light accent, readable on the dark title bar; no green glow) */
 
 /* ---------------------------------------------------------------- visualizer (MilkDrop)
    Fills the cover and lyrics view; cover and lyrics give way to it and the song details (and,

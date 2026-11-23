@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.62.2
+------------------------------------------------------------
+- El botón del modo rendimiento ya no se pone verde ni brilla al activarlo: su icono toma tu
+  color de acento, como el resto de botones activados.
+- Pantalla completa con el círculo: al ocultar todo menos el visualizador, el círculo se desliza
+  hasta el centro exacto de la pantalla (y vuelve a su sitio al mostrar de nuevo los controles).
+
+------------------------------------------------------------
 v0.6.62.1
 ------------------------------------------------------------
 - Botones planos: los de la barra de reproducción de abajo (reproducir/pausa, aleatorio,
