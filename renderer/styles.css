@@ -1911,6 +1911,9 @@ body.flat-btns :is(#player, .p-center, #np-fs-slot) :is(#play, #like.on, #shuffl
 body.flat-btns :is(#play, .np-lyr-toggle, .np-close, #lyrics-source, #btn-perf, .btn.ghost):hover, body.flat-btns #lyrics-source.open,
 body.flat-btns :is(#player, .p-center, #np-fs-slot) :is(#play, #like.on, #shuffle.on, #repeat.on, #fs-like.on):hover { background: rgba(255,255,255,.14); }
 body.flat-btns :is(#player, .p-center, #np-fs-slot) #play { color: #fff; }
+/* Inside the player bar, no blur of their own: the bar is already glass, and a backdrop blur inside
+   another one only sees the bar's dark tint (not the picture behind), which made them grey. */
+body.flat-btns #player :is(#play, #like.on, #shuffle.on, #repeat.on, .icon-btn:active:not(.on)) { -webkit-backdrop-filter: none; backdrop-filter: none; }
 body.flat-btns :is(.btn.primary, .card .hover-play) {
   background: color-mix(in srgb, var(--accent) 58%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);

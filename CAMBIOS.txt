@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.62.1
+------------------------------------------------------------
+- Botones planos: los de la barra de reproducción de abajo (reproducir/pausa, aleatorio,
+  repetir, favorito) se veían grisáceos; ahora se ven igual que en pantalla completa.
+
+------------------------------------------------------------
 v0.6.62
 ------------------------------------------------------------
 - Los paneles (barras laterales, barra del reproductor, menús, cola, diálogos…) vuelven a ser
