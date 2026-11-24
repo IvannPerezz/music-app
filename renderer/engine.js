@@ -87,7 +87,10 @@ export class Engine extends EventTarget {
     let node = this.input.connect(this.preampNode);
     for (const b of this.eq) node = node.connect(b);
     this.tap = node; // after the equalizer, before the volume: what the visualizer listens to
-    node.connect(this.volumeNode).connect(this.limiter).connect(this.analyser).connect(ctx.destination);
+    // Pause/resume fades (as Apple Music does): their own gain, so the volume and the crossfades don't care.
+    this.fadeNode = ctx.createGain();
+    this.pausing = null; // the timer that pauses once the fade-out ends
+    node.connect(this.volumeNode).connect(this.fadeNode).connect(this.limiter).connect(this.analyser).connect(ctx.destination);
 
     this.decks = [new Deck(this, 'A'), new Deck(this, 'B')];
     this.cur = this.decks[0];
@@ -110,7 +113,7 @@ export class Engine extends EventTarget {
 
   get other() { return this.cur === this.decks[0] ? this.decks[1] : this.decks[0]; }
   get audio() { return this.cur.audio; }
-  get paused() { return this.cur.audio.paused; }
+  get paused() { return !!this.pausing || this.cur.audio.paused; } // (fading out counts as paused)
   get currentTime() { return this.cur.time; }
   set currentTime(t) { this.seek(t); }
   get duration() { return this.cur.duration; }
@@ -146,6 +149,7 @@ export class Engine extends EventTarget {
   play(track, url, { at = 0, autoplay = true, loudnessDb = null } = {}) {
     this.#cancelTransition(true);
     this.other.unload();
+    this.#fade(1, 0);
     const d = this.cur;
     d.load(track, url);
     d.setNorm(loudnessDb);
@@ -170,12 +174,39 @@ export class Engine extends EventTarget {
   }
 
   toggle() { this.paused ? this.playPause(true) : this.playPause(false); }
-  playPause(play) {
-    if (play) { this.resume(); this.cur.audio.play().catch(() => {}); if (this.transition) this.other.audio.play().catch(() => {}); }
-    else {
-      this.cur.audio.pause();
-      if (this.transition) this.#finishTransition(true);
+  /** Play or pause with a fade: in over 0.7 s from silence (or from wherever a fade-out had got to),
+   *  out over 0.25 s and only then paused. A new track starts at full level (see play()). */
+  playPause(play, { fade = true } = {}) {
+    if (play) {
+      // From silence, or from the level a fade-out had got to (pressed again halfway through it).
+      const from = this.pausing ? this.fadeNode.gain.value : 0;
+      this.resume();
+      this.cur.audio.play().catch(() => {});
+      if (this.transition) this.other.audio.play().catch(() => {});
+      const midFade = !!this.pausing;
+      this.#fade(1, fade ? 0.7 : 0, from);
+      if (midFade) this.#emit('play'); // (never really paused, so the <audio> won't say so)
+    } else {
+      if (this.pausing || this.cur.audio.paused) return;
+      if (!fade) { this.#fade(0, 0); this.cur.audio.pause(); if (this.transition) this.#finishTransition(true); return; }
+      this.#fade(0, 0.25);
+      this.pausing = setTimeout(() => {
+        this.pausing = null;
+        this.cur.audio.pause();
+        if (this.transition) this.#finishTransition(true);
+      }, 250);
+      this.#emit('pausing');
     }
+  }
+  /** Fade the output from `from` (default: where it is) to `to` over `secs`, along a smooth S-curve. */
+  #fade(to, secs, from = this.fadeNode.gain.value) {
+    if (this.pausing && to !== 0) { clearTimeout(this.pausing); this.pausing = null; }
+    const g = this.fadeNode.gain, now = this.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    if (!secs) { g.setValueAtTime(to, now); return; }
+    const curve = new Float32Array(32);
+    for (let i = 0; i < curve.length; i++) { const t = i / (curve.length - 1); curve[i] = from + (to - from) * (1 - Math.cos(Math.PI * t)) / 2; }
+    g.setValueCurveAtTime(curve, now, secs);
   }
   seek(t) {
     if (this.transition) this.#finishTransition(true);

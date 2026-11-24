@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.63.2
+------------------------------------------------------------
+- Al reanudar una canción, la música entra con un fundido suave (como en Apple Music) en vez de
+  arrancar de golpe. Al pausar, el sonido se apaga en un instante en lugar de cortarse en seco.
+
+------------------------------------------------------------
 v0.6.63.1
 ------------------------------------------------------------
 - Los textos secundarios (como "Álbum · artista", la etiqueta "Vídeo", horas y descripciones)

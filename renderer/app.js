@@ -1274,13 +1274,14 @@ function updateFrom() {
 // engine → UI
 engine.addEventListener('playing', () => { setLoading(false); player.failStreak = 0; pushState(); });
 engine.addEventListener('pause', () => { setPlayIcon(); pushState(); });
+engine.addEventListener('pausing', () => setPlayIcon()); // (the button flips as soon as the fade-out starts)
 engine.addEventListener('play', () => { setPlayIcon(); pushState(); });
 engine.addEventListener('waiting', () => setLoading(true));
 engine.addEventListener('canplay', () => setLoading(false));
 engine.addEventListener('timeupdate', onTime);
 engine.addEventListener('progress', onTime);
 engine.addEventListener('ended', () => {
-  if (player.repeat === 'one') { engine.seek(0); engine.playPause(true); return; }
+  if (player.repeat === 'one') { engine.seek(0); engine.playPause(true, { fade: false }); return; } // (a loop, not a resume: no fade-in)
   if (player.sleep?.endOfTrack) { player.sleep = null; updateMoreBtn(); engine.playPause(false); engine.seek(0); toast(tr('Temporizador: reproducción detenida')); return; }
   player.next(true);
 });
