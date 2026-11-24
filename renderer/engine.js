@@ -265,6 +265,14 @@ export class Engine extends EventTarget {
 
   #wantAnalysis() { return this.automix || this.skipSilence; }
 
+  /** The Automix planned into the next track (when it starts and how long it lasts, in the current
+   *  track's seconds), or null while there's none yet (both tracks must be analysed first). */
+  get mixPlan() {
+    if (!this.automix || this.transition || !this.nextTrack || this.other.track !== this.nextTrack.track) return null;
+    const p = this.#plan();
+    return p?.kind === 'automix' ? p : null;
+  }
+
   // ---------------------------------------------------------------- transitions
   #plan() {
     const out = this.cur, inn = this.other;

@@ -294,6 +294,11 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .slider::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.12); }
 .slider .buffered, .slider .fill { position: absolute; left: 0; top: 6px; height: 4px; border-radius: 4px; width: 0; }
 .slider .buffered { background: rgba(255,255,255,.14); }
+/* Where Automix will blend into the next track: the cover's accent, fading in as it gets planned. */
+#seek .mix { position: absolute; top: 6px; height: 4px; border-radius: 4px; background: var(--accent-light, var(--accent));
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 60%, transparent); pointer-events: none;
+  animation: mix-in .5s ease backwards; transition: left .4s ease, width .4s ease; }
+@keyframes mix-in { from { opacity: 0; } }
 .slider .fill { background: var(--text); }
 .slider:hover .fill { background: var(--accent); }
 .slider .knob { position: absolute; top: 3px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: #fff; opacity: 0; transition: opacity .15s; left: 0; }

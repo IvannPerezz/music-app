@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.64
+------------------------------------------------------------
+- Con Automix activado, la barra de progreso marca con el color de la portada el tramo donde
+  la canción se mezclará con la siguiente. Aparece en cuanto BitChord termina de analizar las
+  dos canciones, así sabes de antemano cuándo va a empezar la transición.
+
+------------------------------------------------------------
 v0.6.63.3
 ------------------------------------------------------------
 - El fundido al reanudar cambia de forma: el sonido empieza casi en silencio, se mantiene bajo

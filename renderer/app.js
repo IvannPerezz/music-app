@@ -1391,6 +1391,19 @@ function updateRepeatBtn() {
 }
 function updateMoreBtn() { for (const b of [$('#btn-more'), $('#fs-more')]) b.classList.toggle('on', !!player.sleep || engine.speed !== 1); }
 
+// The stretch of the seek bar where Automix will blend into the next track, in the cover's accent.
+let mixMarkKey = '';
+function showMixMark(d) {
+  const p = d ? engine.mixPlan : null, el = $('#seek .mix');
+  const key = p ? `${p.outAt.toFixed(2)}|${p.len.toFixed(2)}|${d.toFixed(1)}` : '';
+  if (key === mixMarkKey) return;
+  mixMarkKey = key;
+  el.hidden = !p;
+  if (!p) return;
+  el.style.left = (p.outAt / d) * 100 + '%';
+  el.style.width = (Math.min(p.len, d - p.outAt) / d) * 100 + '%';
+}
+
 let lastMediaPos = 0;
 function onTime() {
   const d = engine.duration || player.current?.duration || 0;
@@ -1403,6 +1416,7 @@ function onTime() {
   $('#t-dur').textContent = fmt(d);
   const b = engine.buffered;
   if (b.length && d) $('#seek .buffered').style.width = (b.end(b.length - 1) / d) * 100 + '%';
+  showMixMark(d);
   if ('mediaSession' in navigator && d && Math.abs(c - lastMediaPos) > 1) {
     lastMediaPos = c;
     try { navigator.mediaSession.setPositionState({ duration: d, position: Math.min(c, d), playbackRate: engine.speed }); } catch {}
