@@ -23,7 +23,7 @@
   --surface: #1c1c1e;
   --surface-2: #2c2c2e;
   --text: #f2f2f7;
-  --muted: #8e8e93;
+  --muted: #c7c8ce; /* (secondary text: whitish, so it still reads over a light blurred cover) */
   --accent: #940825;
   --accent-soft: rgba(148, 8, 37, 0.18);
   /* The accent lifted towards white, for small icons on the dark background (a dark accent such
@@ -256,9 +256,9 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
   mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
 }
 #lyrics .plain { white-space: pre-wrap; font-size: 22px; font-weight: 650; color: rgba(255,255,255,.8); line-height: 1.55; }
-#lyrics .src { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 24px; }
+#lyrics .src { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 24px; }
 #lyrics.unsynced { padding: 40px 0; mask-image: none; }
-#lyrics .none { color: rgba(255,255,255,.5); font-size: 18px; height: 100%; display: grid; place-items: center; }
+#lyrics .none { color: rgba(255,255,255,.7); font-size: 18px; height: 100%; display: grid; place-items: center; }
 .np-close { position: absolute; top: 14px; left: 18px; z-index: 3; width: 42px; height: 42px; background: rgba(0,0,0,.22); backdrop-filter: blur(10px); }
 .np-close:hover { background: rgba(0,0,0,.4); }
 .np-close svg { width: 26px; height: 26px; }
@@ -337,7 +337,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .settings-btn { margin: 0 146px 0 4px; -webkit-app-region: no-drag; }
 .settings-btn.active { color: var(--accent); opacity: 1; }
 .account-btn img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
-.badge { display: inline-block; font-size: 10.5px; font-weight: 650; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,.1); color: var(--muted); vertical-align: 1px; margin-left: 4px; }
+.badge { display: inline-block; font-size: 10.5px; font-weight: 650; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,.18); color: var(--muted); vertical-align: 1px; margin-left: 4px; }
 .beta { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--accent); color: #fff; margin-left: 6px; vertical-align: 2px; }
 .dl-mark { display: inline-flex; vertical-align: -3px; margin-right: 4px; color: var(--accent); }
 .dl-mark svg { width: 14px; height: 14px; }
@@ -368,7 +368,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 /* now playing extras */
 .np-title-row { display: flex; align-items: flex-start; gap: 8px; }
 .np-title-row > div { flex: 1; }
-#np-stats { font-size: 11.5px; margin-top: 10px; font-variant-numeric: tabular-nums; letter-spacing: .3px; color: rgba(255,255,255,.55); }
+#np-stats { font-size: 11.5px; margin-top: 10px; font-variant-numeric: tabular-nums; letter-spacing: .3px; color: rgba(255,255,255,.75); }
 .pill {
   position: absolute; top: 4px; right: 0; z-index: 2; display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 10px 6px 12px; border-radius: 999px; background: rgba(0,0,0,.28); backdrop-filter: blur(10px);
@@ -557,7 +557,7 @@ body.sb-hover .brand, body.sb-collapsed .brand { width: 112px; padding-right: 8p
 .file-info { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .chip-i { font-size: 10.5px; font-weight: 600; letter-spacing: .2px; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,.08); color: var(--muted); white-space: nowrap; }
 .chip-i.hi { background: var(--accent-soft); color: var(--accent); }
-.file-path { font-size: 11px; color: rgba(255,255,255,.35); margin-top: 3px; }
+.file-path { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 3px; }
 .row.no-album { grid-template-columns: 44px minmax(0, 1fr) 56px 72px; }
 .row.no-album .alb { display: none; }
 
@@ -1016,7 +1016,7 @@ body.fs #np-like, #np-album { display: none; }
 body.fs .np-title-row { display: block; }
 body.fs #np-title { font-size: 30px; font-weight: 800; letter-spacing: -.4px; }
 body.fs #np-artist { font-size: 18px; color: rgba(255,255,255,.82); margin-top: 4px; }
-body.fs #np-album { font-size: 16px; color: rgba(255,255,255,.6); margin-top: 2px; }
+body.fs #np-album { font-size: 16px; color: rgba(255,255,255,.78); margin-top: 2px; }
 #np-album:empty { display: none; }
 /* The controls look exactly as in the player bar (they are the same ones, moved here); only the
    full-screen heart and "more" are added, at both ends so the rest stays centred. */

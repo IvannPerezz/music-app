@@ -376,7 +376,7 @@ const THEME_TEMPLATE = `/* Cambia los colores que quieras y pulsa «Vista previa
   --surface: #1c1c1e;        /* tarjetas y filas */
   --surface-2: #2c2c2e;
   --text: #f2f2f7;           /* texto */
-  --muted: #8e8e93;          /* texto secundario */
+  --muted: #c7c8ce;          /* texto secundario */
   --accent: #940825;         /* con «Color de acento: El del tema» */
   --accent-soft: rgba(148, 8, 37, .18);
   --chrome: rgba(20, 20, 22, .78);
