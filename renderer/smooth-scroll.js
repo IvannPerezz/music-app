@@ -1,9 +1,8 @@
-// Smooth scrolling with the mouse wheel, everywhere in the app (Ajustes → Apariencia → Interfaz →
-// "Desplazamiento suave"). Each notch of the wheel moves a target; the list glides towards it and
-// eases out, and notches in a row add up, so a fast spin travels far and still stops softly.
+// Smooth scrolling with the mouse wheel, everywhere in the app (always on).
+// Each notch of the wheel moves a target; the list glides towards it and eases out,
+// and notches in a row add up, so a fast spin travels far and still stops softly.
 // Touchpads already scroll smoothly by themselves (many small steps), so they are left alone, and
 // so is anything that handles the wheel itself (volume, lyrics, sliders…: it calls preventDefault).
-import { state } from './core.js';
 
 const EASE_MS = 95;       // how quickly the list catches up with the wheel (lower = snappier)
 const STEP = 1;           // travel per notch: the same as the browser's own
@@ -49,7 +48,7 @@ function glide(el, dy) {
 
 // (Bubbling phase: anything with its own wheel handling has already had its say.)
 window.addEventListener('wheel', (e) => {
-  if (e.defaultPrevented || e.ctrlKey || e.shiftKey || state.settings?.smoothScroll === false) return;
+  if (e.defaultPrevented || e.ctrlKey || e.shiftKey) return;
   if (!e.deltaY || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
   const lines = e.deltaMode === 1, pages = e.deltaMode === 2;
   if (!lines && !pages && Math.abs(e.deltaY) < 50) return; // a touchpad: already smooth

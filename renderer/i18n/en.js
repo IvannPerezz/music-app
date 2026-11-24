@@ -764,8 +764,6 @@ export default {
   "Buscar actualizaciones al abrir": "Check for updates on start",
   "Al abrir BitChord, mira si hay una versión nueva.": "When BitChord opens, checks whether there's a new version.",
   "Instalar actualizaciones solas": "Install updates automatically",
-  "Desplazamiento suave": "Smooth scrolling",
-  "Con la rueda del ratón, las listas y páginas se deslizan con suavidad y frenan poco a poco en vez de avanzar a saltos.": "With the mouse wheel, lists and pages glide smoothly and slow down gradually instead of jumping.",
   "La versión nueva se descarga sin preguntar y se instala en cuanto no suena música: BitChord se cierra y vuelve a abrirse solo. Desactivado, te avisa con sus novedades y eliges cuándo instalarla.": "The new version downloads without asking and installs as soon as no music is playing: BitChord closes and opens again by itself. Off, it lets you know what's new and you choose when to install it.",
   "Instalando la v{v}… BitChord se cerrará y volverá a abrirse solo.": "Installing v{v}… BitChord will close and open again by itself.",
   "Buscar actualizaciones": "Check for updates",
