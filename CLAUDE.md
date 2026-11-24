@@ -17,13 +17,27 @@ npm run installer          # BitChord-Instalar-<versión>.exe en la raíz: insta
 npm run release            # publica la versión como release de GitHub (repo público IvannPerezz/music-app) con su .exe
 ```
 
+## Al empezar: revisa el repositorio (OBLIGATORIO)
+
+Iván trabaja en BitChord desde **más de un ordenador** y en sesiones distintas, así que el código local puede estar atrasado.
+En el **primer mensaje de una sesión** y en el **primer mensaje tras una pausa de varias horas** (3 h o más desde tu último mensaje), y siempre antes de tocar código:
+
+1. `git fetch` y `git status`. Si hay commits nuevos en `origin/main`, `git pull --ff-only` (si hay cambios locales sin subir, avisa a Iván antes de mezclar nada).
+2. Lee `git log --oneline <antes>..HEAD` y dile a Iván en una o dos líneas qué versiones llegaron desde la otra sesión.
+3. Si cambió `package-lock.json`, `npm ci`.
+4. Si la versión de `package.json` es más nueva que la instalada en este PC (la primera `vX.Y.Z` de `%LOCALAPPDATA%\Programs\BitChord\CAMBIOS.txt`), `npm run deploy` para que la instalación quede al día al reabrir BitChord.
+
+## La carpeta del código se queda
+
+El código vive en `C:\Proyectos\music-app` (clon de `IvannPerezz/music-app`). **No la borres** al terminar un arreglo ni después de publicar una versión: se trabaja siempre ahí.
+
 ## Cómo se entrega una versión (OBLIGATORIO en cada cambio, por pequeño que sea)
 
 1. Sube la versión en **dos sitios**: `package.json` (`"version"`) y la etiqueta de `renderer/index.html` (`vX.Y.Z · port de BitChord`).
    Numeración: `MAYOR.MENOR.REVISIÓN` para novedades (0.6.5 → 0.6.6), y un cuarto número para retoques/arreglos pequeños (0.6.5 → 0.6.5.1).
 2. Añade una entrada **arriba del todo** en `CAMBIOS.txt` (encima de la versión anterior, mismo formato con las líneas de guiones), en español y pensada para el usuario, no técnica.
 3. `npm test` y revisa las capturas si tocaste la interfaz.
-4. `npm run deploy`. Al cerrar y abrir BitChord, la versión se instala sola.
+4. `npm run deploy` (**siempre, sin preguntar**): Iván quiere cada cambio en su BitChord instalado sin tener que instalar nada a mano. Al cerrar y abrir BitChord, la versión se instala sola.
 5. Commit y push, y después `npm run release`: publica la versión (instalador + su entrada de `CAMBIOS.txt` como notas) para que las demás instalaciones la encuentren al abrir BitChord.
 
 ### Sistema de actualización (no romperlo)
