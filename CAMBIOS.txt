@@ -15,6 +15,17 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.66
+------------------------------------------------------------
+- Cola: al arrastrar una canción hacia arriba o hacia abajo, la cola se desplaza sola cuando
+  te acercas al borde (más deprisa cuanto más cerca), para llevarla a cualquier sitio aunque la
+  cola sea larga. Además, donde vas a soltarla se abre un hueco marcado con una línea, y la
+  cola ya no salta arriba del todo después de moverla.
+- Desplazamiento suave en toda la app: con la rueda del ratón, las páginas y listas se deslizan
+  y frenan poco a poco en vez de avanzar a saltos. Se puede quitar en Ajustes → Apariencia →
+  Interfaz → "Desplazamiento suave".
+
+------------------------------------------------------------
 v0.6.65
 ------------------------------------------------------------
 - Las actualizaciones se instalan solas: al abrir BitChord, si hay una versión nueva, se

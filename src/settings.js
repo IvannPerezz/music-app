@@ -27,6 +27,7 @@ export const SIDEBAR_DEFAULT = [
 export const DEFAULTS = {
   sidebar: SIDEBAR_DEFAULT,
   sidebarMode: 'fixed', // fixed | hover | button
+  smoothScroll: true, // the mouse wheel glides instead of jumping (renderer/smooth-scroll.js)
   sidebarOpen: true, // for 'button' mode
   localInfo: { format: true, bitrate: true, sampleRate: true, bitDepth: true, channels: false, size: true, year: false, genre: false, album: true, path: false },
   // Audio

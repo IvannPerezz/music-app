@@ -5,6 +5,7 @@ import { parseResult } from './lyrics-parse.js';
 import * as lyricsView from './lyrics-view.js';
 import { lyricsLookControls, LYRICS_LOOK } from './lyrics-look.js';
 import { checkForUpdates } from './update-dialog.js';
+import './smooth-scroll.js';
 import { initAudioInfo, renderPill, openAudioInfo } from './audio-info.js';
 import { settingsView } from './settings-view.js';
 import { libraryView } from './library-view.js';
@@ -2745,6 +2746,7 @@ function applySidebarMode() {
 function renderQueue() {
   const box = $('#queue-list');
   if ($('#queue').hidden) return;
+  const keep = box.scrollTop; // (emptying the list would send it back to the top)
   box.innerHTML = '';
   if (!player.queue.length) { box.append(h(`<div class="empty" style="padding:40px 0">${icon('queue')}<div>${tr('La cola está vacía')}</div></div>`)); return; }
   const addLabel = (t) => box.append(h(`<div class="label">${t}</div>`));
@@ -2757,9 +2759,10 @@ function renderQueue() {
     if (i === player.index) row.classList.add('playing');
     if (i > player.index) {
       row.draggable = true;
-      row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(i)); e.dataTransfer.effectAllowed = 'move'; });
-      row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drag-over'); });
-      row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+      row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(i)); e.dataTransfer.effectAllowed = 'move'; requestAnimationFrame(() => row.classList.add('drag-src')); });
+      row.addEventListener('dragend', () => { row.classList.remove('drag-src'); box.querySelectorAll('.drag-over').forEach((r) => r.classList.remove('drag-over')); });
+      row.addEventListener('dragover', (e) => { e.preventDefault(); if (!row.classList.contains('drag-src')) row.classList.add('drag-over'); });
+      row.addEventListener('dragleave', (e) => { if (!row.contains(e.relatedTarget)) row.classList.remove('drag-over'); });
       row.addEventListener('drop', (e) => { e.preventDefault(); row.classList.remove('drag-over'); player.move(+e.dataTransfer.getData('text/plain'), i); });
     }
     box.append(row);
@@ -2768,7 +2771,33 @@ function renderQueue() {
   // Centre the current song by scrolling the list only: scrollIntoView would also scroll the
   // window sideways while the panel is still sliding in from off-screen.
   if (cur && !renderQueue.scrolled) { box.scrollTop = cur.offsetTop - box.offsetTop - (box.clientHeight - cur.offsetHeight) / 2; renderQueue.scrolled = true; }
+  else box.scrollTop = keep;
 }
+// Dragging a song near the top or bottom of the queue scrolls it by itself (faster the closer to
+// the edge, and at full speed past it, over the queue's header or below the list), so a song can
+// be taken anywhere in a long queue.
+(() => {
+  const panel = $('#queue'), box = $('#queue-list');
+  let speed = 0, raf = 0, last = 0;
+  const step = (now) => {
+    if (!speed) { raf = 0; last = 0; return; }
+    const dt = last ? Math.min(50, now - last) : 16.7; last = now;
+    box.scrollTop += speed * dt / 16.7;
+    raf = requestAnimationFrame(step);
+  };
+  panel.addEventListener('dragover', (e) => {
+    if (!box.querySelector('.drag-src')) return; // only while moving a song of the queue
+    const r = box.getBoundingClientRect(), zone = Math.min(90, r.height / 4), MAX = 18;
+    const up = e.clientY - r.top, down = r.bottom - e.clientY;
+    const f = (d) => Math.min(1, Math.max(0, (zone - d) / zone)) ** 1.6;
+    speed = up < zone ? -Math.max(1.5, MAX * f(up)) : down < zone ? Math.max(1.5, MAX * f(down)) : 0;
+    if (speed && !raf) raf = requestAnimationFrame(step);
+  });
+  const stop = () => { speed = 0; };
+  panel.addEventListener('dragleave', (e) => { if (!panel.contains(e.relatedTarget)) stop(); });
+  document.addEventListener('drop', stop);
+  document.addEventListener('dragend', stop);
+})();
 let queueCloseTimer = null;
 let queueHiddenBySettings = false;
 const queueIsOpen = () => !$('#queue').hidden && !$('#queue').classList.contains('closing');

@@ -596,6 +596,7 @@ function sidebarCard() {
     card('sidebar', tr('Interfaz'), 'tune',
       sub(tr('Ventana'), 'computer'),
       row(tr('Botones de la ventana'), tr('Los círculos de colores de macOS o los botones de Windows. BitChord se reinicia al cambiarlo.'), select('windowButtons', [['mac', tr('Estilo macOS')], ['windows', tr('Estilo Windows')]])),
+      row(tr('Desplazamiento suave'), tr('Con la rueda del ratón, las listas y páginas se deslizan con suavidad y frenan poco a poco en vez de avanzar a saltos.'), toggle('smoothScroll')),
       sub(tr('Fuente'), 'edit'),
       row(tr('Emojis de Apple'), tr('Usa los emojis de Apple si tienes instalada la fuente «Apple Color Emoji». Si no, se ven los de Windows.'), toggle('appleEmoji')),
       row(tr('Fuente de la aplicación'), tr('La letra de toda la app. Para SF Pro Display hacen falta sus archivos: BitChord los coge de la carpeta «sf-pro-display» del Escritorio o de la que elijas.'), font),
