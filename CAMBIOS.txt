@@ -15,6 +15,14 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.64.2
+------------------------------------------------------------
+- Automix ya no hace ese efecto de vinilo: la canción que entra suena siempre a su velocidad
+  normal (antes se aceleraba y frenaba para cuadrar el ritmo y el tono parecía ondularse) y ya
+  no se le quitan ni se le cambian los graves. Ahora es un fundido limpio que entra a tiempo,
+  en el primer compás de la siguiente canción; si los ritmos no se parecen, la mezcla es corta.
+
+------------------------------------------------------------
 v0.6.64.1
 ------------------------------------------------------------
 - Arreglado: Automix funcionaba una canción sí y otra no. La canción que entraba mezclada con la
