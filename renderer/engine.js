@@ -286,12 +286,10 @@ export class Engine extends EventTarget {
     const endOfSound = this.skipSilence && oa?.soundEnd ? Math.min(dur, oa.soundEnd + 0.2) : dur;
 
     if (this.automix && oa?.bpm && ia?.bpm) {
-      // Beat-aligned mix with both tracks at their own speed: stretching the tempo (and nudging it to
-      // keep the beats locked) sounded like a warped vinyl. Tracks whose tempos almost match (half/double
-      // time allowed) stay in step on their own, so they get the long mix; the rest a short one.
+      // Beat-matched mix: choose tempo ratio (allowing half/double time), N bars ending at the outro.
       let ratio = oa.bpm / ia.bpm;
       if (ratio > 1.5) ratio /= 2; else if (ratio < 0.67) ratio *= 2;
-      const matchable = Math.abs(1 - ratio) <= 0.015;
+      const matchable = Math.abs(1 - ratio) <= 0.08;
       const beat = 60 / oa.bpm;
       const bars = matchable ? this.automixBars : Math.min(4, this.automixBars);
       let len = bars * 4 * beat;
@@ -305,7 +303,7 @@ export class Engine extends EventTarget {
       const ibeat = 60 / ia.bpm;
       let inAt = ia.downbeat != null ? ia.downbeat : (ia.soundStart || 0);
       while (inAt < (ia.soundStart || 0) - 0.01) inAt += 4 * ibeat;
-      return { kind: 'automix', outAt, len, inAt, ratio: 1, beat };
+      return { kind: 'automix', outAt, len, inAt, ratio: matchable ? ratio : 1, beatmatch: matchable, beat };
     }
     if (this.crossfade > 0) {
       const len = Math.min(this.crossfade, dur / 3);
@@ -339,10 +337,15 @@ export class Engine extends EventTarget {
     inn.fade.gain.cancelScheduledValues(now);
     out.fade.gain.cancelScheduledValues(now);
     if (plan.kind === 'automix') {
-      // Equal-power fade from a downbeat, nothing else (no filters, no tempo changes).
+      // Equal-power fade + bass swap: the incoming track comes in thin, the outgoing one loses its low end.
       inn.fade.gain.setValueAtTime(0.0001, now);
       inn.fade.gain.setValueCurveAtTime(curve(0, 1), now, len);
       out.fade.gain.setValueCurveAtTime(curve(1, 0), now, len);
+      inn.hp.frequency.setValueAtTime(350, now);
+      inn.hp.frequency.setValueAtTime(350, now + len * 0.45);
+      inn.hp.frequency.exponentialRampToValueAtTime(10, now + len * 0.55);
+      out.hp.frequency.setValueAtTime(10, now + len * 0.45);
+      out.hp.frequency.exponentialRampToValueAtTime(350, now + len * 0.55);
     } else if (plan.kind === 'crossfade') {
       inn.fade.gain.setValueAtTime(0.0001, now);
       inn.fade.gain.setValueCurveAtTime(curve(0, 1), now, len);
@@ -362,6 +365,14 @@ export class Engine extends EventTarget {
   #stepTransition() {
     const t = this.transition;
     const el = this.ctx.currentTime - t.startCtx;
+    if (t.plan.kind === 'automix' && t.plan.beatmatch && el < t.len) {
+      // Keep the beats locked: nudge the incoming rate by the phase error against the outgoing grid.
+      const outPos = t.out.time - t.outStart; // seconds of outgoing played since mix start
+      const expected = t.inStart + outPos / t.plan.ratio;
+      const err = t.inn.time - expected; // + = incoming ahead
+      const corr = clamp(-err * 0.5, -0.03, 0.03);
+      t.inn.audio.playbackRate = clamp(t.plan.ratio * (1 + corr) * this.speed, 0.25, 4);
+    }
     if (el >= t.len) this.#finishTransition();
   }
 
@@ -378,7 +389,9 @@ export class Engine extends EventTarget {
     t.out.unload();
     const q = this.queuedNext;
     if (q) { this.queuedNext = null; this.setNext(...q); }
-    t.inn.setRate(1);
+    // Glide the incoming tempo back to normal over a few bars (no pitch change: preservesPitch).
+    if (t.plan.ratio && t.plan.ratio !== 1 && !abrupt) glideRate(t.inn, t.plan.ratio, 1, 8 * (t.plan.beat || 0.5) * 4);
+    else t.inn.setRate(1);
     this.#emit('transition-done');
   }
 
@@ -431,6 +444,17 @@ function snapToBar(t, downbeat, beat) {
   const bar = beat * 4;
   const k = Math.floor((t - downbeat) / bar + 0.05);
   return downbeat + k * bar;
+}
+
+function glideRate(deck, from, to, seconds) {
+  const steps = Math.max(1, Math.round(seconds * 10));
+  let i = 0;
+  const id = setInterval(() => {
+    i++;
+    if (!deck.track) { clearInterval(id); return; }
+    deck.setRate(from + (to - from) * (i / steps));
+    if (i >= steps) clearInterval(id);
+  }, 100);
 }
 
 function loadAnalysis(id) { try { const v = localStorage.getItem('an.' + id); return v ? JSON.parse(v) : null; } catch { return null; } }

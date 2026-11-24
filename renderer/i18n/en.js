@@ -25,7 +25,7 @@ export default {
   "Más calidad suena mejor pero gasta más datos. «Máxima» pide siempre la mejor que haya.": "Higher quality sounds better but uses more data. «Maximum» always asks for the best there is.",
   "La siguiente canción empieza justo cuando acaba la anterior, sin silencio entre medias.": "The next song starts right as the last one ends, with no silence in between.",
   "Durante estos segundos, una canción se va apagando mientras entra la siguiente.": "For these seconds, one song fades out while the next one comes in.",
-  "Mezcla las canciones como un DJ: hace entrar la siguiente a tiempo, en su primer compás, sin cambiar su velocidad. Si los ritmos no se parecen, hace una mezcla corta. Sustituye al fundido.": "Mixes songs like a DJ: it brings the next song in on time, on its first bar, without changing its speed. If the beats are too different, it does a short mix. Replaces the crossfade.",
+  "Mezcla las canciones como un DJ: ajusta el ritmo de la siguiente y la hace entrar a tiempo. Si los ritmos no se parecen, hace una mezcla corta. Sustituye al fundido.": "Mixes songs like a DJ: it matches the next song's beat and brings it in on time. If the beats are too different, it does a short mix. Replaces the crossfade.",
   "Cuánto dura cada mezcla, en compases de la canción que suena.": "How long each mix lasts, in bars of the song that's playing.",
   "Se salta el silencio del principio y del final de las canciones.": "Skips the silence at the start and end of songs.",
   "Sube o baja cada canción para que todas suenen a un volumen parecido.": "Turns each song up or down so they all play at a similar volume.",

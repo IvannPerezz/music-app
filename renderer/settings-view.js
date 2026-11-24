@@ -83,7 +83,7 @@ function playback() {
     row(tr('Calidad de streaming'), tr('Más calidad suena mejor pero gasta más datos. «Máxima» pide siempre la mejor que haya.'), select('streamQuality', QUALITY)),
     row(tr('Reproducción sin pausas (gapless)'), tr('La siguiente canción empieza justo cuando acaba la anterior, sin silencio entre medias.'), toggle('gapless')),
     row(tr('Fundido entre canciones'), tr('Durante estos segundos, una canción se va apagando mientras entra la siguiente.'), cf),
-    row(`Automix <span class="beta">Beta</span>`, tr('Mezcla las canciones como un DJ: hace entrar la siguiente a tiempo, en su primer compás, sin cambiar su velocidad. Si los ritmos no se parecen, hace una mezcla corta. Sustituye al fundido.'), toggle('automix')),
+    row(`Automix <span class="beta">Beta</span>`, tr('Mezcla las canciones como un DJ: ajusta el ritmo de la siguiente y la hace entrar a tiempo. Si los ritmos no se parecen, hace una mezcla corta. Sustituye al fundido.'), toggle('automix')),
     row(tr('Duración de la mezcla'), tr('Cuánto dura cada mezcla, en compases de la canción que suena.'), select('automixBars', [4, 8, 16].map((n) => [n, tr('{n} compases', { n })]))),
     row(tr('Saltar silencios'), tr('Se salta el silencio del principio y del final de las canciones.'), toggle('skipSilence')),
     row(tr('Normalizar volumen'), tr('Sube o baja cada canción para que todas suenen a un volumen parecido.'), toggle('normalize')),
