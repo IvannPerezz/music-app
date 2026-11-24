@@ -204,8 +204,15 @@ export class Engine extends EventTarget {
     const g = this.fadeNode.gain, now = this.ctx.currentTime;
     g.cancelScheduledValues(now);
     if (!secs) { g.setValueAtTime(to, now); return; }
-    const curve = new Float32Array(32);
-    for (let i = 0; i < curve.length; i++) { const t = i / (curve.length - 1); curve[i] = from + (to - from) * (1 - Math.cos(Math.PI * t)) / 2; }
+    // Fade-in: starts just above silence, stays low most of the way and shoots up at the end
+    // (0.02 + 0.98·t^4.5, the curve Iván drew). Fade-out: a smooth S-curve.
+    const rising = to > from;
+    const curve = new Float32Array(64);
+    for (let i = 0; i < curve.length; i++) {
+      const t = i / (curve.length - 1);
+      curve[i] = from + (to - from) * (rising ? 0.02 + 0.98 * t ** 4.5 : (1 - Math.cos(Math.PI * t)) / 2);
+    }
+    curve[curve.length - 1] = to;
     g.setValueCurveAtTime(curve, now, secs);
   }
   seek(t) {

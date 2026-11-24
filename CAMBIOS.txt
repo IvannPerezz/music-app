@@ -15,6 +15,12 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.63.3
+------------------------------------------------------------
+- El fundido al reanudar cambia de forma: el sonido empieza casi en silencio, se mantiene bajo
+  durante la mayor parte del fundido y sube de golpe al final, como en Apple Music.
+
+------------------------------------------------------------
 v0.6.63.2
 ------------------------------------------------------------
 - Al reanudar una canción, la música entra con un fundido suave (como en Apple Music) en vez de
