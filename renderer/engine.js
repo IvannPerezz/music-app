@@ -147,6 +147,7 @@ export class Engine extends EventTarget {
   async resume() { if (this.ctx.state !== 'running') try { await this.ctx.resume(); } catch {} }
 
   play(track, url, { at = 0, autoplay = true, loudnessDb = null } = {}) {
+    this.queuedNext = null; // (a new track: whatever was queued during a mix belonged to the old one)
     this.#cancelTransition(true);
     this.other.unload();
     this.#fade(1, 0);
@@ -220,7 +221,7 @@ export class Engine extends EventTarget {
     const d = this.cur;
     d.audio.currentTime = clamp(t, 0, Math.max(0, d.duration - 0.05));
   }
-  stop() { this.#cancelTransition(true); for (const d of this.decks) d.unload(); this.nextTrack = null; }
+  stop() { this.queuedNext = null; this.#cancelTransition(true); for (const d of this.decks) d.unload(); this.nextTrack = null; }
 
   setVolume(v) { this.volumeNode.gain.setTargetAtTime(v, this.ctx.currentTime, 0.02); }
   setSpeed(s) { this.speed = s; for (const d of this.decks) d.setRate(d.baseRate || 1); }
@@ -242,7 +243,10 @@ export class Engine extends EventTarget {
 
   /** What plays after the current track (already resolved URL). Preloads it on the idle deck. */
   setNext(track, url, loudnessDb = null) {
-    if (this.transition) return; // decided already
+    // Mid-transition the idle deck is still playing the outgoing track: keep it for when the mix ends
+    // (otherwise the track we just mixed into would never learn what follows it: no Automix after it).
+    if (this.transition) { this.queuedNext = [track, url, loudnessDb]; return; }
+    this.queuedNext = null;
     if (!track) { this.nextTrack = null; this.other.unload(); return; }
     if (this.nextTrack?.track?.id === track.id && this.nextTrack.url === url) return;
     this.nextTrack = { track, url, loudnessDb };
@@ -383,6 +387,8 @@ export class Engine extends EventTarget {
     t.inn.fade.gain.cancelScheduledValues(now); t.inn.fade.gain.setValueAtTime(1, now);
     t.inn.hp.frequency.cancelScheduledValues(now); t.inn.hp.frequency.setValueAtTime(10, now);
     t.out.unload();
+    const q = this.queuedNext;
+    if (q) { this.queuedNext = null; this.setNext(...q); }
     // Glide the incoming tempo back to normal over a few bars (no pitch change: preservesPitch).
     if (t.plan.ratio && t.plan.ratio !== 1 && !abrupt) glideRate(t.inn, t.plan.ratio, 1, 8 * (t.plan.beat || 0.5) * 4);
     else t.inn.setRate(1);

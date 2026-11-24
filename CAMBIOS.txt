@@ -15,6 +15,13 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.64.1
+------------------------------------------------------------
+- Arreglado: Automix funcionaba una canción sí y otra no. La canción que entraba mezclada con la
+  anterior no se enteraba de cuál venía después, así que no salía la marca en la barra y al
+  terminar pasaba a la siguiente sin mezclar. Ahora todas las canciones se encadenan con Automix.
+
+------------------------------------------------------------
 v0.6.64
 ------------------------------------------------------------
 - Con Automix activado, la barra de progreso marca con el color de la portada el tramo donde
