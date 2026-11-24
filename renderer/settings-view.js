@@ -733,7 +733,8 @@ async function about() {
   now.onclick = async () => { now.disabled = true; try { await checkForUpdates({ manual: true }); } finally { now.disabled = false; } };
   return card('about', tr('Acerca de'), 'info',
     h(`<div class="set-note">BitChord Desktop ${esc(i.version)} — ${tr('port para Windows de')} <a href="#" data-url="https://github.com/kushagrasinghx/BitChord">BitChord</a> (GPL-3.0). Electron ${esc(i.electron)} · Chromium ${esc(i.chrome)}.<br>${tr('No está afiliado a YouTube ni a Google.')}</div>`),
-    row(tr('Buscar actualizaciones al abrir'), tr('Al abrir BitChord, mira si hay una versión nueva y te avisa con sus novedades. Se descarga e instala con un clic.'), toggle('updateCheck')),
+    row(tr('Buscar actualizaciones al abrir'), tr('Al abrir BitChord, mira si hay una versión nueva.'), toggle('updateCheck')),
+    row(tr('Instalar actualizaciones solas'), tr('La versión nueva se descarga sin preguntar y se instala en cuanto no suena música: BitChord se cierra y vuelve a abrirse solo. Desactivado, te avisa con sus novedades y eliges cuándo instalarla.'), toggle('updateAuto')),
     row(tr('Buscar actualizaciones'), tr('Mira ahora si hay una versión nueva, aunque la hayas omitido.'), now),
     row(tr('Registro de diagnóstico'), tr('Un archivo donde BitChord apunta lo que va haciendo. Si algo falla, es lo primero que hay que mirar.'), log),
     h(`<div class="set-note keys"><b>${tr('Atajos')}</b><br>${tr('Espacio play/pausa · Ctrl+←/→ anterior/siguiente · ←/→ ±5 s · ↑/↓ volumen · E ecualizador · L letra · Q cola · V visualizador · S aleatorio · R repetir · M silenciar · F favorito · F11 pantalla completa · Ctrl+F buscar · Ctrl+, ajustes')}</div>`),

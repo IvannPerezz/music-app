@@ -14,8 +14,31 @@ export async function checkForUpdates({ manual = false } = {}) {
   try { info = await api('updateCheck'); }
   catch (e) { if (manual) toast(e.message || tr('No se pudo buscar actualizaciones.'), true); else console.warn('[update]', e?.message); return; }
   if (!info?.available) { if (manual) toast(tr('Tienes la última versión (v{v}).', { v: info?.current || '' })); return; }
+  if (!manual && state.settings.updateAuto !== false) return autoUpdate(info);
   if (!manual && state.settings.updateSkip === info.version) return;
   showDialog(info);
+}
+
+// "Instalar actualizaciones solas": the installer is downloaded in the background without asking,
+// and installed (BitChord closes and opens again by itself) as soon as no music is playing, so a
+// song is never cut. Any failure is only logged: the next start tries again.
+let autoBusy = false;
+async function autoUpdate(info) {
+  if (autoBusy || open) return;
+  autoBusy = true;
+  try {
+    console.log('[update] descargando la v' + info.version + ' para instalarla sola');
+    await api('updateDownload');
+    const playing = () => { const e = window.__bc?.engine; return !!e && !e.paused; };
+    while (playing()) await new Promise((ok) => setTimeout(ok, 5000));
+    toast(tr('Instalando la v{v}… BitChord se cerrará y volverá a abrirse solo.', { v: info.version }));
+    await new Promise((ok) => setTimeout(ok, 2500));
+    if (playing()) { autoBusy = false; return autoUpdate(info); } // (started again meanwhile)
+    await api('updateInstall');
+  } catch (e) {
+    console.warn('[update] no se pudo instalar sola:', e?.message || e);
+    autoBusy = false;
+  }
 }
 
 /** The release notes (CAMBIOS.txt style: "- " items with indented continuation lines) as a list. */
