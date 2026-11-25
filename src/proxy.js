@@ -17,6 +17,7 @@ import * as webdav from './sources/webdav.js';
 import * as sources from './sources/index.js';
 import { coverPath as playlistCoverPath } from './playlists.js';
 import { serveVisualizer } from './vis-files.js';
+import { serveAutomix } from './automix-files.js';
 
 const ALLOWED_IMG = /(^|\.)(googleusercontent\.com|ggpht\.com|ytimg\.com|lrclib\.net)$/;
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges' };
@@ -60,6 +61,7 @@ export function startProxy({ userData } = {}) {
       }
       if (u.pathname === '/img') return await serveImage(u.searchParams.get('u'), res);
       if (serveVisualizer(u.pathname, res)) return;
+      if (serveAutomix(u.pathname, res)) return;
       res.writeHead(404, CORS).end();
     } catch (e) {
       console.error('[proxy]', req.url, e?.message || e);

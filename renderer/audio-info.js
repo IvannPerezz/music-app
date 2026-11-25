@@ -157,7 +157,18 @@ function sections(src) {
   const preset = EQ_PRESETS[st.eqPreset];
   const eqOn = st.eqEnabled !== false && ((st.eqBands || []).some((b) => b) || st.preamp);
   const latency = ((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000;
-  const bpm = engine.analysisFor?.(src.t.id)?.bpm;
+  const an = engine.analysisFor?.(src.t.id);
+  const bpm = an?.bpm;
+  // What Automix knows of this song (its AI analysis) and the mix it has planned out of it.
+  const camelot = an?.camelot ? `${an.camelot.num}${an.camelot.letter}` : null;
+  const mixStyle = { blend: tr('mezcla a ritmo'), filter: tr('mezcla con filtros'), crossfade: tr('fundido'), loop: tr('mezcla con bucles') }[engine.mixWindow?.style];
+  const automixInfo = [
+    tr('Activado · hasta {n} compases', { n: engine.automixBars }),
+    bpm ? `${Math.round(bpm)} BPM` : null,
+    camelot ? tr('tono {k}', { k: camelot }) : null,
+    an?.gridConfidence != null && an.headBeats !== undefined ? tr('ritmo {p} % fiable', { p: Math.round(an.gridConfidence * 100) }) : null,
+    mixStyle ? tr('próxima: {s}', { s: mixStyle }) : null,
+  ].filter(Boolean).join(' · ');
   out.push(group(tr('Procesamiento'), [
     row(tr('Reproductor'), tr('BitChord (Chromium + Web Audio)')),
     row(tr('Decodificación'), tr('{c} → coma flotante de 32 bits', { c: src.codec || tr('Audio') })),
@@ -166,7 +177,7 @@ function sections(src) {
     row(tr('Ecualizador'), !eqOn ? tr('Desactivado') : `${tr('Activado')} · ${preset ? tr(preset.label) : tr('Personalizado')}${st.preamp ? ` · ${tr('preamplificador')} ${dB(st.preamp)}` : ''}`, eqOn ? 'accent' : ''),
     row(tr('Limitador'), tr('Activo · techo {d}', { d: `${engine.limiter.threshold.value} dBFS` })),
     row(tr('Volumen'), `${Math.round(store.get('volume', 0.8) * 100)} %`),
-    row('AutoMix', engine.automix ? tr('Activado · {n} compases', { n: engine.automixBars }) + (bpm ? ` · ${Math.round(bpm)} BPM` : '') : tr('Desactivado')),
+    row('AutoMix', engine.automix ? automixInfo : tr('Desactivado')),
     row(tr('Fundido'), engine.automix ? tr('Lo hace AutoMix') : engine.crossfade > 0 ? tr('{n} s', { n: engine.crossfade }) : engine.gapless ? tr('Sin pausas entre canciones') : tr('Desactivado')),
     row(tr('Ruta de la señal'), tr('Web Audio ({f}, coma flotante) → mezclador de Windows', { f: kHz(outRate) })),
     row(tr('Latencia de salida'), `${Math.round(latency)} ms`),

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https: http://127.0.0.1:*; media-src http://127.0.0.1:* blob: https://mvod.itunes.apple.com https://resources.tidal.com https://vivimusicanvas.mkmdevilmi.workers.dev; connect-src http://127.0.0.1:*; frame-src http://127.0.0.1:*; worker-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https: http://127.0.0.1:*; media-src http://127.0.0.1:* blob: https://mvod.itunes.apple.com https://resources.tidal.com https://vivimusicanvas.mkmdevilmi.workers.dev; connect-src http://127.0.0.1:*; frame-src http://127.0.0.1:*; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval' blob:" />
   <title>BitChord</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -35,7 +35,7 @@
       <div id="nav-items"></div>
       <div class="sidebar-foot">
         <span>BitChord Desktop</span>
-        <span class="muted">v0.6.66.1 · port de BitChord</span>
+        <span class="muted">v0.6.67 · port de BitChord</span>
         <button class="text-btn" id="open-log" data-i18n>Ver registro</button>
       </div>
     </nav>

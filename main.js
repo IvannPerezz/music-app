@@ -237,6 +237,7 @@ function createWindow() {
   });
   win.webContents.on('console-message', (e) => {
     if (e.level === 'error' || e.level === 'warning') console.warn('[renderer]', e.message);
+    else if (e.message.startsWith('[automix]')) console.log(e.message); // (what each analysis and mix found)
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.webContents.setWindowOpenHandler(({ url }) => {

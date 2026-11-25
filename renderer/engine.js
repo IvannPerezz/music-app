@@ -19,6 +19,9 @@ export const EQ_PRESETS = {
   night: { label: 'Nocturno (suave)', bands: [-3, -2, -1, 0, 1, 1, 0, -1, -3, -4] },
 };
 
+import { ThreeBandEQ } from './automix/engine/eq.js';
+import { MixDeck } from './automix/engine/deck.js';
+
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
 class Deck {
@@ -34,7 +37,16 @@ class Deck {
     this.hp = ctx.createBiquadFilter(); this.hp.type = 'highpass'; this.hp.frequency.value = 10; this.hp.Q.value = 0.7;
     this.norm = ctx.createGain();
     this.fade = ctx.createGain();
-    this.src.connect(this.hp).connect(this.norm).connect(this.fade).connect(engine.input);
+    // Automix (renderer/automix): a DJ mixer's 3-band EQ and the filter mix's high- and low-pass, flat
+    // and open except during a mix; `fade` is its gain.
+    this.mixEq = new ThreeBandEQ(ctx);
+    this.sweep = {
+      highpass: new BiquadFilterNode(ctx, { type: 'highpass', frequency: 20, Q: 0.7 }),
+      lowpass: new BiquadFilterNode(ctx, { type: 'lowpass', frequency: 20000, Q: 0.7 }),
+    };
+    this.src.connect(this.mixEq.input);
+    this.mixEq.output.connect(this.sweep.highpass).connect(this.sweep.lowpass).connect(this.hp).connect(this.norm).connect(this.fade).connect(engine.input);
+    this.mix = new MixDeck(this);
     this.track = null;
     this.analysis = null;
   }
@@ -105,6 +117,13 @@ export class Engine extends EventTarget {
     this.transition = null;
     this.analyses = new Map();
     this.worker = null;
+    /** The new Automix (renderer/automix), built the first time it is switched on. */
+    this.dj = null;
+    /** A loop mix holds both elements paused while its decks play: that's still playing. */
+    this.holding = false;
+    /** Set by the app: where the local proxy serves Automix's models, and a track's sung lines. */
+    this.automixBase = '';
+    this.sungSpansFor = null;
 
     for (const d of this.decks) this.#wire(d);
     this.tick = this.tick.bind(this);
@@ -113,8 +132,14 @@ export class Engine extends EventTarget {
 
   get other() { return this.cur === this.decks[0] ? this.decks[1] : this.decks[0]; }
   get audio() { return this.cur.audio; }
-  get paused() { return !!this.pausing || this.cur.audio.paused; } // (fading out counts as paused)
-  get currentTime() { return this.cur.time; }
+  get paused() { return !!this.pausing || (this.cur.audio.paused && !this.holding); } // (fading out counts as paused)
+  get currentTime() {
+    // While a loop mix plays the song from a deck (looping, at the ramped tempo): the mix's own clock.
+    if (this.holding && this.cur.track) { const t = this.dj?.mixPlayhead(this.cur.track.id); if (t != null) return t; }
+    return this.cur.time;
+  }
+  /** Automix is between scheduling a mix and its end. */
+  get mixing() { return !!this.dj?.mixing; }
   set currentTime(t) { this.seek(t); }
   get duration() { return this.cur.duration; }
   get buffered() { return this.cur.audio.buffered; }
@@ -125,7 +150,7 @@ export class Engine extends EventTarget {
     const a = d.audio;
     const mine = () => d === this.cur;
     a.addEventListener('playing', () => mine() && this.#emit('playing'));
-    a.addEventListener('pause', () => mine() && !this.transition && this.#emit('pause'));
+    a.addEventListener('pause', () => mine() && !this.transition && !this.holding && this.#emit('pause'));
     a.addEventListener('play', () => mine() && this.#emit('play'));
     a.addEventListener('waiting', () => mine() && this.#emit('waiting'));
     a.addEventListener('canplay', () => mine() && this.#emit('canplay'));
@@ -133,7 +158,9 @@ export class Engine extends EventTarget {
     a.addEventListener('progress', () => mine() && this.#emit('progress'));
     a.addEventListener('ended', () => {
       if (!mine()) return;
-      if (this.transition) return;
+      if (this.transition || this.holding) return;
+      // Automix's outgoing track ran out before the blend's midpoint (a stall): the incoming one is already playing.
+      if (this.dj?.forceHandoff()) return;
       if (this.nextTrack && (this.gapless || this.crossfade > 0 || this.automix)) this.#startNext({ kind: 'gapless' });
       else this.#emit('ended');
     });
@@ -148,6 +175,8 @@ export class Engine extends EventTarget {
 
   play(track, url, { at = 0, autoplay = true, loudnessDb = null } = {}) {
     this.queuedNext = null; // (a new track: whatever was queued during a mix belonged to the old one)
+    this.#cancelMix();
+    this.queuedNext = null;
     this.#cancelTransition(true);
     this.other.unload();
     this.#fade(1, 0);
@@ -161,6 +190,7 @@ export class Engine extends EventTarget {
     if (autoplay) { this.resume(); d.audio.play().catch(() => {}); }
     this.#emit('trackchange', { track, auto: false });
     this.#emit('timeupdate');
+    this.dj?.poke();
     if (this.#wantAnalysis()) this.analyze(track).then((an) => { if (d.track === track) d.analysis = an; }).catch((e) => console.warn('analysis', e));
   }
 
@@ -188,6 +218,7 @@ export class Engine extends EventTarget {
       this.#fade(1, fade ? 0.7 : 0, from);
       if (midFade) this.#emit('play'); // (never really paused, so the <audio> won't say so)
     } else {
+      this.#cancelMix(); // (the user took over: the song in front plays on, then pauses)
       if (this.pausing || this.cur.audio.paused) return;
       if (!fade) { this.#fade(0, 0); this.cur.audio.pause(); if (this.transition) this.#finishTransition(true); return; }
       this.#fade(0, 0.25);
@@ -217,11 +248,12 @@ export class Engine extends EventTarget {
     g.setValueCurveAtTime(curve, now, secs);
   }
   seek(t) {
+    this.#cancelMix();
     if (this.transition) this.#finishTransition(true);
     const d = this.cur;
     d.audio.currentTime = clamp(t, 0, Math.max(0, d.duration - 0.05));
   }
-  stop() { this.queuedNext = null; this.#cancelTransition(true); for (const d of this.decks) d.unload(); this.nextTrack = null; }
+  stop() { this.#cancelMix(); this.queuedNext = null; this.#cancelTransition(true); for (const d of this.decks) d.unload(); this.nextTrack = null; }
 
   setVolume(v) { this.volumeNode.gain.setTargetAtTime(v, this.ctx.currentTime, 0.02); }
   setSpeed(s) { this.speed = s; for (const d of this.decks) d.setRate(d.baseRate || 1); }
@@ -231,6 +263,7 @@ export class Engine extends EventTarget {
   }
   configure(o) {
     for (const k of ['crossfade', 'gapless', 'automix', 'automixBars', 'skipSilence', 'normalize']) if (k in o) this[k] = o[k];
+    if ('automix' in o || 'automixBars' in o) this.#syncAutomix();
     if ('normalize' in o) for (const d of this.decks) d.setNorm(d.lastNormDb ?? null);
     if (this.#wantAnalysis()) {
       for (const d of this.decks) {
@@ -246,6 +279,13 @@ export class Engine extends EventTarget {
     // Mid-transition the idle deck is still playing the outgoing track: keep it for when the mix ends
     // (otherwise the track we just mixed into would never learn what follows it: no Automix after it).
     if (this.transition) { this.queuedNext = [track, url, loudnessDb]; return; }
+    if (this.dj?.mixing) {
+      // Past the midpoint the idle deck is the outgoing song: wait for the mix to end. Before it, a
+      // different next song (the queue changed) drops the mix; the same one needs nothing.
+      if (this.dj.blend?.handedOff || this.holding) { this.queuedNext = [track, url, loudnessDb]; return; }
+      if (track && this.other.track?.id === track.id) return;
+      this.#cancelMix();
+    }
     this.queuedNext = null;
     if (!track) { this.nextTrack = null; this.other.unload(); return; }
     if (this.nextTrack?.track?.id === track.id && this.nextTrack.url === url) return;
@@ -263,18 +303,97 @@ export class Engine extends EventTarget {
   #cueNext() {
     const o = this.other;
     if (!o.track) return;
-    const start = this.automix && o.analysis ? this.#plan()?.inAt ?? 0 : (this.skipSilence && o.analysis?.soundStart > 0.4 ? o.analysis.soundStart : 0);
+    const start = this.automix ? 0 : (this.skipSilence && o.analysis?.soundStart > 0.4 ? o.analysis.soundStart : 0);
     try { o.audio.currentTime = start; } catch {}
   }
 
-  #wantAnalysis() { return this.automix || this.skipSilence; }
+  #wantAnalysis() { return this.skipSilence; } // (Automix has its own analysis: renderer/automix)
 
-  /** The Automix planned into the next track (when it starts and how long it lasts, in the current
-   *  track's seconds), or null while there's none yet (both tracks must be analysed first). */
-  get mixPlan() {
-    if (!this.automix || this.transition || !this.nextTrack || this.other.track !== this.nextTrack.track) return null;
-    const p = this.#plan();
-    return p?.kind === 'automix' ? p : null;
+  /** Where Automix will mix into the next song, in the current song's seconds ({ startSec, endSec,
+   *  style }), or null while there's none yet (both songs must be analysed first). */
+  get mixWindow() {
+    const w = this.automix && this.dj?.bothAnalyzed ? this.dj.window : null;
+    return w && w.id === this.cur.track?.id ? w : null;
+  }
+
+  // ---------------------------------------------------------------- Automix (renderer/automix)
+  async #syncAutomix() {
+    if (!this.automix) { this.dj?.stop(); return; }
+    if (!this.dj) {
+      const [{ AutoDJ }, { analyzer }, { LoopDeck }] = await Promise.all([
+        import('./automix/engine/autodj.js'), import('./automix/analysis/analyzer.js'), import('./automix/engine/loopDeck.js'),
+      ]);
+      analyzer.urlFor = (t) => this.urlFor(t);
+      analyzer.modelBase = this.automixBase;
+      this.analyzer = analyzer;
+      let loops = null;
+      this.dj ??= new AutoDJ({
+        ctx: this.ctx,
+        front: () => this.cur.mix,
+        back: () => this.other.mix,
+        current: () => (this.cur.track && !this.paused ? this.cur.track : null),
+        next: () => this.nextTrack?.track ?? null,
+        loadBack: (track) => this.#loadBack(track),
+        handoff: () => this.#mixHandoff(),
+        finished: () => this.#mixFinished(),
+        hold: (on) => { this.holding = on; },
+        loopDecks: () => (loops ??= Promise.all([LoopDeck.create(this.ctx, this.input), LoopDeck.create(this.ctx, this.input)])),
+        sungSpans: async (track) => (await this.sungSpansFor?.(track)) ?? null,
+      });
+    }
+    if (!this.automix) return;
+    this.dj.transitionBars = this.automixBars;
+    this.dj.start();
+  }
+
+  /** The next song on the idle deck, paused and ready to start (setNext put it there). */
+  #loadBack(track) {
+    const o = this.other;
+    if (o.track?.id !== track.id) return Promise.resolve(false);
+    o.mix.cancel();
+    o.audio.pause();
+    if (o.audio.readyState >= 1) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      const done = (ok) => { clearTimeout(timer); o.audio.removeEventListener('loadedmetadata', yes); o.audio.removeEventListener('error', no); resolve(ok && o.track?.id === track.id); };
+      const yes = () => done(true), no = () => done(false);
+      const timer = setTimeout(() => done(false), 15000);
+      o.audio.addEventListener('loadedmetadata', yes);
+      o.audio.addEventListener('error', no);
+    });
+  }
+
+  /** The mix's midpoint: the incoming song is the one playing now, as far as everything else knows. */
+  #mixHandoff() {
+    const inn = this.other;
+    if (!inn.track || inn.track !== this.nextTrack?.track) { this.dj?.cancel(); return; }
+    this.cur = inn;
+    this.nextTrack = null;
+    this.#emit('trackchange', { track: inn.track, auto: true, transition: 'automix' });
+    this.#emit('timeupdate');
+  }
+
+  /** The mix is over: the old deck lets go of its song; whatever the app queued meanwhile goes on it. */
+  #mixFinished() {
+    this.other.unload();
+    // (once the mix has closed: until then setNext would just queue it again)
+    setTimeout(() => {
+      const q = this.queuedNext;
+      this.queuedNext = null;
+      if (q) this.setNext(...q);
+    }, 0);
+  }
+
+  /** The user took over (a pause, a seek, another song): the song in front plays on, the mix is dropped. */
+  #cancelMix() {
+    if (!this.dj?.mixing) return;
+    const handedOff = this.dj.blend?.handedOff;
+    this.dj.cancel();
+    this.holding = false;
+    if (handedOff) { this.other.unload(); }
+    else if (this.nextTrack && this.other.track === this.nextTrack.track) { this.other.audio.pause(); try { this.other.audio.currentTime = 0; } catch {} }
+    const q = this.queuedNext;
+    this.queuedNext = null;
+    if (q) this.setNext(...q);
   }
 
   // ---------------------------------------------------------------- transitions
@@ -285,26 +404,7 @@ export class Engine extends EventTarget {
     const oa = out.analysis, ia = inn.analysis;
     const endOfSound = this.skipSilence && oa?.soundEnd ? Math.min(dur, oa.soundEnd + 0.2) : dur;
 
-    if (this.automix && oa?.bpm && ia?.bpm) {
-      // Beat-matched mix: choose tempo ratio (allowing half/double time), N bars ending at the outro.
-      let ratio = oa.bpm / ia.bpm;
-      if (ratio > 1.5) ratio /= 2; else if (ratio < 0.67) ratio *= 2;
-      const matchable = Math.abs(1 - ratio) <= 0.08;
-      const beat = 60 / oa.bpm;
-      const bars = matchable ? this.automixBars : Math.min(4, this.automixBars);
-      let len = bars * 4 * beat;
-      len = clamp(len, 4, Math.min(24, dur / 3));
-      // Where to start: snap to a downbeat of the outgoing track that ends the mix before the sound ends.
-      const outEnd = oa.outroAt && oa.outroAt > dur * 0.5 ? Math.min(endOfSound, oa.outroAt + len * 0.75) : endOfSound;
-      let outAt = outEnd - len;
-      if (oa.downbeat != null) outAt = snapToBar(outAt, oa.downbeat, beat);
-      outAt = clamp(outAt, dur * 0.35, dur - 1);
-      // Incoming: first downbeat after its sound starts.
-      const ibeat = 60 / ia.bpm;
-      let inAt = ia.downbeat != null ? ia.downbeat : (ia.soundStart || 0);
-      while (inAt < (ia.soundStart || 0) - 0.01) inAt += 4 * ibeat;
-      return { kind: 'automix', outAt, len, inAt, ratio: matchable ? ratio : 1, beatmatch: matchable, beat };
-    }
+    if (this.automix) return null; // (renderer/automix plans its own mixes)
     if (this.crossfade > 0) {
       const len = Math.min(this.crossfade, dur / 3);
       return { kind: 'crossfade', outAt: endOfSound - len, len, inAt: this.skipSilence ? ia?.soundStart || 0 : 0, ratio: 1 };
@@ -427,7 +527,7 @@ export class Engine extends EventTarget {
     return p;
   }
 
-  analysisFor(id) { return this.analyses.get(id) || null; }
+  analysisFor(id) { return this.analyzer?.get(id) || this.analyses.get(id) || null; }
 }
 
 function curve(from, to, n = 64) {
@@ -440,11 +540,6 @@ function curve(from, to, n = 64) {
   return c;
 }
 
-function snapToBar(t, downbeat, beat) {
-  const bar = beat * 4;
-  const k = Math.floor((t - downbeat) / bar + 0.05);
-  return downbeat + k * bar;
-}
 
 function glideRate(deck, from, to, seconds) {
   const steps = Math.max(1, Math.round(seconds * 10));

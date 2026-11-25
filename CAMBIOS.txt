@@ -15,6 +15,29 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.67
+------------------------------------------------------------
+- Automix nuevo: el mismo que usa ahora el BitChord original (basado en AutoMix).
+  - Analiza cada canción con inteligencia artificial: el ritmo y dónde empieza cada compás
+    (modelo Beat This!), la tonalidad, la energía y en qué partes se canta (modelo open-unmix).
+    Lo hace con la canción que suena y la siguiente, en segundo plano (unos 30 segundos cada una).
+  - Elige la mejor mezcla para cada pareja:
+    · Mezcla a ritmo: la siguiente entra en una frase musical, a la velocidad de la que acaba,
+      con los graves pasando de una a otra a mitad de la mezcla.
+    · Mezcla con filtros, si los ritmos son muy distintos: la que acaba se va apagando por
+      los graves y la siguiente se abre poco a poco.
+    · Mezcla con bucles, como un DJ: repite unos compases instrumentales del final de una y
+      del principio de la otra, iguala el tempo poco a poco y sigue con la nueva canción.
+      Nunca repite una palabra cantada (lo comprueba con la letra sincronizada o con la IA).
+    · Un fundido normal si no encuentra ritmo claro.
+  - La mezcla cambia a la nueva canción justo a la mitad, y la marca de la barra de progreso
+    enseña el tramo exacto que va a ocupar.
+  - "Duración de la mezcla" ahora llega hasta 32 compases; es el máximo: si el ritmo no está
+    claro, la mezcla se acorta sola.
+  - En "Información de audio" verás el BPM, la tonalidad, lo fiable que es el ritmo y qué tipo
+    de mezcla viene.
+
+------------------------------------------------------------
 v0.6.66.1
 ------------------------------------------------------------
 - El desplazamiento suave es ahora la forma normal de desplazarse: se quita su opción de

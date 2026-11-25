@@ -1034,6 +1034,23 @@ function updateLikeButtons() {
 // ------------------------------------------------------------------ player
 export const engine = new Engine();
 engine.urlFor = streamUrl;
+// Automix never loops a sung word: where a song is sung, from its synced lyrics (the ones on screen,
+// or the first synced ones the providers give within 8 s). Null without them: the AI's vocal mask decides.
+engine.sungSpansFor = async (t) => {
+  const { sungSpansFromLines } = await import('./automix/engine/loopMix.js');
+  let l = player.lyrics?.id === t.id && player.lyrics.synced ? player.lyrics : null;
+  if (!l) {
+    const q = { id: t.id, title: t.title, artists: t.artists, album: t.album, duration: t.duration || 0 };
+    const order = (state.settings.lyricsOrder || []).filter((id) => !(state.settings.lyricsDisabled || []).includes(id));
+    const find = (async () => { for (const p of order) { const r = parseResult(await api('lyrics', q, p).catch(() => null)); if (r?.synced) return r; } return null; })();
+    l = await Promise.race([find, new Promise((ok) => setTimeout(() => ok(null), 8000))]);
+  }
+  if (!l?.synced || !l.lines?.length) return null;
+  return sungSpansFromLines(l.lines.map((ln) => {
+    const end = ln.end ?? (ln.words?.length ? ln.words[ln.words.length - 1].end : null);
+    return { timeMs: ln.time * 1000, endMs: end != null ? end * 1000 : null, blank: !!ln.gap || !String(ln.text || '').trim() };
+  }));
+};
 
 let uidN = 0;
 const uid = () => ++uidN;
@@ -1395,14 +1412,15 @@ function updateMoreBtn() { for (const b of [$('#btn-more'), $('#fs-more')]) b.cl
 // The stretch of the seek bar where Automix will blend into the next track, in the cover's accent.
 let mixMarkKey = '';
 function showMixMark(d) {
-  const p = d ? engine.mixPlan : null, el = $('#seek .mix');
-  const key = p ? `${p.outAt.toFixed(2)}|${p.len.toFixed(2)}|${d.toFixed(1)}` : '';
+  const w = d ? engine.mixWindow : null, el = $('#seek .mix');
+  const key = w ? `${w.startSec.toFixed(2)}|${w.endSec.toFixed(2)}|${d.toFixed(1)}` : '';
   if (key === mixMarkKey) return;
   mixMarkKey = key;
-  el.hidden = !p;
-  if (!p) return;
-  el.style.left = (p.outAt / d) * 100 + '%';
-  el.style.width = (Math.min(p.len, d - p.outAt) / d) * 100 + '%';
+  el.hidden = !w;
+  if (!w) return;
+  const start = Math.max(0, Math.min(w.startSec, d));
+  el.style.left = (start / d) * 100 + '%';
+  el.style.width = (Math.max(0, Math.min(w.endSec, d) - start) / d) * 100 + '%';
 }
 
 let lastMediaPos = 0;
@@ -3151,6 +3169,7 @@ export async function refreshAccount() {
 
 async function init() {
   state.port = await bc.proxyPort();
+  engine.automixBase = `http://127.0.0.1:${state.port}/automix`;
   state.settings = await api('settingsGet');
   // Interface language: modules read it when they load, so a change needs a fresh start.
   if (syncUiLang(state.settings.uiLanguage)) { location.reload(); return; }
