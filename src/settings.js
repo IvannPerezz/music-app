@@ -37,7 +37,7 @@ export const DEFAULTS = {
   crossfade: 4, // seconds 0-12
   gapless: true,
   automix: true,
-  automixBars: 8,
+  automixBars: 16,
   normalize: true,
   skipSilence: false,
   speed: 1,

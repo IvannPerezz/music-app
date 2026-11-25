@@ -35,6 +35,8 @@ class Analyzer {
     this.failedAt = new Map();
     this.bytes = new Map();
     this.listeners = new Set();
+    /** How far each track's analysis is, 0-1 (for the Automix pill). */
+    this.progress = new Map();
     /** Set by the engine: the stream URL of a track, and where the models are served. */
     this.urlFor = null;
     this.modelBase = '';
@@ -57,6 +59,8 @@ class Analyzer {
   /** The analysis of [id], if it is done. */
   get(id) { return this.results.get(id) ?? null; }
   statusOf(id) { return this.status.get(id) ?? null; }
+  progressOf(id) { return this.status.get(id) === 'done' ? 1 : this.progress.get(id) ?? 0; }
+  setProgress(id, p) { this.progress.set(id, p); for (const l of this.listeners) l(id, this.status.get(id)); }
   subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
 
   /** Asks for [track] to be analysed. A cached analysis resolves at once; `urgent` jumps the queue. */
@@ -110,7 +114,7 @@ class Analyzer {
         const a = await this.analyzeOne(track);
         this.results.set(track.id, a);
         dbPut(a).catch(() => {});
-        log(`${track.title}: ${a.bpm?.toFixed(1) ?? '?'} BPM, ${a.keyName ?? '?'}, ritmo ${a.gridConfidence.toFixed(2)} (final ${a.tailGrid?.gridConfidence?.toFixed(2) ?? '-'}), voz ${a.vocals?.length ?? 0} tramos, ${Math.round(performance.now() - started)} ms`);
+        log(`${track.title}: ${a.bpm?.toFixed(1) ?? '?'} BPM, ${a.keyName ?? '?'}, ritmo ${a.gridConfidence.toFixed(2)} (final ${a.tailGrid?.gridConfidence?.toFixed(2) ?? '-'}), voz ${a.vocals?.length ?? 0} tramos, ${Math.round(performance.now() - started)} ms (${Object.entries(this.lastTimes || {}).map(([k, v]) => `${k} ${v}`).join(', ')})`);
         this.setStatus(track.id, 'done');
       } catch (e) {
         console.warn('[automix] análisis fallido', track.title, String(e?.message || e));
@@ -123,7 +127,13 @@ class Analyzer {
   }
 
   async analyzeOne(track) {
+    let t0 = performance.now();
+    const times = {};
+    const lap = (k) => { const n = performance.now(); times[k] = Math.round(n - t0); t0 = n; };
+    this.setProgress(track.id, 0.02);
     const bytes = await this.audioBytes(track);
+    lap('fetch');
+    this.setProgress(track.id, 0.08);
     const buffer = await new OfflineAudioContext({ numberOfChannels: 1, length: 1, sampleRate: ANALYSIS_SR }).decodeAudioData(bytes.slice(0));
     const mono = downmixToMono(buffer);
     const durationSec = buffer.duration;
@@ -136,6 +146,8 @@ class Analyzer {
       const from = durationSec - BEAT_WINDOW_SEC;
       beatWindows.push({ offsetSec: from, pcm: mono22.slice(Math.round(from * BEAT_SR)) });
     }
+    lap('decode');
+    this.setProgress(track.id, 0.22);
     const vocalWindows = [];
     const left = buffer.getChannelData(0);
     const right = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : left;
@@ -157,8 +169,9 @@ class Analyzer {
       const done = () => { worker.removeEventListener('message', on); worker.removeEventListener('error', fail); };
       const on = (e) => {
         if (e.data.id !== id) return;
+        if (e.data.progress != null) { this.setProgress(track.id, 0.22 + 0.78 * e.data.progress); return; }
         done();
-        if (e.data.error) reject(new Error(e.data.error)); else resolve(e.data.result);
+        if (e.data.error) reject(new Error(e.data.error)); else { Object.assign(times, e.data.times); resolve(e.data.result); }
       };
       const fail = (e) => { done(); this.worker = null; reject(new Error(e.message || 'worker error')); };
       worker.addEventListener('message', on);
@@ -168,6 +181,7 @@ class Analyzer {
         [mono.buffer, ...beatWindows.map((w) => w.pcm.buffer), ...vocalWindows.flatMap((w) => [w.left.buffer, w.right.buffer])],
       );
     });
+    this.lastTimes = times;
     return { fileKey: track.id, tags: { title: track.title || '' }, durationSec, ...result, musicVideo: !!track.isVideo, analysisVersion: ANALYSIS_VERSION };
   }
 }

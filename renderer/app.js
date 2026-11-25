@@ -2294,12 +2294,45 @@ function rgbToHsl(r, g, b) {
   return [hh, s, l];
 }
 
-function showMixBadge() {
+function showMixBadge() { updateAutomixPill(); }
+
+/**
+ * The Automix pill over the player bar: what it's doing, with a progress bar. Analysing a song
+ * (playing or next), the seconds left before a mix, and how far through the mix it is.
+ */
+let pillKey = '';
+function updateAutomixPill() {
   const b = $('#mix-badge');
+  const s = engine.automixStatus;
+  const show = !!s && !(s.kind === 'soon' && s.secs > 15);
+  if (!show) {
+    if (!b.hidden && !b.classList.contains('out')) {
+      b.classList.add('out');
+      clearTimeout(updateAutomixPill.t);
+      updateAutomixPill.t = setTimeout(() => { b.hidden = true; b.classList.remove('out'); pillKey = ''; }, 220);
+    }
+    return;
+  }
+  clearTimeout(updateAutomixPill.t);
+  b.classList.remove('out');
   b.hidden = false;
-  clearTimeout(showMixBadge.t);
-  showMixBadge.t = setTimeout(() => (b.hidden = true), 5000);
+  const title = `«${s.title}»`;
+  const text = s.kind === 'analyze' ? tr('Analizando {t}', { t: title })
+    : s.kind === 'soon' ? tr('Mezcla con {t} en {n} s', { t: title, n: Math.max(1, Math.ceil(s.secs)) })
+      : tr('Mezclando con {t}', { t: title });
+  const p = s.kind === 'soon' ? null : Math.round(s.progress * 100);
+  const key = `${s.kind}|${s.title}`;
+  if (key !== pillKey) {
+    pillKey = key;
+    b.dataset.kind = s.kind;
+    b.innerHTML = `${icon('sparkle')}<span class="am-text ellipsis"></span><span class="am-bar"><i></i></span><span class="am-pct"></span>`;
+  }
+  b.querySelector('.am-text').textContent = text;
+  b.querySelector('.am-bar').hidden = p == null;
+  b.querySelector('.am-pct').textContent = p == null ? '' : `${p} %`;
+  if (p != null) b.querySelector('.am-bar i').style.width = `${p}%`;
 }
+setInterval(updateAutomixPill, 250);
 
 let npCloseTimer = null;
 // ------------------------------------------------------------------ animated cover
@@ -3009,7 +3042,6 @@ function initButtons() {
   $$('[data-icon]').forEach((el) => (el.innerHTML = icon(el.dataset.icon)));
   const set = { back: 'back', forward: 'forward', prev: 'prev', next: 'next', shuffle: 'shuffle', 'btn-lyrics': 'nowView', 'settings-btn': 'settings', 'btn-queue': 'queue', 'btn-more': 'more', like: 'heart', 'np-like': 'heart' };
   for (const [id, ic] of Object.entries(set)) $('#' + id).innerHTML = icon(ic);
-  $('#mix-badge').innerHTML = `${icon('sparkle')}<span>Automix</span>`;
   setPlayIcon();
   updateRepeatBtn();
   $('#shuffle').classList.toggle('on', player.shuffle);

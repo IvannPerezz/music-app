@@ -960,4 +960,7 @@ export default {
   "tono {k}": "key {k}",
   "ritmo {p} % fiable": "beat {p}% reliable",
   "próxima: {s}": "next: {s}",
+  "Analizando {t}": "Analysing {t}",
+  "Mezcla con {t} en {n} s": "Mixing into {t} in {n} s",
+  "Mezclando con {t}": "Mixing into {t}",
 };

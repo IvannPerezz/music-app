@@ -27,7 +27,8 @@ export function setModelBase(url) {
   base = url;
   ort.env.wasm.wasmPaths = { mjs: new URL('../vendor/ort-wasm-simd-threaded.mjs', import.meta.url).href, wasm: `${url}/ort-wasm-simd-threaded.wasm` };
 }
-ort.env.wasm.numThreads = 1;
+// BitChord Desktop: with SharedArrayBuffer (main.js enables it) the runtime runs on several cores.
+ort.env.wasm.numThreads = typeof SharedArrayBuffer !== 'undefined' ? Math.max(1, Math.min(8, (self.navigator?.hardwareConcurrency || 2) >> 1)) : 1;
 
 // ---- FFT (radix-2, in place), as the native code -------------------------------------------
 

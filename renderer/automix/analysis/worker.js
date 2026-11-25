@@ -26,49 +26,61 @@ self.onmessage = async (ev) => {
   const { id, modelBase, samples, sampleRate, beatWindows = [], vocalWindows = [] } = ev.data;
   try {
     if (modelBase) setModelBase(modelBase);
+    const times = {};
+    let t = performance.now();
+    const lap = (k) => { const n = performance.now(); times[k] = Math.round(n - t); t = n; };
+    // BitChord: the phone's models. Beat This! gives the grids wherever it finds a beat; essentia's
+    // rhythm step is the fallback (BitChord Desktop: run only for a side the model found nothing on,
+    // instead of always, which saves ~6 s a song). One at a time: a session runs one inference at once.
+    // BitChord Desktop: progress for the Automix pill (the beat model is ~60% of the time, the vocal mask ~30%)
+    const progress = (p) => self.postMessage({ id, progress: Math.min(1, p) });
+    const beatWins = beatWindows.slice(0, 2);
+    const grids = [];
+    for (const [i, w] of beatWins.entries()) { grids.push(await trackBeats(w.pcm, w.offsetSec).catch(() => null)); progress((0.6 * (i + 1)) / beatWins.length); }
+    lap('beats');
+    const [head = null, tail = null] = grids;
+    const headBeats = head ? beatSide(head) : null;
+    const tailBeats = tail ? beatSide(tail) : (beatWindows.length === 1 ? headBeats : null);
     await ready;
     essentia ??= new Essentia(EssentiaWASM);
-    const result = analyze(essentia, samples, sampleRate);
+    const result = analyze(essentia, samples, sampleRate, lap, {
+      head: headBeats ? localGrid(headBeats) : null,
+      tail: tailBeats ? localGrid(tailBeats) : null,
+    });
+    result.headBeats = headBeats;
+    result.tailBeats = tailBeats;
+    progress(0.68);
 
-    // BitChord: the phone's models. Beat This! replaces essentia's grids wherever it finds one;
-    // essentia's stay as the fallback. One at a time: a single wasm session runs one inference at once.
-    const grids = [];
-    for (const w of beatWindows.slice(0, 2)) grids.push(await trackBeats(w.pcm, w.offsetSec).catch(() => null));
-    const [head = null, tail = null] = grids;
-    result.headBeats = head ? beatSide(head) : null;
-    result.tailBeats = tail ? beatSide(tail) : (beatWindows.length === 1 ? result.headBeats : null);
-    if (result.headBeats) {
-      const g = localGrid(result.headBeats);
-      Object.assign(result, { bpm: g.bpm, beatIntervalSec: g.beatIntervalSec, firstDownbeatSec: g.firstDownbeatSec, gridConfidence: g.gridConfidence });
-    }
-    if (result.tailBeats) result.tailGrid = localGrid(result.tailBeats);
-
-    for (const w of vocalWindows) {
+    for (const [i, w] of vocalWindows.entries()) {
+      progress(0.68 + (0.32 * i) / vocalWindows.length);
       const curve = await vocalCurve(w.left, w.right).catch(() => null);
       if (curve) result.vocals.push({ startSec: w.offsetSec, fps: VOCAL_FPS, curve: Array.from(curve, (v) => Math.round(v * 1000) / 1000) });
     }
-    self.postMessage({ id, result });
+    lap('vocals');
+    self.postMessage({ id, result, times });
   } catch (e) {
     self.postMessage({ id, error: String(e?.message || e) });
   }
 };
 
-function analyze(ess, samples, sampleRate) {
+function analyze(ess, samples, sampleRate, lap = () => {}, model = {}) {
   const durationSec = samples.length / sampleRate;
   const vec = ess.arrayToVector(samples);
   try {
     // --- rhythm --- (BitChord: over the opening, where the track is mixed in, and the last two
-    // minutes, where it is mixed out, each with its own grid and confidence)
-    const head = rhythmGrid(ess, samples, sampleRate, 0, Math.min(durationSec, HEAD_SEC));
-    const tailGrid = durationSec > HEAD_SEC ? rhythmGrid(ess, samples, sampleRate, Math.max(0, durationSec - TAIL_SEC), durationSec) : head;
+    // minutes, where it is mixed out, each with its own grid and confidence; Beat This!'s where it has one)
+    const head = model.head ?? rhythmGrid(ess, samples, sampleRate, 0, Math.min(durationSec, HEAD_SEC));
+    const tailGrid = model.tail ?? (durationSec > HEAD_SEC ? rhythmGrid(ess, samples, sampleRate, Math.max(0, durationSec - TAIL_SEC), durationSec) : head);
     const bpm = head?.bpm ?? tailGrid?.bpm ?? null;
     const beatIntervalSec = head?.beatIntervalSec ?? null;
     const firstDownbeatSec = head?.firstDownbeatSec ?? null;
     const gridConfidence = head?.gridConfidence ?? 0;
+    lap('rhythm');
 
     // --- key ---
     const key = ess.KeyExtractor(vec);
     const camelot = toCamelot(key.key, key.scale);
+    lap('key');
 
     // --- energy / structure ---
     const beat = beatIntervalSec ?? tailGrid?.beatIntervalSec;

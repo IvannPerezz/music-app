@@ -53,6 +53,9 @@ class Deck {
   get time() { return this.audio.currentTime || 0; }
   get duration() { return isFinite(this.audio.duration) ? this.audio.duration : (this.track?.duration || 0); }
   load(track, url) {
+    // Whatever Automix had scheduled or was holding on this deck belonged to the old song: drop it
+    // (its servo would seek the new song to the old one's position, or start it when paused).
+    this.mix.cancel();
     this.track = track;
     this.analysis = null;
     this.retried = false;
@@ -63,6 +66,7 @@ class Deck {
     this.fade.gain.cancelScheduledValues(0); this.fade.gain.value = 1;
   }
   unload() {
+    this.mix.cancel();
     this.audio.pause();
     this.audio.removeAttribute('src');
     this.audio.load();
@@ -316,6 +320,28 @@ export class Engine extends EventTarget {
     return w && w.id === this.cur.track?.id ? w : null;
   }
 
+  /**
+   * What Automix is doing right now, for the pill over the player bar:
+   * { kind: 'mix', title, progress } during a mix (0-1 through it), { kind: 'soon', title, secs } just
+   * before one, { kind: 'analyze', title, progress } while the playing or next song is analysed; else null.
+   */
+  get automixStatus() {
+    const dj = this.dj;
+    if (!this.automix || !dj || dj.state === 'idle') return null;
+    if (dj.state === 'scheduled' && dj.plan) {
+      const now = this.ctx.currentTime, { t0, durationSec } = dj.plan;
+      const title = dj.mixInto?.title || '';
+      if (now < t0) return { kind: 'soon', title, secs: t0 - now };
+      return { kind: 'mix', title, progress: Math.min(1, (now - t0) / durationSec), style: dj.plan.style };
+    }
+    const a = this.analyzer;
+    for (const t of [this.cur.track, this.nextTrack?.track]) {
+      const st = t && a?.statusOf(t.id);
+      if (st === 'analyzing' || st === 'pending') return { kind: 'analyze', title: t.title || '', progress: a.progressOf(t.id) };
+    }
+    return null;
+  }
+
   // ---------------------------------------------------------------- Automix (renderer/automix)
   async #syncAutomix() {
     if (!this.automix) { this.dj?.stop(); return; }
@@ -385,6 +411,9 @@ export class Engine extends EventTarget {
 
   /** The user took over (a pause, a seek, another song): the song in front plays on, the mix is dropped. */
   #cancelMix() {
+    // A finished mix leaves the new song gliding back to its normal speed (~24 s), held to the mix's
+    // clock by a servo that seeks it and starts it if paused: a pause or a seek ends that at once.
+    if (this.dj?.settling) { this.dj.settling.cancel(); this.dj.settling = null; }
     if (!this.dj?.mixing) return;
     const handedOff = this.dj.blend?.handedOff;
     this.dj.cancel();

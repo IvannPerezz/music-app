@@ -19,6 +19,9 @@ app.setName('BitChord');
 // decoder: on Iván's PC (NVIDIA) the hardware path failed mid-clip and the machine then froze.
 // A small square clip costs the processor next to nothing.
 app.commandLine.appendSwitch('disable-accelerated-video-decode');
+// SharedArrayBuffer, so Automix's AI models (ONNX Runtime) can use several processor cores: the beat
+// model took ~16 s per song on one.
+app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
 if (process.env.BITCHORD_USERDATA) app.setPath('userData', process.env.BITCHORD_USERDATA);
 const userData = app.getPath('userData');
 // Graphics card (Ajustes → Rendimiento). Chromium only takes these before the app is ready, so

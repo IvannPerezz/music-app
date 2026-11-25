@@ -366,7 +366,19 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
   background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; box-shadow: 0 6px 20px rgba(0,0,0,calc(.4 * var(--shade, 1)));
   animation: rise .3s ease;
 }
-#mix-badge svg { width: 14px; height: 14px; }
+#mix-badge svg { width: 14px; height: 14px; flex: none; }
+/* The Automix pill (app.js updateAutomixPill): what it's doing, with a progress bar. */
+#mix-badge { max-width: min(460px, 70vw); white-space: nowrap; padding: 6px 14px 6px 11px; gap: 9px; transition: opacity .2s; }
+#mix-badge .am-text { min-width: 0; flex: 0 1 auto; }
+#mix-badge .am-bar { flex: none; width: 74px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.28); overflow: hidden; }
+#mix-badge .am-bar[hidden] { display: none; }
+#mix-badge .am-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: #fff; transition: width .25s linear; }
+#mix-badge .am-pct { flex: none; min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+#mix-badge .am-pct:empty { display: none; }
+#mix-badge[data-kind="analyze"] svg { animation: am-spin 2.4s linear infinite; }
+@keyframes am-spin { to { transform: rotate(360deg); } }
+#mix-badge.out { animation: am-out .22s ease forwards; }
+@keyframes am-out { to { opacity: 0; transform: translateX(-50%) translateY(6px) scale(.96); } }
 
 /* menu extras */
 #menu .menu-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); padding: 8px 10px 4px; }

@@ -15,6 +15,19 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.68
+------------------------------------------------------------
+- Píldora de Automix encima de la barra de reproducción, con el color de la portada y una barra
+  de progreso: "Analizando «canción» 45 %" mientras estudia la canción, "Mezcla con «canción»
+  en 8 s" cuando se acerca la mezcla y "Mezclando con «canción» 62 %" durante la mezcla.
+- Automix analiza cada canción unas tres veces más rápido (unos 8 segundos en vez de 30): la
+  inteligencia artificial usa ahora varios núcleos del procesador.
+- Arreglado: al pausar justo después de una mezcla, la canción seguía avanzando sin sonido.
+- Arreglado: al cambiar de canción justo después de una mezcla, a veces la nueva empezaba en el
+  mismo segundo por el que iba la anterior en vez de desde el principio.
+- La duración de la mezcla viene ahora en 16 compases (como en el BitChord original).
+
+------------------------------------------------------------
 v0.6.67
 ------------------------------------------------------------
 - Automix nuevo: el mismo que usa ahora el BitChord original (basado en AutoMix).

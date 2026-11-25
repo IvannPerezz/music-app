@@ -300,6 +300,7 @@ export class AutoDJ {
     const grid = this.plan.style === 'crossfade' ? null : gridOf(cur);
     this.beatSec = grid ? grid.beatSec / outRate : null;
     this.state = 'scheduled';
+    this.mixInto = queued;
     log(`${STYLE_NAMES[this.plan.style]} hacia «${queued.title}»: ${this.plan.bars ? `${this.plan.bars} compases, ` : ''}${this.plan.durationSec.toFixed(1)} s${this.plan.rate !== from.unity ? `, velocidad ×${(this.plan.rate / from.unity).toFixed(3)}` : ''}${this.plan.reason ? ` (${this.plan.reason})` : ''}`);
   }
 
@@ -380,6 +381,7 @@ export class AutoDJ {
     this.window = { id: cur.fileKey, startSec: plan.out.loop[0], endSec: plan.out.loop[1], style: 'loop' };
     this.beatSec = plan.out.beatSec;
     this.state = 'scheduled';
+    this.mixInto = queued;
     log(`mezcla con bucles hacia «${queued.title}»: bucle de ${plan.out.bars}+${plan.in.bars} compases, rampa de ${plan.rampBars} compases (${plan.out.bpm.toFixed(1)} → ${plan.in.bpm.toFixed(1)} BPM), voz comprobada por ${plan.out.checkedBy === 'lyrics' ? 'la letra' : 'la IA'}`);
   }
 
