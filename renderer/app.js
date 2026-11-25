@@ -2522,7 +2522,8 @@ function mountCanvas(c) {
     const fade = shownAt ? Math.min(1, (performance.now() - shownAt) / 600) : 0; // fades in once it plays
     set('left', `${r.left - n.left}px`); set('top', `${r.top - n.top}px`);
     set('width', `${r.width}px`); set('height', `${r.height}px`);
-    set('borderRadius', `${parseFloat(cs.borderTopLeftRadius) * (r.width / img.offsetWidth)}px`);
+    const rad = cs.borderTopLeftRadius; // (a share of the cover's width, or pixels)
+    set('borderRadius', rad.endsWith('%') ? rad : `${parseFloat(rad) * (r.width / img.offsetWidth)}px`);
     set('opacity', String(+cs.opacity * fade));
     set('filter', cs.filter === 'none' ? '' : cs.filter); // (leave the view's own blurs alone)
   };

@@ -250,7 +250,7 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
 .np-bg { position: absolute; inset: -80px; background-size: cover; background-position: center; filter: blur(80px) saturate(1.6) brightness(.55); transform: scale(1.2); transition: background-image .6s; }
 .np-inner { position: relative; height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(300px, 1fr) minmax(0, 1.15fr); gap: 56px; padding: 32px 64px; align-items: center; }
 .np-left { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; }
-#np-art { width: min(440px, 42vh, 100%); aspect-ratio: 1; border-radius: 14px; object-fit: cover; box-shadow: 0 30px 80px rgba(0,0,0,calc(.55 * var(--shade, 1))); background: var(--surface); }
+#np-art { width: min(440px, 42vh, 100%); aspect-ratio: 1; border-radius: 4.5%; /* (a touch rounder than the old 14 px, in proportion to its size) */ object-fit: cover; box-shadow: 0 30px 80px rgba(0,0,0,calc(.55 * var(--shade, 1))); background: var(--surface); }
 .np-meta { width: min(440px, 42vh, 100%); margin-top: 22px; }
 #np-title { font-size: 24px; font-weight: 750; letter-spacing: -.3px; }
 #np-artist { font-size: 17px; color: rgba(255,255,255,.7); margin-top: 2px; }
