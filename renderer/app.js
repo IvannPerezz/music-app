@@ -2325,7 +2325,7 @@ function showMixBadge() { updateAutomix(); }
  * the covers' choreography during a mix (mixStage).
  */
 const AM_STARS = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle class="am-ring" cx="16" cy="16" r="15.9"/><circle class="am-prog" cx="16" cy="16" r="15.9" pathLength="100"/>
-  <g class="am-stars" transform="translate(4 4)"><path class="s1" d="M11.5 9.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12z"/><path class="s2" d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25z"/><path class="s3" d="M19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25z"/></g></svg>`;
+  <g class="am-stars" transform="translate(16 16) scale(.78) translate(-12 -12)"><path class="s1" d="M11.5 9.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12z"/><path class="s2" d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25z"/><path class="s3" d="M19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25z"/></g></svg>`;
 function updateAutomix() {
   const s = engine.automixStatus;
   driveMixStage(s);

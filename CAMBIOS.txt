@@ -15,6 +15,18 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.70
+------------------------------------------------------------
+- Automix: mezclas más cortas y más al final de la canción.
+  · Una mezcla a ritmo dura como mucho unos 22 segundos (antes una de 16 compases podía pasar
+    de 40 en canciones lentas, como el reguetón).
+  · Ya no empieza antes de tiempo: espera a que se acabe de cantar (según la letra sincronizada
+    o, si no hay letra, la voz que detecta la IA) y deja la canción que se va por encima hasta su
+    última frase. Antes podía adelantarse hasta 8 compases y pisar las últimas frases.
+- Las estrellitas de Automix ya no giran ni se salen del círculo: se quedan quietas y solo
+  titilan.
+
+------------------------------------------------------------
 v0.6.69
 ------------------------------------------------------------
 - La píldora de Automix del centro desaparece. En su lugar, a la izquierda de la barra de

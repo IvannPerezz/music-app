@@ -7,7 +7,7 @@
 // happens at the blend's midpoint, where the phone's CrossfadeController hands over.
 // BitChord Desktop: ported to plain JavaScript; tracks are the player's track objects (keyed by id).
 import { analyzer } from '../analysis/analyzer.js';
-import { scheduleTransition, plannedBars, MIN_GRID_CONFIDENCE } from './transition-scheduler.js';
+import { scheduleTransition, plannedBars, planMixOut, MIN_GRID_CONFIDENCE } from './transition-scheduler.js';
 import { asOutgoing, gridOf, phraseAtOrBefore } from './grid.js';
 import { IN_REGION_SEC, mixBeatPhaseAt, mixPositionAt, OUT_REGION_SEC, OUT_SEARCH_SEC, planLoopMix, scheduleLoopMix } from './loopMix.js';
 
@@ -54,6 +54,38 @@ export class AutoDJ {
     this.loopTimes = null;
     this.loopDecks = null;
     this.beatSec = null;
+    /** BitChord Desktop: where each song's singing ends (track seconds; null: no singing found). */
+    this.vocalEnds = new Map();
+  }
+
+  /**
+   * BitChord Desktop: the end of [track]'s last sung line, so the mix doesn't cut into it: from its
+   * synced lyrics, or else from the vocal mask over its last minute (a second that's mostly sung).
+   * Worked out once in the background; undefined until then.
+   */
+  vocalEndOf(track, a) {
+    if (this.vocalEnds.has(track.id)) return this.vocalEnds.get(track.id);
+    this.vocalEnds.set(track.id, undefined);
+    (async () => {
+      let end = null;
+      const spans = await this.host.sungSpans(track).catch(() => null);
+      if (spans?.length) end = Math.max(...spans.map(([, b]) => b));
+      else {
+        for (const w of a.vocals || []) {
+          if (w.startSec < a.durationSec - 70) continue;
+          const win = Math.max(1, Math.round(w.fps));
+          for (let i = 0; i + win <= w.curve.length; i += Math.max(1, win >> 2)) {
+            let sung = 0;
+            for (let k = i; k < i + win; k++) if (w.curve[k] > 0.4) sung++;
+            if (sung / win > 0.5) end = Math.max(end ?? 0, w.startSec + (i + win) / w.fps);
+          }
+        }
+      }
+      this.vocalEnds.set(track.id, end);
+      if (end != null) log(`${track.title}: se canta hasta el segundo ${end.toFixed(1)}${spans?.length ? ' (según la letra)' : ' (según la IA)'}`);
+    })();
+    while (this.vocalEnds.size > 40) this.vocalEnds.delete(this.vocalEnds.keys().next().value);
+    return undefined;
   }
 
   get snapshot() {
@@ -209,6 +241,7 @@ export class AutoDJ {
       // drawn on the seek bar, and if they aren't ready in time the song plays to its end and
       // crossfades there (a stub has no grid and no outro, so the fallback lands at the last 12 s).
       this.bothAnalyzed = this.currentAnalysis() !== null && analyzer.get(queued.id) !== null;
+      if (this.currentAnalysis()) this.vocalEndOf(playing, this.currentAnalysis());
       const cur = asOutgoing(this.bothAnalyzed ? this.currentAnalysis() : stubAnalysis(playing, front.durationSec));
       if (this.bothAnalyzed && !this.loopPlan && this.trackRemaining() < LOOP_PREPARE_SEC) {
         this.prepareLoopMix(cur, analyzer.get(queued.id), playing, queued);
@@ -257,12 +290,9 @@ export class AutoDJ {
     const effBpm = grid.bpm * outRate;
     const next = this.nextKey ? analyzer.get(this.nextKey) : null;
     // the same length the scheduler will choose for this pair (a filter mix runs longer than a weak-grid blend)
-    const bars = plannedBars(this.transitionBars, cur, next ?? null, outRate, front.unity);
-    const blendOutputSec = bars * 4 * (60 / effBpm);
-    const blendInputSec = blendOutputSec * outRate;
-    let mixOut = phraseAtOrBefore(grid, (cur.outroStartSec ?? cur.durationSec) - blendInputSec);
-    mixOut = Math.min(mixOut, phraseAtOrBefore(grid, cur.durationSec - blendInputSec - grid.barSec));
-    this.window = { id: cur.fileKey, startSec: mixOut, endSec: mixOut + blendInputSec, style: 'blend' };
+    const p = planMixOut(grid, cur, plannedBars(this.transitionBars, cur, next ?? null, outRate, front.unity), outRate, this.vocalEnds.get(cur.fileKey) ?? null);
+    const mixOut = p.mixOut;
+    this.window = { id: cur.fileKey, startSec: mixOut, endSec: mixOut + p.blendInputSec, style: 'blend' };
     this.beatSec = grid.beatSec / outRate;
     const t0 = front.timeline.ctxTimeAt(mixOut, now);
     return t0 === null ? 0 : Math.max(0, t0 - now);
@@ -291,7 +321,7 @@ export class AutoDJ {
     to.lock(from);
     to.setVolume(1);
     to.eq.reset();
-    this.plan = scheduleTransition({ from, to, fromAnalysis: cur, toAnalysis: next, bars: this.transitionBars, forceNow });
+    this.plan = scheduleTransition({ from, to, fromAnalysis: cur, toAnalysis: next, bars: this.transitionBars, forceNow, vocalEndSec: this.vocalEnds.get(cur.fileKey) ?? null });
     this.blend = { from, to, handedOff: false };
     const outRate = from.timeline.rateAt(this.host.ctx.currentTime) || from.unity;
     this.window = this.bothAnalyzed

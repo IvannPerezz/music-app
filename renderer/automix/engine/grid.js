@@ -30,4 +30,5 @@ export function asOutgoing(a) {
 
 export const phraseAtOrBefore = (g, t) => g.downbeatSec + Math.floor((t - g.downbeatSec) / g.phraseSec) * g.phraseSec;
 export const phraseAtOrAfter = (g, t) => g.downbeatSec + Math.ceil((t - g.downbeatSec) / g.phraseSec) * g.phraseSec;
+export const downbeatAtOrBefore = (g, t) => g.downbeatSec + Math.floor((t - g.downbeatSec) / g.barSec) * g.barSec;
 export const downbeatAtOrAfter = (g, t) => g.downbeatSec + Math.ceil((t - g.downbeatSec) / g.barSec) * g.barSec;

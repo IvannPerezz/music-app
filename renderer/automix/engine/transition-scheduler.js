@@ -1,7 +1,7 @@
 // From AutoMix (https://github.com/heydavidf/automix), Copyright (C) 2026 David Finnegan, as adapted
 // by BitChord. AGPL-3.0-only: see ../LICENSE and ../NOTICE.md.
 // BitChord Desktop: ported to plain JavaScript; rates are absolute, so "1" is the player's speed (deck.unity).
-import { gridOf, phraseAtOrBefore, phraseAtOrAfter, downbeatAtOrAfter, BEATS_PER_BAR } from './grid.js';
+import { gridOf, phraseAtOrBefore, phraseAtOrAfter, downbeatAtOrAfter, downbeatAtOrBefore, BEATS_PER_BAR } from './grid.js';
 
 // Below this, a beat-lock is more likely confidently WRONG than right (a 0.17 grid locked precisely
 // off-beat): a clean crossfade beats a bad beatmatch. 0.2-0.45 grids beatmatch but only for the
@@ -22,6 +22,42 @@ export function effectiveBlendBars(requestedBars, fromConfidence, toConfidence) 
   if (conf >= 0.6) return requestedBars;
   if (conf >= 0.45) return Math.min(requestedBars, 8);
   return Math.min(requestedBars, 4);
+}
+
+/**
+ * BitChord Desktop (Iván, after trying rock and reggaeton playlists): mixes were too long and came
+ * too early, cutting into lines still being sung. A blend lasts at most this long (the bars halve
+ * until it fits: 16 bars at 95 BPM were 40 s) ...
+ */
+export const MAX_BLEND_SEC = 22;
+/** ... and the outgoing song stays on top until its last sung line ends: the mix may start at most this share of itself before. */
+const VOCAL_OVERLAP = 0.3;
+
+/** [bars] halved until the blend (at [beatSec] output seconds a beat) fits MAX_BLEND_SEC, never under 4. */
+export function fitBars(bars, beatSec) {
+  while (bars > 4 && bars * BEATS_PER_BAR * beatSec > MAX_BLEND_SEC) bars /= 2;
+  return bars;
+}
+
+/**
+ * BitChord Desktop: where the outgoing song starts mixing out (track seconds) and for how many bars.
+ * The blend ends where the song's energy drops (its outro) but never starts before the singing is
+ * nearly over ([vocalEndSec]: the last sung line, from the lyrics or the vocal mask), and always ends
+ * a bar before the song does; a blend that can't fit after the singing gets shorter. It snaps to the
+ * phrase only when that's within 2 bars (AutoMix's phrase could move it 8 bars early), else to a bar.
+ */
+export function planMixOut(grid, a, bars, outRate, vocalEndSec = null) {
+  for (;;) {
+    const blendInputSec = bars * grid.barSec;
+    const latest = a.durationSec - blendInputSec - grid.barSec;
+    let target = (a.outroStartSec ?? a.durationSec) - blendInputSec;
+    if (vocalEndSec != null) target = Math.max(target, vocalEndSec - blendInputSec * VOCAL_OVERLAP);
+    if (target > latest && bars > 4 && vocalEndSec != null && vocalEndSec - blendInputSec * VOCAL_OVERLAP > latest) { bars /= 2; continue; }
+    target = Math.min(target, latest);
+    const phrase = phraseAtOrBefore(grid, target);
+    const mixOut = target - phrase <= 2 * grid.barSec ? phrase : downbeatAtOrBefore(grid, target);
+    return { bars, mixOut, blendInputSec, durationSec: blendInputSec / outRate };
+  }
 }
 
 /** The incoming rate (absolute) folded by half/double time so the stretch stays nearest 1. */
@@ -61,9 +97,8 @@ export function scheduleTransition(req) {
   if (!stretchAllowed(rate / unity)) {
     return scheduleFilterMix(req, earliest, fromGrid, toGrid, `ritmos un ${Math.round(Math.abs(rate / unity - 1) * 100)} % distintos`);
   }
-  // blend length measured in output seconds at the outgoing tempo
-  const effBars = effectiveBlendBars(bars, fromAnalysis.gridConfidence, toAnalysis.gridConfidence);
-  const durationSec = effBars * BEATS_PER_BAR * (60 / effectiveFromBpm);
+  // blend length measured in output seconds at the outgoing tempo (BitChord Desktop: at most MAX_BLEND_SEC)
+  let effBars = fitBars(effectiveBlendBars(bars, fromAnalysis.gridConfidence, toAnalysis.gridConfidence), 60 / effectiveFromBpm);
 
   // --- outgoing mix-out point (track time) ---
   let mixOutTrackTime;
@@ -72,14 +107,12 @@ export function scheduleTransition(req) {
     const earliestTrack = from.timeline.trackTimeAt(earliest) ?? fromPos;
     mixOutTrackTime = downbeatAtOrAfter(fromGrid, earliestTrack);
   } else {
-    const outro = fromAnalysis.outroStartSec ?? fromAnalysis.durationSec;
-    const blendInputSec = durationSec * outRate;
-    mixOutTrackTime = phraseAtOrBefore(fromGrid, outro - blendInputSec);
-    const latestStart = fromAnalysis.durationSec - blendInputSec - fromGrid.barSec;
-    mixOutTrackTime = Math.min(mixOutTrackTime, phraseAtOrBefore(fromGrid, latestStart));
+    const p = planMixOut(fromGrid, fromAnalysis, effBars, outRate, req.vocalEndSec);
+    effBars = p.bars;
+    mixOutTrackTime = p.mixOut;
     if (mixOutTrackTime < fromPos) {
-      // too late for the natural point: go at the next phrase instead
-      mixOutTrackTime = phraseAtOrAfter(fromGrid, from.timeline.trackTimeAt(earliest) ?? fromPos);
+      // too late for the natural point: go at the next bar instead
+      mixOutTrackTime = downbeatAtOrAfter(fromGrid, from.timeline.trackTimeAt(earliest) ?? fromPos);
     }
   }
 
@@ -89,6 +122,7 @@ export function scheduleTransition(req) {
     t0 = from.timeline.ctxTimeAt(mixOutTrackTime, now);
     if (t0 === null) return scheduleFallback(req, earliest);
   }
+  const durationSec = effBars * BEATS_PER_BAR * (60 / effectiveFromBpm);
 
   // --- incoming mix-in point (track time) ---
   const introEnd = toAnalysis.introEndSec ?? 0;
@@ -129,11 +163,12 @@ export function scheduleTransition(req) {
 export function plannedBars(requestedBars, fromAnalysis, toAnalysis, outRate, unity = 1) {
   const fromGrid = gridOf(fromAnalysis);
   const toGrid = toAnalysis ? gridOf(toAnalysis) : null;
-  if (!toAnalysis) return effectiveBlendBars(requestedBars, fromAnalysis.gridConfidence, 1);
-  if (!fromGrid || !toGrid || toAnalysis.gridConfidence < MIN_GRID_CONFIDENCE) return Math.min(requestedBars, FILTER_MAX_BARS);
+  const beatOut = fromGrid ? fromGrid.beatSec / outRate : 0.5;
+  if (!toAnalysis) return fitBars(effectiveBlendBars(requestedBars, fromAnalysis.gridConfidence, 1), beatOut);
+  if (!fromGrid || !toGrid || toAnalysis.gridConfidence < MIN_GRID_CONFIDENCE) return fitBars(Math.min(requestedBars, FILTER_MAX_BARS), beatOut);
   const rate = fold((fromGrid.bpm * outRate) / toGrid.bpm, unity);
-  if (!stretchAllowed(rate / unity)) return Math.min(requestedBars, FILTER_MAX_BARS);
-  return effectiveBlendBars(requestedBars, fromAnalysis.gridConfidence, toAnalysis.gridConfidence);
+  if (!stretchAllowed(rate / unity)) return fitBars(Math.min(requestedBars, FILTER_MAX_BARS), beatOut);
+  return fitBars(effectiveBlendBars(requestedBars, fromAnalysis.gridConfidence, toAnalysis.gridConfidence), beatOut);
 }
 
 /**
@@ -162,19 +197,17 @@ function scheduleFilterMix(req, earliest, fromGrid, toGrid, reason) {
   const unity = to.unity;
   const outRate = from.timeline.rateAt(now) || unity;
   const barOutSec = fromGrid.barSec / outRate;
-  let bars = Math.min(req.bars, FILTER_MAX_BARS);
-  let durationSec = bars * barOutSec;
-  let blendInputSec = durationSec * outRate;
+  let bars = fitBars(Math.min(req.bars, FILTER_MAX_BARS), barOutSec / BEATS_PER_BAR);
 
   const fromPos = from.expectedTrackTime ?? 0;
   let mixOutTrackTime;
   if (forceNow) {
     mixOutTrackTime = downbeatAtOrAfter(fromGrid, from.timeline.trackTimeAt(earliest) ?? fromPos);
   } else {
-    const outro = fromAnalysis.outroStartSec ?? fromAnalysis.durationSec;
-    mixOutTrackTime = phraseAtOrBefore(fromGrid, outro - blendInputSec);
-    mixOutTrackTime = Math.min(mixOutTrackTime, phraseAtOrBefore(fromGrid, fromAnalysis.durationSec - blendInputSec - fromGrid.barSec));
-    if (mixOutTrackTime < fromPos) mixOutTrackTime = phraseAtOrAfter(fromGrid, from.timeline.trackTimeAt(earliest) ?? fromPos);
+    const p = planMixOut(fromGrid, fromAnalysis, bars, outRate, req.vocalEndSec);
+    bars = p.bars;
+    mixOutTrackTime = p.mixOut;
+    if (mixOutTrackTime < fromPos) mixOutTrackTime = downbeatAtOrAfter(fromGrid, from.timeline.trackTimeAt(earliest) ?? fromPos);
   }
   let t0 = from.timeline.ctxTimeAt(mixOutTrackTime, now);
   if (t0 === null || t0 < earliest) {
@@ -183,6 +216,8 @@ function scheduleFilterMix(req, earliest, fromGrid, toGrid, reason) {
     if (t0 === null) return scheduleFallback(req, earliest, reason);
   }
 
+  let durationSec = bars * barOutSec;
+  let blendInputSec = durationSec * outRate;
   // never past the outgoing track's end: shorten to the bars that still fit
   const room = fromAnalysis.durationSec - 0.3 - mixOutTrackTime;
   if (blendInputSec > room) {
