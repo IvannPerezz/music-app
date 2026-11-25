@@ -367,18 +367,38 @@ h1.page-title { font-size: 30px; font-weight: 750; margin: 12px 0 20px; letter-s
   animation: rise .3s ease;
 }
 #mix-badge svg { width: 14px; height: 14px; flex: none; }
-/* The Automix pill (app.js updateAutomixPill): what it's doing, with a progress bar. */
-#mix-badge { max-width: min(460px, 70vw); white-space: nowrap; padding: 6px 14px 6px 11px; gap: 9px; transition: opacity .2s; }
-#mix-badge .am-text { min-width: 0; flex: 0 1 auto; }
-#mix-badge .am-bar { flex: none; width: 74px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.28); overflow: hidden; }
-#mix-badge .am-bar[hidden] { display: none; }
-#mix-badge .am-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: #fff; transition: width .25s linear; }
-#mix-badge .am-pct { flex: none; min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
-#mix-badge .am-pct:empty { display: none; }
-#mix-badge[data-kind="analyze"] svg { animation: am-spin 2.4s linear infinite; }
-@keyframes am-spin { to { transform: rotate(360deg); } }
-#mix-badge.out { animation: am-out .22s ease forwards; }
-@keyframes am-out { to { opacity: 0; transform: translateX(-50%) translateY(6px) scale(.96); } }
+/* Automix at work (app.js updateAutomix): twinkling stars by the seek bar, turning and breathing,
+   with a thin ring for how far it is (the analysis, then the mix). Hover for the details. */
+.p-seek { position: relative; }
+#am-ind { position: absolute; left: -34px; top: 50%; width: 26px; height: 26px; margin-top: -13px; display: grid; place-items: center;
+  color: var(--accent-light, var(--accent)); cursor: default; animation: am-in .35s cubic-bezier(.2,1.2,.3,1) backwards; }
+#am-ind[hidden] { display: none; }
+#am-ind.out { animation: am-out .25s ease forwards; }
+#am-ind svg { width: 26px; height: 26px; overflow: visible; }
+#am-ind .am-ring { fill: none; stroke: currentColor; stroke-width: 1.6; opacity: .22; }
+#am-ind .am-prog { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100;
+  transform: rotate(-90deg); transform-origin: 16px 16px; transition: stroke-dashoffset .3s linear; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--accent) 70%, transparent)); }
+#am-ind .am-stars { transform-origin: 16px 16px; animation: am-turn 3.2s linear infinite; }
+#am-ind .am-stars path { fill: currentColor; transform-box: fill-box; transform-origin: center; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 80%, transparent)); }
+#am-ind .s1 { animation: am-twinkle 1.6s ease-in-out infinite; }
+#am-ind .s2 { animation: am-twinkle 1.6s ease-in-out -.55s infinite; }
+#am-ind .s3 { animation: am-twinkle 1.6s ease-in-out -1.1s infinite; }
+@keyframes am-turn { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
+@keyframes am-twinkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.62); opacity: .55; } }
+@keyframes am-in { from { opacity: 0; transform: scale(.4) rotate(-90deg); } }
+@keyframes am-out { to { opacity: 0; transform: scale(.4); } }
+@media (prefers-reduced-motion: reduce) {
+  #am-ind .am-stars, #am-ind .am-stars path { animation: none; }
+  #am-ind svg { animation: am-glow 2s ease-in-out infinite; }
+  #am-ind, #am-ind.out { animation-duration: .01s; }
+}
+@keyframes am-glow { 50% { opacity: .45; } }
+
+/* Automix's cover choreography (app.js mixStage): both covers share the cover's spot during a mix.
+   The stage sits under the lyrics, so the incoming cover slides in behind them. */
+#nowplaying.mix-art .np-right { z-index: 2; }
+.mix-stage { position: absolute; z-index: 1; pointer-events: none; }
+.mix-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: transform, opacity; }
 
 /* menu extras */
 #menu .menu-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); padding: 8px 10px 4px; }

@@ -15,6 +15,19 @@ Numeración: vMAYOR.MENOR.REVISIÓN para versiones con novedades, y un cuarto n�
 (v0.6.0.1, v0.6.0.2...) para miniactualizaciones con retoques y arreglos pequeños.
 
 ------------------------------------------------------------
+v0.6.69
+------------------------------------------------------------
+- La píldora de Automix del centro desaparece. En su lugar, a la izquierda de la barra de
+  progreso, unas estrellitas con el color de la portada giran y titilan mientras Automix trabaja,
+  con un anillo que se va llenando (el análisis y luego la mezcla). Pasando el ratón por encima
+  se ve qué hace y el porcentaje. Si Windows tiene activado "reducir movimiento", solo brillan.
+- Nueva animación de las carátulas al mezclar con Automix: cuando empieza la mezcla, la carátula
+  de la canción que entra llega desde la derecha (por detrás de la letra) y las dos se quedan
+  juntas, más pequeñas, donde estaba la portada mientras dura la mezcla. Al terminar, la que se va
+  sale por la izquierda y la nueva crece hasta su sitio. Al pasar de canción a mano se mantiene
+  la animación de baraja de cartas.
+
+------------------------------------------------------------
 v0.6.68
 ------------------------------------------------------------
 - Píldora de Automix encima de la barra de reproducción, con el color de la portada y una barra

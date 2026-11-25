@@ -1309,7 +1309,9 @@ engine.addEventListener('trackchange', (e) => {
   if (player.nextIndex >= 0 && player.queue[player.nextIndex]?.id === e.detail.track.id) player.index = player.nextIndex;
   else { const i = player.queue.findIndex((t, k) => k > player.index && t.id === e.detail.track.id); if (i >= 0) player.index = i; }
   player.retries = 0;
+  artSwap = e.detail.transition === 'automix' ? 'mix' : null;
   player.afterTrackChange(player.current);
+  artSwap = null;
   if (e.detail.transition === 'automix') showMixBadge();
 });
 // ---- YouTube rate limiting: show it, and stop generating traffic while it lasts.
@@ -2042,6 +2044,20 @@ function applyFullscreen(on) {
 // ------------------------------------------------------------------ now playing / theming
 // ---- song change transitions
 let lastShownIndex = -1;
+/** 'mix' while Automix hands over to the next song: the covers don't shuffle like a deck (mixStage moves them). */
+let artSwap = null;
+/** The small cover cross-fades to the new one. */
+function fadeArt(img, src) {
+  if (!src || img.getAttribute('src') === src) { img.src = src; return; }
+  const pre = new Image();
+  pre.onload = pre.onerror = () => {
+    img.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-in' }).finished.then(() => {
+      img.src = src;
+      img.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' });
+    }).catch(() => { img.src = src; });
+  };
+  pre.src = src;
+}
 /** The new cover slides in over the old one (from the right, or from the left going back). */
 function slideArt(img, src, dir = 1) {
   if (!src || !img.getAttribute('src') || img.getAttribute('src') === src || !img.offsetWidth) { img.src = src; return; }
@@ -2144,8 +2160,15 @@ function updateNowPlaying() {
   $('#p-artist').innerHTML = t ? (t.artists || []).map((a) => a.id ? `<span class="link" data-artist="${esc(a.id)}">${esc(a.name)}</span>` : esc(a.name)).join(', ') : tr('Busca algo para empezar');
   const dir = t && lastShownIndex >= 0 && player.index < lastShownIndex ? -1 : 1; // previous song: slides from the left
   lastShownIndex = player.index;
-  slideArt($('#p-art'), art(t?.thumb), dir);
-  slideArt($('#np-art'), art(t?.thumb), dir);
+  if (artSwap === 'mix') {
+    fadeArt($('#p-art'), art(t?.thumb));
+    // under the mix's stage the real cover just changes (it shows again when the stage lets go)
+    if (mixStage) $('#np-art').src = art(t?.thumb); else fadeArt($('#np-art'), art(t?.thumb));
+  } else {
+    abortMixStage();
+    slideArt($('#p-art'), art(t?.thumb), dir);
+    slideArt($('#np-art'), art(t?.thumb), dir);
+  }
   $('#np-title').textContent = t?.title || '';
   $('#np-artist').textContent = t ? artistNames(t) : '';
   $('#np-stats').textContent = '';
@@ -2294,45 +2317,143 @@ function rgbToHsl(r, g, b) {
   return [hh, s, l];
 }
 
-function showMixBadge() { updateAutomixPill(); }
+function showMixBadge() { updateAutomix(); }
 
 /**
- * The Automix pill over the player bar: what it's doing, with a progress bar. Analysing a song
- * (playing or next), the seconds left before a mix, and how far through the mix it is.
+ * Automix at work: twinkling stars by the seek bar while it analyses a song (playing or next),
+ * waits for a mix or mixes, with a ring for how far it is and the details on hover. It also drives
+ * the covers' choreography during a mix (mixStage).
  */
-let pillKey = '';
-function updateAutomixPill() {
-  const b = $('#mix-badge');
+const AM_STARS = `<svg viewBox="0 0 32 32" aria-hidden="true"><circle class="am-ring" cx="16" cy="16" r="15.9"/><circle class="am-prog" cx="16" cy="16" r="15.9" pathLength="100"/>
+  <g class="am-stars" transform="translate(4 4)"><path class="s1" d="M11.5 9.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12z"/><path class="s2" d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25z"/><path class="s3" d="M19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25z"/></g></svg>`;
+function updateAutomix() {
   const s = engine.automixStatus;
-  const show = !!s && !(s.kind === 'soon' && s.secs > 15);
-  if (!show) {
-    if (!b.hidden && !b.classList.contains('out')) {
-      b.classList.add('out');
-      clearTimeout(updateAutomixPill.t);
-      updateAutomixPill.t = setTimeout(() => { b.hidden = true; b.classList.remove('out'); pillKey = ''; }, 220);
+  driveMixStage(s);
+  const el = $('#am-ind');
+  if (!s) {
+    if (!el.hidden && !el.classList.contains('out')) {
+      el.classList.add('out');
+      clearTimeout(updateAutomix.t);
+      updateAutomix.t = setTimeout(() => { el.hidden = true; el.classList.remove('out'); }, 250);
     }
     return;
   }
-  clearTimeout(updateAutomixPill.t);
-  b.classList.remove('out');
-  b.hidden = false;
+  clearTimeout(updateAutomix.t);
+  el.classList.remove('out');
+  if (el.hidden) { el.innerHTML = AM_STARS; el.hidden = false; }
   const title = `«${s.title}»`;
-  const text = s.kind === 'analyze' ? tr('Analizando {t}', { t: title })
-    : s.kind === 'soon' ? tr('Mezcla con {t} en {n} s', { t: title, n: Math.max(1, Math.ceil(s.secs)) })
-      : tr('Mezclando con {t}', { t: title });
   const p = s.kind === 'soon' ? null : Math.round(s.progress * 100);
-  const key = `${s.kind}|${s.title}`;
-  if (key !== pillKey) {
-    pillKey = key;
-    b.dataset.kind = s.kind;
-    b.innerHTML = `${icon('sparkle')}<span class="am-text ellipsis"></span><span class="am-bar"><i></i></span><span class="am-pct"></span>`;
-  }
-  b.querySelector('.am-text').textContent = text;
-  b.querySelector('.am-bar').hidden = p == null;
-  b.querySelector('.am-pct').textContent = p == null ? '' : `${p} %`;
-  if (p != null) b.querySelector('.am-bar i').style.width = `${p}%`;
+  el.title = 'Automix · ' + (s.kind === 'analyze' ? tr('Analizando {t}', { t: title })
+    : s.kind === 'soon' ? tr('Mezcla con {t} en {n} s', { t: title, n: Math.max(1, Math.ceil(s.secs)) })
+      : tr('Mezclando con {t}', { t: title })) + (p == null ? '' : ` · ${p} %`);
+  el.querySelector('.am-prog').style.strokeDashoffset = String(100 - (p ?? 0));
 }
-setInterval(updateAutomixPill, 250);
+setInterval(updateAutomix, 200);
+
+// ---- Automix's cover choreography (the cover and lyrics view, and full screen)
+// When a mix starts, the incoming cover comes in from the right (behind the lyrics) and both covers
+// share the cover's spot, smaller, for as long as the mix lasts; when it ends, the outgoing one
+// leaves to the left and the incoming one grows into place. Springs, transform and opacity only;
+// a skip mid-mix lets go of it at once (the manual skip keeps its card-deck shuffle).
+/** A damped spring as a CSS linear() easing, and how long it takes to settle. */
+function spring({ stiffness = 170, damping = 22, mass = 1 } = {}) {
+  const pts = [];
+  let x = 0, v = 0;
+  const dt = 1 / 120;
+  let t = 0;
+  while (t < 3) {
+    const a = (-stiffness * (x - 1) - damping * v) / mass;
+    v += a * dt; x += v * dt; t += dt;
+    pts.push(x);
+    if (t > 0.3 && Math.abs(x - 1) < 0.001 && Math.abs(v) < 0.01) break;
+  }
+  const n = 48, step = Math.max(1, Math.floor(pts.length / n));
+  const sampled = pts.filter((_, i) => i % step === 0);
+  sampled[sampled.length - 1] = 1;
+  return { easing: `linear(0, ${sampled.map((p) => +p.toFixed(4)).join(', ')})`, duration: Math.round(t * 1000) };
+}
+const SPRING_IN = spring({ stiffness: 80, damping: 14 }); // (~1.2 s, a slight overshoot as it lands)
+const SPRING_OUT = spring({ stiffness: 90, damping: 17 });
+const POSE = {
+  out: { solo: 'translate(0, 0) scale(1)', duo: 'translate(-26%, 0) scale(.5)', gone: 'translate(-130%, 0) scale(.42)' },
+  inn: { gone: 'translate(130%, 0) scale(.42)', duo: 'translate(26%, 0) scale(.5)', solo: 'translate(0, 0) scale(1)' },
+};
+let mixStage = null;
+function driveMixStage(s) {
+  if (s?.kind === 'mix' && !mixStage) startMixStage();
+  else if (mixStage && s?.kind !== 'mix') endMixStage();
+}
+/** Moves [img] to [pose] (a transform) and [opacity] with a spring, from wherever it is now. */
+function springTo(img, pose, opacity, sp) {
+  const cs = getComputedStyle(img);
+  const from = { transform: cs.transform === 'none' ? 'none' : cs.transform, opacity: cs.opacity };
+  img.getAnimations().forEach((a) => a.cancel());
+  const reduce = reducedMotion();
+  const a = img.animate([from, { transform: pose, opacity }], reduce ? { duration: 250, easing: 'ease', fill: 'forwards' } : { duration: sp.duration, easing: sp.easing, fill: 'forwards' });
+  return a.finished.catch(() => {});
+}
+function startMixStage() {
+  const npArt = $('#np-art'), np = $('#nowplaying');
+  const into = engine.dj?.mixInto;
+  if (!npOpen() || !into || engine.dj?.blend?.handedOff || !npArt.offsetWidth || document.body.classList.contains('vis-on')) return;
+  const host = npArt.parentElement;
+  if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+  const stage = document.createElement('div');
+  stage.className = 'mix-stage';
+  const cs = getComputedStyle(npArt);
+  const mk = (src) => {
+    const im = document.createElement('img');
+    im.alt = '';
+    im.src = src;
+    Object.assign(im.style, { borderRadius: cs.borderRadius, boxShadow: cs.boxShadow });
+    stage.append(im);
+    return im;
+  };
+  const out = mk(npArt.currentSrc || npArt.src), inn = mk(art(into.thumb));
+  // (the incoming card starts off to the right and invisible)
+  Object.assign(inn.style, { transform: POSE.inn.gone, opacity: '0' });
+  host.append(stage);
+  const place = () => {
+    if (!stage.isConnected) return;
+    Object.assign(stage.style, { left: npArt.offsetLeft + 'px', top: npArt.offsetTop + 'px', width: npArt.offsetWidth + 'px', height: npArt.offsetHeight + 'px', transform: npArt.style.transform || getComputedStyle(npArt).transform });
+    requestAnimationFrame(place);
+  };
+  place();
+  np.classList.add('mix-art');
+  npArt.style.opacity = '0'; // (the animated cover copies its opacity, so it hides too)
+  mixStage = { stage, out, inn, into };
+  springTo(out, POSE.out.duo, 1, SPRING_IN);
+  springTo(inn, POSE.inn.duo, 1, SPRING_IN);
+}
+/** A manual skip mid-mix: the stage goes at once and the real cover shuffles like a deck. */
+function abortMixStage() {
+  const st = mixStage;
+  if (!st) return;
+  mixStage = null;
+  st.stage.remove();
+  $('#np-art').style.opacity = '';
+  $('#nowplaying').classList.remove('mix-art');
+}
+function endMixStage() {
+  const st = mixStage;
+  mixStage = null;
+  const npArt = $('#np-art');
+  const finish = () => {
+    st.stage.remove();
+    npArt.style.opacity = '';
+    if (!mixStage) $('#nowplaying').classList.remove('mix-art');
+  };
+  const curId = engine.cur.track?.id;
+  if (curId === st.into.id) {
+    // the mix is done: the old cover leaves to the left, the new one grows into place
+    springTo(st.out, POSE.out.gone, 0, SPRING_OUT);
+    springTo(st.inn, POSE.inn.solo, 1, SPRING_OUT).then(finish);
+  } else {
+    // a skip or a cancelled mix: let go at once (a manual skip shuffles the real cover itself)
+    for (const im of [st.out, st.inn]) im.animate([{ opacity: getComputedStyle(im).opacity }, { opacity: 0 }], { duration: 160, fill: 'forwards' });
+    setTimeout(finish, 160);
+  }
+}
 
 let npCloseTimer = null;
 // ------------------------------------------------------------------ animated cover
